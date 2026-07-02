@@ -1,0 +1,31 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Dependencies
+node_modules
+
+# Build output
+dist
+dist-ssr
+
+# Local env overrides — .env itself IS committed (see .env.example); it
+# only holds local-dev defaults (mock-API toggle, localhost backend URL),
+# never secrets. Anything in *.local is assumed to be a personal override
+# and is not tracked.
+*.local
+
+# Editor / OS
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

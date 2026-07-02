@@ -1,0 +1,246 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #0b0b0c;
+  color: #e5e1e4;
+  overflow-x: hidden;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-panel {
+  background: rgba(26, 26, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(45, 45, 51, 0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(169, 116, 255, 0.4);
+  box-shadow: 0 12px 24px -8px rgba(169, 116, 255, 0.2);
+}
+
+.input-glow:focus {
+  box-shadow: 0 0 15px rgba(169, 116, 255, 0.15);
+  border-color: #a974ff;
+  background-color: #0e0e10;
+}
+
+.mana-gradient {
+  background: linear-gradient(135deg, #a974ff 0%, #00a2fd 100%);
+}
+
+/* --- Classes introduced by the Home page mockup --- */
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(119, 51, 217, 0.15);
+}
+
+.arcane-border {
+  position: relative;
+}
+
+.arcane-border::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid transparent;
+  background: linear-gradient(to bottom right, #d5baff, transparent, #7733d9) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  opacity: 0.3;
+}
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+}
+
+.mana-pulse {
+  animation: mana-pulse-kf 4s infinite ease-in-out;
+}
+
+@keyframes mana-pulse-kf {
+  0%,
+  100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.1);
+  }
+}
+
+/* --- Classes introduced by the Arcane Scrying mockup --- */
+
+.arcane-glow {
+  box-shadow: 0 0 20px rgba(169, 116, 255, 0.15);
+}
+
+.card-inner-shadow {
+  box-shadow: inset 0 0 10px rgba(169, 116, 255, 0.1);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floating-orb {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Global scrollbar theme (applies app-wide, not just this page —
+   confirmed intentional rather than scoping it to one screen). */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #131315;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4b4454;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d5baff;
+}
+
+/* --- Classes introduced by the Draft board mockup --- */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #a974ff;
+  border-radius: 10px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* --- Classes introduced by the Login page mockup --- */
+
+.mystic-glow {
+  box-shadow: 0 0 20px rgba(169, 116, 255, 0.15);
+}
+
+.mana-input:focus {
+  outline: none;
+  border-bottom: 2px solid #a974ff;
+  box-shadow: 0 4px 12px -4px rgba(169, 116, 255, 0.4);
+}
+
+.primary-btn-gloss {
+  background: linear-gradient(135deg, #a974ff 0%, #7733d9 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.primary-btn-gloss::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: rotate(45deg);
+  transition: 0.5s;
+}
+
+.primary-btn-gloss:hover::after {
+  left: 100%;
+}
+
+/* --- Classes introduced by the Draft Selection (Choose Your Ritual) mockup --- */
+
+.glass-card {
+  background: rgba(26, 26, 30, 0.6);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(45, 45, 51, 0.5);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: #d5baff;
+  box-shadow: 0 12px 24px -8px rgba(169, 116, 255, 0.3);
+  transform: translateY(-4px);
+}
+
+.mana-glow {
+  filter: drop-shadow(0 0 8px rgba(169, 116, 255, 0.4));
+}
+
+.ritual-gradient {
+  background: radial-gradient(circle at top right, rgba(169, 116, 255, 0.15), transparent 60%);
+}
+
+/* --- Mana symbol buttons (Quick Add Land in the deck builder's Import tab) --- */
+
+.mana-symbol {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-family: 'Georgia', serif;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+}
+
+.mana-white {
+  background: #f3eedd;
+  color: #8a7d4f;
+}
+
+.mana-blue {
+  background: #2f6fa8;
+  color: #cfe6f8;
+}
+
+.mana-black {
+  background: #3a3542;
+  color: #ddd8e6;
+}
+
+.mana-red {
+  background: #b5482f;
+  color: #fbd9cd;
+}
+
+.mana-green {
+  background: #3f7a4d;
+  color: #d7ecd9;
+}
