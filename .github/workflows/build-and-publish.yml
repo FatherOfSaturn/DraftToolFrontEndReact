@@ -15,11 +15,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Determine tags
-        id: meta
+      - name: Determine tags, build, and publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE="ghcr.io/$OWNER/draft-tool"
+          IMAGE="ghcr.io/$OWNER/front-end-react"
           TAGS="$IMAGE:${{ github.sha }}"
 
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
@@ -29,16 +30,10 @@ jobs:
             TAGS="$TAGS,$IMAGE:latest"
           fi
 
-          echo "tags=$TAGS" >> "$GITHUB_OUTPUT"
-
-      - name: Docker Build and Publish to GHCR
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $OWNER --password-stdin
+          echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$OWNER" --password-stdin
 
           BUILD_ARGS=""
-          IFS=',' read -ra TAG_ARR <<< "${{ steps.meta.outputs.tags }}"
+          IFS=',' read -ra TAG_ARR <<< "$TAGS"
           for tag in "${TAG_ARR[@]}"; do
             BUILD_ARGS="$BUILD_ARGS -t $tag"
           done
