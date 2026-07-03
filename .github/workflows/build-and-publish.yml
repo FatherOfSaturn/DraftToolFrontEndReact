@@ -18,7 +18,8 @@ jobs:
       - name: Determine tags
         id: meta
         run: |
-          IMAGE="ghcr.io/${{ github.repository_owner }}/front-end-react"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/$OWNER/draft-tool"
           TAGS="$IMAGE:${{ github.sha }}"
 
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
