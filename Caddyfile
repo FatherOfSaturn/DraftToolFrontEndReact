@@ -1,0 +1,3 @@
+pyramiddraft.xyz {
+    reverse_proxy front-end-react:80
+}
