@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - 'dev'
+      - 'feature/**'
     tags:
       - 'v*.*.*'
-      
+
 permissions:
   contents: read
   packages: write
@@ -30,6 +32,9 @@ jobs:
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
             VERSION="${GITHUB_REF_NAME#v}"
             TAGS="$TAGS,$IMAGE:$VERSION"
+          elif [[ "${{ github.ref_type }}" == "branch" && "${{ github.ref_name }}" != "main" ]]; then
+            SAFE_NAME=$(echo "${{ github.ref_name }}" | tr '/' '-')
+            TAGS="$TAGS,$IMAGE:$SAFE_NAME"
           else
             TAGS="$TAGS,$IMAGE:latest"
           fi
