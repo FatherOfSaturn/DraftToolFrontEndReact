@@ -1,111 +1,116 @@
-# Component & Module Inventory
+# Component And Module Guide
 
-A reference for every page, reusable component, hook, and library module
-in `src/`. For how these pieces fit together, see
-[ARCHITECTURE.md](./ARCHITECTURE.md).
+This is a feature-oriented map of `src`. Public props remain documented by TypeScript interfaces beside each component; this guide focuses on ownership and behavior.
 
-## Pages (`src/pages/`, plus two routed from `components/`)
+## App And Config
 
-One component per route. These own data fetching and top-level state;
-they compose the reusable components below rather than reimplementing
-UI.
+| Path | Responsibility |
+|---|---|
+| `app/App.tsx` | Google/auth/router providers, route table, account guard, and navigation adapters. |
+| `config/env.ts` | Typed environment values exposed as `env`. |
+| `main.tsx` | React root and global stylesheet import. |
+| `vite-env.d.ts` | `ImportMetaEnv` declarations for all supported variables. |
 
-| Component | Route | Props | Purpose |
-|---|---|---|---|
-| `HomePage` | `/` | — | Marketing/landing page. |
-| `DraftSelectionPage` (`components/draft-selection/`) | `/draft-selection` | `onSelectRitual?`, `onCreateNewRitual?` | Draft-mode picker. Only navigation to Draft Setup is wired (see doc comment). |
-| `DraftSetupPage` | `/draft-setup` | `onEnterDraft(gameID, playerName)` | Create-a-game / join-a-game forms. |
-| `DraftRouteWrapper` | `/draft/:gameID/:playerName` | — | Reads `useParams()`, renders `DraftPage` with plain string props. |
-| `DraftPage` | (rendered by the wrapper above) | `gameID`, `playerName`, `waitingStrategy?` | The live draft board. See [ARCHITECTURE.md](./ARCHITECTURE.md#the-draft-board-usedraftgame--usepackmergepoller). |
-| `DeckBuilderPage` | `/deckbuilder/:gameID?/:playerName?` | — (reads optional route params) | Build a deck from a finished draft, or from scratch via Import. |
-| `AccountPage` | `/account` | — | Mock draft history + saved decklists, client-side search/filter. |
-| `MulliganSimulatorPage` (`components/mulligan-simulator/`) | `/mulligan-simulator` | — | Standalone opening-hand simulator. |
-| `LoginPortalPage` | `/login` | `onLoginSuccess?`, `supportAvatars?`, `oracleCardImageSrc?` | The routed login screen ("Portal" copy). Thin wrapper around `AuthPage`. |
-| `LoginPage` (`components/login/`) | *not routed* | `onLoginSuccess?` | The "Grimoire" copy variant. Thin wrapper around `AuthPage`. Exported for future use. |
+## Auth
 
-## Layout (`src/components/layout/`)
+| Module | Responsibility |
+|---|---|
+| `features/auth/AuthContext.tsx` | Login, logout, account restoration, refresh, and local account-ID persistence. |
+| `features/auth/RequireAuth.tsx` | Loading screen or `/login` redirect for protected content. |
+| `features/auth/pages/LoginPage.tsx` | Routed login page; passes the Google ID token to `AuthContext` and navigates to `/account`. |
+| `features/auth/components/AuthPage.tsx` | Google login UI and errors. Username/password controls are intentionally disabled. |
+| `features/auth/components/SupportPane.tsx` | Decorative/support content beside login. |
 
-| Component | Props | Purpose |
-|---|---|---|
-| `Header` | `search?: { value, onChange, placeholder? }` | The one shared top nav, used on every page. Active link is derived from the real route via `useLocation()`. Pass `search` to show a search box (used by `AccountPage`). |
-| `Footer` | — | The one shared footer, used on every page. |
+## Account
 
-## Draft board (`src/components/draft-board/`)
+| Module | Responsibility |
+|---|---|
+| `features/account/pages/AccountPage.tsx` | Composes profile, mock past-draft filtering/export, and backend saved decks. |
+| `features/account/api/accountApi.ts` | Login, account, display-name, and deck CRUD endpoint contracts. |
+| `features/account/hooks/useAccountDecks.ts` | Loads real decks for an account and deletes them after confirmation. |
+| `features/account/model/accountTypes.ts` | Backend `Account` and `Deck` DTOs. |
+| `features/account/data/mockPastDrafts.ts` | Static `PastRitual` rows only; it does not export saved decks. |
+| `features/account/components/AccountProfile.tsx` | Account identity and backend display-name editing. |
+| `features/account/components/SavedDecksSection.tsx` | Backend deck table and delete/create-navigation controls. |
+| `features/account/components/PastDraftsSection.tsx` | Mock history table and JSON export. |
+| `features/account/components/PastDraftFilters.tsx` | Partner/date controls applied by `AccountPage`. |
 
-Reusable across the draft board **and** the deck builder — that's why
-they live in a feature folder rather than under `pages/`.
+The account API has create/update deck methods, but no current component invokes them. "Create New Deck" navigates to the standalone deck builder.
 
-| Component | Props | Purpose |
-|---|---|---|
-| `FilterPanel` | `search`, `onSearchChange`, `activeColors`, `onToggleColor`, `activeCmc`, `onToggleCmc`, `activeType`, `onToggleType` | Search/color/CMC/type filter bar. Pair with `useCardFilters` (see below) — its `filterPanelProps` is shaped to spread directly onto this component. |
-| `CardGrid` | `cards`, `stagedCardID`, `onStage`, `disabled`, `minSlots?` (default 10) | Responsive grid of cards. Click to stage/unstage; corner button flips double-faced cards. |
-| `PoolSidebar` | `cards`, `total`, `tab`, `onTabChange`, `onImportCards?`, `showImportTab?`, `confirmAction?`, `topOffsetPx?`, `sideboardCards?`, `onMoveToSideboard?`, `onMoveToList?`, `onAddLand?`, `onExport?` | The fixed "My Pool" sidebar (List/Sideboard/Analytics/Import tabs). Every optional prop is a feature toggle — see the JSDoc on each in `PoolSidebar.tsx` for exactly what omitting it does. |
-| `StatsBar` | `playerName`, `partnerName`, `doublePicksRemaining`, `packsLeft`, `packsTotal`, `gameID` | The bar under the header on the draft board showing pack/pick progress. |
-| `ExtraPickFab` | `armed`, `disabled`, `onClick` | Floating action button for arming a "double pick". |
+## Card Workspace
 
-Plus two non-component modules used by the above and by `DeckBuilderPage`:
+Shared by `DraftPage` and `DeckBuilderPage`.
 
-- **`cardHelpers.ts`** — `cardColors(card)`, `cmcBucketFor(cmc)`,
-  `filterCards(cards, filterState)` (pure predicate, see
-  [ARCHITECTURE.md](./ARCHITECTURE.md#filtering-usecardfilters)),
-  plus display constants (`CARD_COLOR_BADGE`, `COLOR_PIP_STYLES`,
-  `TYPE_FILTERS`) and the `ManaColor`/`CmcBucket`/`CardFilterState` types.
-- **`importDecklist.ts`** — `buildCard(name, typeLine, frameKey)` and
-  `importDecklist(text)`, used by the deck builder's Import tab and
-  Quick Add Land buttons.
+| Module | Responsibility |
+|---|---|
+| `features/card-workspace/components/CardGrid.tsx` | Card tiles, staging/action clicks, flip images, and optional empty slots. |
+| `features/card-workspace/components/FilterPanel.tsx` | Search, color, mana value, and type controls. |
+| `features/card-workspace/components/PoolSidebar.tsx` | List, sideboard, analytics, import, land, export, and confirm-pick modes. Optional props enable each mode. |
+| `features/card-workspace/components/PoolList.tsx` | Compact card list and move actions. |
+| `features/card-workspace/components/PoolAnalytics.tsx` | Live mana-curve and color summaries. |
+| `features/card-workspace/components/ImportDecklistTab.tsx` | Pasted-list import UI. |
+| `features/card-workspace/hooks/useCardFilters.ts` | React filter state and `FilterPanel` props. |
+| `features/card-workspace/model/cardFilters.ts` | Pure filtering, color/CMC derivation, constants, and filter types. |
+| `features/card-workspace/utils/importDecklist.ts` | Converts parsed names into placeholder `Card` objects. |
 
-## Common (`src/components/common/`)
+## Draft
 
-| Component | Props | Purpose |
-|---|---|---|
-| `StatusScreen` | `children`, `tone?: 'normal' \| 'error'` | Centered full-viewport loading/error message. Shared by `DraftPage` and `DeckBuilderPage`. |
+| Module | Responsibility |
+|---|---|
+| `features/draft/pages/DraftSelectionPage.tsx` | Visual format picker; all choices currently enter the same setup flow. |
+| `features/draft/pages/DraftSetupPage.tsx` | Creates a game or validates an existing game/player before navigation. |
+| `features/draft/pages/DraftRouteWrapper.tsx` | Reads and validates draft route parameters. |
+| `features/draft/pages/DraftPage.tsx` | Live board composition, staged picks, extra picks, waiting strategy, and deck-builder navigation. |
+| `features/draft/hooks/useDraftGame.ts` | Game fetch, derived player/pack state, pick submission, and local response updates. |
+| `features/draft/hooks/usePackMergePoller.ts` | Non-overlapping merge polling with one-time completion notification. |
+| `features/draft/api/gameApi.ts` | Selects the real or mock implementation of the game endpoint contract. |
+| `features/draft/api/mockGameApi.ts` | Memory-only generated games and picks; not a complete game engine. |
+| `features/draft/model/gameTypes.ts` | Backend game, player, pack, creation, and status DTOs. |
+| `features/draft/components/StatsBar.tsx` | Player, opponent, pack, extra-pick, and game status. |
+| `features/draft/components/ExtraPickFab.tsx` | Arms or disarms the next double pick. |
 
-## Login (`src/components/login/`)
+## Deck Builder
 
-| Component | Props | Purpose |
-|---|---|---|
-| `AuthPage` | `AuthPageCopy` fields (`heading`, `subheading`, `identityLabel`, `identityPlaceholder`, `secretLabel`, `rememberMeLabel`, `forgotLabel`, `submitLabel`, `oauthLabel`, `mainTopPaddingClassName?`) plus `onLoginSuccess?`, `supportAvatars?`, `oracleCardImageSrc?` | The actual login form + "Support the Archives" panel implementation. Configured per-variant by `LoginPortalPage` and `LoginPage` — see [ARCHITECTURE.md](./ARCHITECTURE.md#login-pages-authpage). |
+`features/deck-builder/pages/DeckBuilderPage.tsx` loads drafted cards when route parameters are present or starts with an import tab otherwise. It manages mainboard/sideboard moves, basic lands, filtering, and clipboard export. It does not currently persist through `accountApi`.
 
-## Hooks (`src/hooks/`)
+## Mulligan Simulator
 
-| Hook | Signature | Purpose |
-|---|---|---|
-| `useDraftGame` | `(gameID, playerName) => { loading, error, player, partner, currentPack, canDoublePick, packsExhausted, readyForDeckBuilder, draftCard, drafting, refreshGameInfo, ... }` | All draft-board data fetching + derived state + the `draftCard` mutation. |
-| `usePackMergePoller` | `({ gameID, active, onMerged }) => void` | Polls the merge endpoint on an interval while `active`; calls `onMerged()` on `GAME_MERGED`. |
-| `useCardFilters` | `(cards: Card[]) => { search, setSearch, activeColors, toggleColor, activeCmc, toggleCmc, activeType, toggleType, filteredCards, filterPanelProps }` | Shared filter state for any screen pairing a card list with `<FilterPanel/>`. |
+| Module | Responsibility |
+|---|---|
+| `features/mulligan-simulator/pages/MulliganSimulatorPage.tsx` | Deck input, hand controls, simulation UI, and insights composition. |
+| `features/mulligan-simulator/hooks/useMulliganSimulator.ts` | Parsed deck, hand, mulligan, and draw state. |
+| `features/mulligan-simulator/model/mulliganUtils.ts` | Quantity expansion, local category lookup, and non-mutating shuffle. |
+| `features/mulligan-simulator/components/DecklistPane.tsx` | Decklist input and summary. |
+| `features/mulligan-simulator/components/MulliganZone.tsx` | Opening-hand and mulligan interactions. |
+| `features/mulligan-simulator/components/InsightsPane.tsx` | Probability output plus currently placeholder advanced insights. |
 
-## Library (`src/lib/`)
+## Home And Shared
 
-Pure, dependency-free functions — no React, no side effects (aside from
-the intentionally side-effecting `placeholderArt`, which is pure in the
-sense of always returning the same output for the same input).
+| Module | Responsibility |
+|---|---|
+| `features/home/pages/HomePage.tsx` | Landing page. |
+| `shared/components/layout/Header.tsx` | Shared navigation, route highlighting, sign-in navigation, and optional search. |
+| `shared/components/layout/Footer.tsx` | Shared footer. |
+| `shared/components/StatusScreen.tsx` | Full-page loading and error state. |
+| `shared/api/httpClient.ts` | Base URL, status errors, JSON, and empty-response handling. |
+| `shared/model/cardTypes.ts` | Backend-compatible `Card` and `CardDetail` DTOs. |
+| `shared/lib/basicLands.ts` | Basic-land metadata. |
+| `shared/lib/cardCategory.ts` | Type-line category mapping. |
+| `shared/lib/cardTypeLookup.ts` | Limited local card type lookup pending Scryfall integration. |
+| `shared/lib/errors.ts` | Unknown-error normalization. |
+| `shared/lib/hypergeometric.ts` | Probability mass and at-least calculations. |
+| `shared/lib/parseDecklist.ts` | Common decklist parser and count helper. |
+| `shared/lib/placeholderArt.ts` | Deterministic SVG card placeholders. |
 
-| Module | Exports | Purpose |
-|---|---|---|
-| `errors.ts` | `getErrorMessage(err: unknown): string` | Normalizes a `catch` value into a display string. |
-| `basicLands.ts` | `BASIC_LANDS`, `BASIC_LAND_FRAME` | Canonical WUBRG basic-land metadata, shared by `PoolSidebar`'s Quick Add buttons and `DeckBuilderPage`'s `addLand`. |
-| `placeholderArt.ts` | `placeholderArt(name, frameKey)`, `ArtFrameKey` | Generates a data-URI SVG "card art" placeholder. Used by `mockGameApi.ts` and `importDecklist.ts`. |
-| `parseDecklist.ts` | `parseDecklist(text)`, `totalCardCount(entries)`, `DecklistEntry` | Parses pasted decklist text (`"4 Lightning Bolt"` style lines) into structured entries. |
-| `cardTypeLookup.ts` | `lookupTypeLine(name)` | Small built-in name → type-line table. Placeholder until a real card-lookup API exists (see `TODO(scryfall)`). |
-| `cardCategory.ts` | `categorizeTypeLine(typeLine)`, `CardCategory` | Buckets a type line into Land/Creature/Instant/etc. |
-| `hypergeometric.ts` | `probabilityOfAtLeast(...)` | Hypergeometric probability calculation for the mulligan simulator. |
+## Tests
 
-## API (`src/api/`)
+Tests are colocated with their modules:
 
-| Module | Exports | Purpose |
-|---|---|---|
-| `gameApi.ts` | `gameApi` (`fetchGameData`, `createAndStartGame`, `draftCard`) | The one interface every page/hook uses. Delegates to `mockGameApi` or real `fetch()` based on `VITE_USE_MOCK_API`. |
-| `mockGameApi.ts` | (internal, used via `gameApi`) | In-memory fake backend for frontend-only development. |
-
-## Data (`src/data/`)
-
-| Module | Exports | Purpose |
-|---|---|---|
-| `mockAccountData.ts` | `MOCK_PAST_RITUALS`, `MOCK_SAVED_MANIFESTATIONS`, `PastRitual`, `SavedManifestation` | Static mock data backing `AccountPage` until a real account API exists. |
-
-## Types (`src/types/index.ts`)
-
-Mirrors the backend's DTOs (Angular interfaces / Java classes) exactly —
-field names must stay in sync with `org.magic.draft.api` on the backend.
-Exports: `Card`, `CardDetail`, `CardPack`, `Player`, `PlayerStart`,
-`GameInfo`, `GameCreationInfo`, `GameState`, `GameStatusMessage`.
+| Test | Coverage |
+|---|---|
+| `shared/lib/parseDecklist.test.ts` | Common list formats, comments/headings, totals. |
+| `shared/lib/hypergeometric.test.ts` | Boundaries and valid probability ranges. |
+| `features/card-workspace/model/cardFilters.test.ts` | Color/CMC derivation and combined filters. |
+| `features/mulligan-simulator/model/mulliganUtils.test.ts` | Quantity/category expansion and non-mutating shuffle. |
+| `features/draft/hooks/usePackMergePoller.test.ts` | Slow-request exclusion and one-time merge callback. |
+| `features/account/hooks/useAccountDecks.test.ts` | No-account idle behavior and backend deletion state. |

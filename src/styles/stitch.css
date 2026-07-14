@@ -14,7 +14,7 @@ body {
 
 .glass-panel {
   background: rgba(26, 26, 30, 0.6);
-  backdrop-filter: blur(20px);
+  /* backdrop-filter: blur(20px); */
   border: 1px solid rgba(45, 45, 51, 0.5);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -243,4 +243,15 @@ body {
 .mana-green {
   background: #3f7a4d;
   color: #d7ecd9;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
 }

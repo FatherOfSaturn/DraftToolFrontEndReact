@@ -1,120 +1,135 @@
 # Pyramid Draft
 
-A React + TypeScript frontend for a two-player Magic: The Gathering
-"Pyramid Draft" cube-drafting app: create or join a draft, pick from
-packs in real time, build a deck from what you drafted, and (separately)
-simulate opening hands for probability practice. Talks to an existing
-Java/Quarkus backend — or, with one env var, an in-memory mock backend
-so the whole app runs with no backend at all.
+React and TypeScript frontend for a two-player Magic: The Gathering cube draft. It supports game setup and drafting, deck construction, Google-backed accounts, saved-deck management, and a standalone opening-hand simulator.
 
-## Quick start
+## Quick Start
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open the printed local URL — you'll land on the Home page. By default
-the app expects a backend at `http://localhost:8080`.
-
-**No backend handy?** Copy `.env.example` to `.env` and set
-`VITE_USE_MOCK_API=true`. Every screen (Home → Draft Setup → create/join
-a game → the live draft board → deck builder) works identically against
-an in-memory fake backend (`src/api/mockGameApi.ts`) with simulated
-network latency — nothing else in the app needs to change, since every
-page only ever calls the `gameApi` object, never `fetch` directly.
+The default API base URL is `http://localhost:8080`. Copy `.env.example` to `.env.local` and configure Google OAuth before using account login.
 
 ```bash
-npm run build      # tsc --noEmit && vite build
-npm run preview    # serve the production build locally
+npm run typecheck   # TypeScript without emitting files
+npm test            # Vitest suite, once
+npm run test:watch  # Vitest watch mode
+npm run build       # typecheck, then Vite production build
+npm run preview     # serve the production build locally
 ```
 
-## Documentation
+There is no lint script currently.
 
-| Doc | What's in it |
-|---|---|
-| **This file** | Quick start, tech stack, project layout, route table |
-| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | How the pieces fit together: data flow, the mock/real API switch, the `WaitingStrategy` and `useCardFilters` extension points |
-| [docs/COMPONENTS.md](./docs/COMPONENTS.md) | Every page, component, hook, and lib module — props and purpose |
-| [docs/CHANGELOG.md](./docs/CHANGELOG.md) | What changed in the most recent optimization/reorganization pass, plus historical wiring notes and known-mock-data callouts carried forward from before |
+## Structure
 
-## Tech stack
-
-- **React 18** + **TypeScript** (strict mode)
-- **Vite** for dev server/build
-- **React Router v6** for client-side routing
-- **Tailwind CSS** — design tokens (`tailwind.config.js`) and a handful
-  of custom classes (`src/styles/stitch.css`) extracted from the
-  original Google Stitch HTML mockups this UI was converted from
-
-No test runner, linter, or state-management library is currently
-configured. If you add one, `lib/` is written to be trivially unit
-testable (pure functions, no React) — that'd be the natural place to
-start.
-
-## Project structure
-
-```
+```text
 src/
-  main.tsx              React root, global styles
-  App.tsx                Route table (see below)
-  types/index.ts          Card, CardPack, Player, GameInfo, etc — mirrors
-                          the backend's DTOs field-for-field
-  vite-env.d.ts           Typed import.meta.env
-
-  api/
-    gameApi.ts             The one interface every page/hook calls
-    mockGameApi.ts          In-memory fake backend (VITE_USE_MOCK_API=true)
-
-  hooks/
-    useDraftGame.ts          Draft-board data fetching + derived state
-    usePackMergePoller.ts    Polls the merge endpoint while waiting
-    useCardFilters.ts        Shared search/color/CMC/type filter state
-
-  lib/                     Pure, dependency-free helpers (see COMPONENTS.md)
-    errors.ts  basicLands.ts  placeholderArt.ts  parseDecklist.ts
-    cardTypeLookup.ts  cardCategory.ts  hypergeometric.ts
-
-  data/
-    mockAccountData.ts      Mock draft history / saved decks (Account page)
-
-  components/
-    layout/                 Header, Footer — shared on every page
-    draft-board/             FilterPanel, CardGrid, PoolSidebar, StatsBar,
-                             ExtraPickFab — shared by the draft board AND
-                             the deck builder
-    common/                 StatusScreen — shared loading/error screen
-    login/                  AuthPage (shared form) + LoginPage (a copy variant)
-    draft-selection/         DraftSelectionPage
-    mulligan-simulator/      MulliganSimulatorPage
-
-  pages/
-    HomePage.tsx  DraftSetupPage.tsx  DraftRouteWrapper.tsx  DraftPage.tsx
-    DeckBuilderPage.tsx  AccountPage.tsx  LoginPortalPage.tsx
+  main.tsx                 React entry point and global styles
+  app/App.tsx              providers and route table
+  config/env.ts            normalized, typed runtime configuration
+  shared/
+    api/httpClient.ts      API URL, JSON, void, and error handling
+    components/            shared layout and status UI
+    lib/                   parsing, probability, card, and error helpers
+    model/cardTypes.ts     shared backend card DTOs
+  features/
+    auth/                  Google login, session restoration, route guard
+    account/               account profile, real saved decks, mock draft history
+    card-workspace/        reusable card grid, filters, pool, and import UI
+    deck-builder/          standalone and post-draft deck construction
+    draft/                 setup, selection, live draft, game APIs, polling
+    home/                  landing page
+    mulligan-simulator/    opening hands and probability analysis
+  styles/                  global Stitch/Tailwind styles
+  test/setup.ts            Vitest DOM matchers
+  vite-env.d.ts            typed Vite environment variables
 ```
+
+Feature folders own their pages, components, hooks, API adapters, and models. `shared` contains only cross-feature code; `config` centralizes environment access. See [Architecture](./docs/ARCHITECTURE.md) and [Components](./docs/COMPONENTS.md).
 
 ## Routes
 
-| Path | Screen |
+| Path | Behavior |
 |---|---|
 | `/` | Home |
-| `/draft-selection` | Choose a draft mode |
-| `/draft-setup` | Create or join a game |
-| `/draft/:gameID/:playerName` | The live draft board |
-| `/deckbuilder/:gameID?/:playerName?` | Deck builder (from a draft, or standalone via Import) |
-| `/account` | Draft history + saved decks (mock data) |
-| `/mulligan-simulator` | Opening-hand probability simulator |
-| `/login` | Login |
+| `/draft-selection` | Format picker; every option currently continues to the same Pyramid Draft setup |
+| `/draft-setup` | Create or find a game |
+| `/draft/:gameID/:playerName` | Live draft board |
+| `/deckbuilder/:gameID?/:playerName?` | Imported deck or drafted-card workspace |
+| `/account` | Protected account profile, saved decks, and mock past drafts |
+| `/mulligan-simulator` | Standalone opening-hand simulator |
+| `/login` | Google Sign-In |
 
-Full detail on each screen — what's real, what's mock, and what's
-intentionally not wired up yet — is in
-[docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md#known-placeholders--not-yet-wired-seams).
+Only `/account` is auth-guarded. Other routes can still call game endpoints without an account.
 
-## Environment variables
-
-Set in `.env` (copy from `.env.example`):
+## Configuration
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `VITE_API_BASE_URL` | `http://localhost:8080` | Where the Quarkus backend is running. Ignored when `VITE_USE_MOCK_API=true`. |
-| `VITE_USE_MOCK_API` | `false` | Set `true` to run entirely against the in-memory mock backend — no Java server required. |
+| `VITE_API_BASE_URL` | `http://localhost:8080` | Base URL used by the shared HTTP client for game and account requests. |
+| `VITE_GOOGLE_CLIENT_ID` | empty | Google OAuth web client ID. Without it, the login page reports that Google Sign-In is unavailable. |
+| `VITE_USE_MOCK_API` | `false` | Replaces only the draft `gameApi` with an in-memory implementation. Account APIs remain real. |
+| `VITE_SKIP_AUTH` | `false` | In development only, bypasses the `/account` route guard. It does not create an account or mock account data and has no effect in production builds. |
+
+The game mock supports generated games, picks, and loading states without the game backend. It is memory-only, uses placeholder cards, does not model real cube contents or balance, and does not complete the merge-and-swap lifecycle. It is not a replacement for the account backend.
+
+## Current Data Boundaries
+
+- Google returns an ID token; `POST /account/login` exchanges it for the app's `Account` DTO. The account ID is stored locally and used to restore the account with `GET /account/{accountID}`.
+- Display-name updates and saved-deck listing/deletion call the real account API. Create/update deck client methods exist, but the deck-builder UI currently exports to the clipboard rather than saving.
+- Past drafts are still read from `features/account/data/mockPastDrafts.ts`; their filters and JSON export are client-side.
+- Imported card typing and mulligan categories use a small local lookup, not Scryfall. The probability calculations are real, but advanced simulator insight cards remain placeholders.
+
+## Tests
+
+Vitest runs in `jsdom` with Testing Library and `jest-dom`. Current tests cover decklist parsing, hypergeometric helpers, card filtering, mulligan utilities, merge-poller concurrency, and account-deck loading/deletion.
+
+# Roadmap
+
+## Favorite Cubes
+- [ ] Data model and storage for favoriting cubes
+- [ ] Favorite/unfavorite UI
+- [ ] Favorites view and filtering
+
+## Scryfall Integration
+- [ ] Fetch canonical card data from Scryfall
+- [ ] Cache card lookups
+- [ ] Replace local import and mulligan type lookup
+
+## Accounts And Saving
+- [x] Google Sign-In and backend account login
+- [x] Account restoration and display-name editing
+- [ ] Add account-aware header and logout controls
+- [x] Real saved-deck listing and deletion
+- [ ] Wire deck creation and editing into the deck builder
+- [ ] Associate draft history with accounts
+- [ ] Reuse the account display name through draft flows
+
+## Mulligan Simulator
+- [ ] Use canonical Scryfall card data
+- [ ] Replace placeholder advanced insights with real simulation
+
+## Donations
+- [ ] Donation page or integration
+
+## More Draft Formats
+- [ ] Classic Cube
+- [ ] Winston Draft
+
+## Mobile Support
+- [ ] Choose a responsive web or native-wrapper strategy
+- [ ] Audit breakpoints and touch interactions
+
+## Draft Bot
+- [ ] Finalize weighted card scoring
+- [ ] Add pool-state and pick-number awareness
+- [ ] Add `PickRecord` diagnostics
+- [ ] Integrate the bot into live drafts
+
+## Creator And Dev Log
+- [ ] Meet the creator page
+- [ ] Development log
+
+---
+*Last updated: 2026-07-11*
