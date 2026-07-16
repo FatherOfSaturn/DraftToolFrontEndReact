@@ -13,11 +13,10 @@ node_modules
 dist
 dist-ssr
 
-# Local env overrides — .env itself IS committed (see .env.example); it
-# only holds local-dev defaults (mock-API toggle, localhost backend URL),
-# never secrets. Anything in *.local is assumed to be a personal override
-# and is not tracked.
+# Local environment files are not tracked. Keep documented defaults in
+# .env.example and personal values in .env or an *.local override.
 *.local
+.env
 
 # Editor / OS
 .vscode/*
