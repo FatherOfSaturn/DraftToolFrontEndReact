@@ -111,7 +111,45 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
 
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
         {error && <div className="px-4 py-3 bg-error/10 text-error font-label-sm border-b border-error/20">{error}</div>}
-        <div className="overflow-x-auto">
+
+        {/* Mobile: card list */}
+        <div className="md:hidden divide-y divide-outline-variant/20">
+          {loading && (
+            <div className="px-4 py-10 text-center text-on-surface-variant font-body-md">Loading decks…</div>
+          )}
+          {!loading && decks.length === 0 && (
+            <div className="px-4 py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</div>
+          )}
+          {!loading && decks.map((deck) => (
+            <div key={deck.deckID} className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <EditableCell
+                  value={deck.name}
+                  onSave={(name) => onUpdate(deck.deckID, name, deck.description, deck.cardIds)}
+                />
+                <button
+                  className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors text-[18px] shrink-0"
+                  title="Delete deck"
+                  onClick={() => onDelete(deck.deckID)}
+                >
+                  delete
+                </button>
+              </div>
+              <EditableCell
+                value={deck.description}
+                onSave={(description) => onUpdate(deck.deckID, deck.name, description, deck.cardIds)}
+                truncate
+              />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-on-surface-variant">{deck.cardIds.length} cards</span>
+                <span className="text-on-surface-variant">{formatISODate(deck.updatedAt)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">

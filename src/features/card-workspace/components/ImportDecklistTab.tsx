@@ -24,7 +24,7 @@ export function ImportDecklistTab({ onImportCards }: ImportDecklistTabProps) {
         Paste a decklist (Standard MTG format) to add every card straight to your pool. (Ephemeral)
       </p>
       <textarea
-        className="flex-1 min-h-[240px] w-full bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg p-sm font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all resize-none"
+        className="flex-1 min-h-[160px] max-h-[40dvh] w-full bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg p-sm font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all resize-none"
         placeholder={'4 Counterspell\n4 Brainstorm\n20 Island...'}
         value={text}
         onChange={(event) => setText(event.target.value)}
@@ -45,7 +45,7 @@ export function ImportDecklistTab({ onImportCards }: ImportDecklistTabProps) {
         </p>
       )}
       <button
-        className="w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+        className="sticky bottom-0 w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         onClick={handleImportClick}
         disabled={text.trim().length === 0}
       >

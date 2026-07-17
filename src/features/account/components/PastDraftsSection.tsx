@@ -35,7 +35,59 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
-        <div className="overflow-x-auto">
+        {/* Mobile: card list */}
+        <div className="md:hidden divide-y divide-outline-variant/20">
+          {games.map((game) => (
+            <div key={game.gameID} className="p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <button
+                  className="font-label-sm text-primary text-left"
+                  title={game.gameID}
+                  onClick={() => copyToClipboard(game.gameID)}
+                >
+                  #{game.gameID}
+                </button>
+                <span className="text-label-sm text-on-surface-variant">{formatDate(game.createdAt)}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Cube</span>
+                  <p className="text-on-surface font-body-md">{game.cubeID}</p>
+                </div>
+                <div>
+                  <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player 1</span>
+                  <p className="text-on-surface font-body-md font-semibold">{game.player1Name}</p>
+                </div>
+                <div>
+                  <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player 2</span>
+                  <p className="text-on-surface font-body-md font-semibold">{game.player2Name}</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 font-label-sm text-label-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-2 rounded-lg border border-primary/20 transition-all text-center"
+                  onClick={() => navigate(`/deckbuilder/${encodeURIComponent(game.gameID)}/${encodeURIComponent(game.player1Name)}`)}
+                >
+                  P1 Board
+                </button>
+                <button
+                  className="flex-1 font-label-sm text-label-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-2 rounded-lg border border-primary/20 transition-all text-center"
+                  onClick={() => navigate(`/deckbuilder/${encodeURIComponent(game.gameID)}/${encodeURIComponent(game.player2Name)}`)}
+                >
+                  P2 Board
+                </button>
+              </div>
+            </div>
+          ))}
+          {games.length === 0 && (
+            <div className="px-6 py-10 text-center text-on-surface-variant font-body-md">
+              No drafts match these filters.
+            </div>
+          )}
+        </div>
+
+        {/* Desktop: table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">

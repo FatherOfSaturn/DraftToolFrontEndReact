@@ -36,7 +36,7 @@ export function HomePage() {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-[921px] flex items-center justify-center overflow-hidden px-margin-desktop">
+    <section className="relative min-h-[70vh] md:min-h-[921px] flex items-center justify-center overflow-hidden px-margin-mobile md:px-margin-desktop">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-surface-dim/50 to-surface-dim" />
       <div className="relative z-10 text-center max-w-4xl">
         <div className="inline-flex items-center gap-xs px-md py-xs rounded-full glass-panel mb-md border border-primary/30">
@@ -51,7 +51,7 @@ function HeroSection() {
         <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-2xl mx-auto">
           A side project by a Magic player who wanted a faster way to draft cubes, and also take on a new side project.
         </p>
-        <div className="flex items-center justify-center gap-md">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-md">
           <Link
             className="group relative px-xl py-md bg-inverse-primary text-white font-headline-md rounded-xl overflow-hidden hover:scale-105 transition-all inline-block"
             to="/draft-selection"
@@ -78,14 +78,14 @@ function HeroSection() {
 
 function ExperienceSection() {
   return (
-    <section id="experience" className="py-xl px-margin-desktop bg-surface-dim">
+    <section id="experience" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-dim">
       <div className="mb-xl text-center">
         <h3 className="font-display text-headline-lg text-white mb-xs">A Few Useful Tools</h3>
         <div className="w-24 h-1 bg-primary mx-auto rounded-full opacity-50" />
       </div>
       <div className="grid grid-cols-12 gap-gutter max-w-7xl mx-auto">
         {/* Main Feature */}
-        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl p-lg flex flex-col justify-end relative overflow-hidden group min-h-[400px]">
+        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl p-lg flex flex-col justify-end relative overflow-hidden group min-h-[280px] md:min-h-[400px]">
           <div
             className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
             style={{
@@ -121,15 +121,15 @@ function ExperienceSection() {
         </div>
 
         {/* Featured Draft Card */}
-        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl flex items-center p-lg gap-lg group overflow-hidden">
-          <div className="w-1/3 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl transition-transform group-hover:rotate-2">
+        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl flex flex-col md:flex-row items-center p-lg gap-lg group overflow-hidden">
+          <div className="w-full md:w-1/3 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl transition-transform group-hover:rotate-2">
             <img
               className="w-full h-full object-cover"
               alt="Featured cube illustration"
               src="https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?w=600&q=80"
             />
           </div>
-          <div className="w-2/3">
+          <div className="w-full md:w-2/3">
             <div className="flex gap-xs mb-sm">
               <div className="w-6 h-6 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[10px] text-primary">
                 P
@@ -154,7 +154,7 @@ function ExperienceSection() {
 
 function ArchitectSection() {
   return (
-    <section id="backstory" className="py-xl px-margin-desktop bg-surface-container-low relative overflow-hidden">
+    <section id="backstory" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-container-low relative overflow-hidden">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-xl relative z-10">
         <div className="w-full md:w-1/2">
           <div className="relative">
@@ -229,7 +229,7 @@ const TIERS = [
 
 function DonationSection() {
   return (
-    <section id="donate" className="py-xl px-margin-desktop bg-surface-dim">
+    <section id="donate" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-dim">
       <div className="max-w-4xl mx-auto glass-panel rounded-[2rem] p-xl text-center relative overflow-hidden glow-purple">
         <div className="relative z-10">
           <span className="material-symbols-outlined text-tertiary text-5xl mb-md">auto_awesome</span>

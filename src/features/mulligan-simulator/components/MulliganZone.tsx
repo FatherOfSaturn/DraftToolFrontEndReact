@@ -12,10 +12,10 @@ interface MulliganZoneProps {
 export function MulliganZone({ hand, deckSize, librarySize, onMulligan, onDrawCard, manaScrewPct }: MulliganZoneProps) {
   return (
     <section className="col-span-12 lg:col-span-6 flex flex-col gap-gutter">
-      <div className="relative glass-panel rounded-2xl p-lg flex flex-col items-center justify-center overflow-hidden min-h-[600px] arcane-glow">
-        <div className="z-10 w-full mb-lg flex justify-between items-center">
+      <div className="relative glass-panel rounded-2xl p-lg flex flex-col items-center justify-center overflow-hidden min-h-[400px] md:min-h-[600px] arcane-glow">
+        <div className="z-10 w-full mb-lg flex flex-col sm:flex-row sm:justify-between sm:items-center gap-sm">
           <div className="flex flex-col">
-            <h2 className="font-display text-headline-lg text-primary uppercase tracking-widest">
+            <h2 className="font-display text-headline-md sm:text-headline-lg text-primary uppercase tracking-widest">
               Opening Hand
             </h2>
             <span className="text-on-surface-variant font-label-sm text-label-sm">
@@ -24,14 +24,14 @@ export function MulliganZone({ hand, deckSize, librarySize, onMulligan, onDrawCa
           </div>
           <div className="flex gap-sm">
             <button
-              className="px-md py-xs bg-surface-container-high border border-outline-variant/30 rounded-full text-label-md font-label-md hover:bg-primary/20 transition-colors flex items-center gap-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-md py-xs bg-surface-container-high border border-outline-variant/30 rounded-full text-label-md font-label-md hover:bg-primary/20 transition-colors flex items-center gap-xs min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
               onClick={onMulligan}
               disabled={deckSize === 0}
             >
               <span className="material-symbols-outlined text-sm">refresh</span> Mulligan
             </button>
             <button
-              className="px-md py-xs bg-primary text-on-primary rounded-full text-label-md font-label-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-xs disabled:opacity-40 disabled:cursor-not-allowed"
+              className="px-md py-xs bg-primary text-on-primary rounded-full text-label-md font-label-md hover:brightness-110 active:scale-95 transition-all flex items-center gap-xs min-h-[44px] disabled:opacity-40 disabled:cursor-not-allowed"
               onClick={onDrawCard}
               disabled={librarySize === 0}
             >

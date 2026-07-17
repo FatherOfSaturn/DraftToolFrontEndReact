@@ -88,12 +88,12 @@ export function PoolSidebar({
 
       {/* Sidebar — fixed on xl+, overlay drawer below xl */}
       <aside
-        className={`fixed right-0 w-80 flex flex-col glass-panel border-l border-outline-variant/20 shadow-2xl z-30 transition-transform duration-300 ease-out ${
+        className={`fixed right-0 w-[85vw] max-w-80 flex flex-col glass-panel border-l border-outline-variant/20 shadow-2xl z-30 transition-transform duration-300 ease-out ${
           mobileOpen
             ? 'translate-x-0'
             : 'translate-x-full xl:translate-x-0'
         }`}
-        style={{ top: topOffsetPx, height: `calc(100vh - ${topOffsetPx}px)` }}
+        style={{ top: topOffsetPx, height: `calc(100dvh - ${topOffsetPx}px)` }}
       >
         <div className="p-md border-b border-outline-variant/20">
           <div className="flex items-center justify-between mb-2">
@@ -132,7 +132,7 @@ export function PoolSidebar({
         </div>
 
         {confirmAction && (
-          <div className="p-md bg-surface-container-high border-t border-outline-variant/20 flex flex-col gap-sm">
+          <div className="p-md pb-[calc(var(--spacing-md,16px)+env(safe-area-inset-bottom,0px))] bg-surface-container-high border-t border-outline-variant/20 flex flex-col gap-sm">
             {confirmAction.stagedCard && (
               <p className="text-label-sm text-on-surface-variant text-center">
                 Staged: <span className="text-primary font-medium">{confirmAction.stagedCard.name}</span>

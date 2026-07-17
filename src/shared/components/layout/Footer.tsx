@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
  */
 export function Footer() {
   return (
-    <footer className="bg-surface-container-lowest py-xl px-margin-desktop border-t border-outline-variant/20">
+    <footer className="bg-surface-container-lowest py-xl px-margin-mobile md:px-margin-desktop border-t border-outline-variant/20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-xl">
         <div className="max-w-xs">
           <div className="flex items-center gap-xs mb-md">

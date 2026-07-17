@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BASIC_LANDS } from '../../../shared/lib/basicLands';
+import { useIsTouchDevice } from '../../../shared/hooks/useIsTouchDevice';
 import type { Card } from '../../../shared/model/cardTypes';
 import { CARD_COLOR_BADGE, cardColors } from '../model/cardFilters';
 
@@ -37,6 +38,18 @@ export function PoolList({
   onSaveDeck,
 }: PoolListProps) {
   const grouped = useMemo(() => groupCardsByName(cards.slice().reverse()), [cards]);
+  const [previewedCard, setPreviewedCard] = useState<string | null>(null);
+  const [previewPos, setPreviewPos] = useState<{ top: number; left: number } | null>(null);
+
+  function dismissPreview() {
+    setPreviewedCard(null);
+    setPreviewPos(null);
+  }
+
+  function showPreview(name: string, pos: { top: number; left: number }) {
+    setPreviewPos(pos);
+    setPreviewedCard(name);
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -70,6 +83,10 @@ export function PoolList({
                 card={card}
                 count={count}
                 onClick={onRowClick ? () => onRowClick(card) : undefined}
+                isPreviewed={previewedCard === card.name}
+                previewPos={previewedCard === card.name ? previewPos : null}
+                onShowPreview={(pos) => showPreview(card.name, pos)}
+                onDismissPreview={dismissPreview}
               />
             ))}
           </div>
@@ -77,7 +94,7 @@ export function PoolList({
       </div>
 
       {(onExport || onSaveDeck !== undefined) && (
-        <div className="flex flex-col gap-1.5">
+        <div className="sticky bottom-0 -mx-md px-md pb-[calc(var(--spacing-sm,8px)+env(safe-area-inset-bottom,0px))] pt-sm bg-surface-container-high/95 backdrop-blur-sm border-t border-outline-variant/10 flex flex-col gap-1.5">
           {onExport && (
             <button
               type="button"
@@ -108,34 +125,69 @@ export function PoolList({
   );
 }
 
-function PoolListRow({ card, count, onClick }: { card: Card; count: number; onClick?: () => void }) {
+interface PoolListRowProps {
+  card: Card;
+  count: number;
+  onClick?: () => void;
+  isPreviewed: boolean;
+  previewPos: { top: number; left: number } | null;
+  onShowPreview: (pos: { top: number; left: number }) => void;
+  onDismissPreview: () => void;
+}
+
+function PoolListRow({ card, count, onClick, isPreviewed, previewPos, onShowPreview, onDismissPreview }: PoolListRowProps) {
+  const isTouch = useIsTouchDevice();
   const [hovered, setHovered] = useState(false);
-  const [previewPos, setPreviewPos] = useState<{ top: number; left: number } | null>(null);
+  const [hoverPos, setHoverPos] = useState<{ top: number; left: number } | null>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const colors = cardColors(card);
 
   function handleMouseEnter() {
+    if (isTouch) return;
     hoverTimerRef.current = setTimeout(() => {
       const rect = rowRef.current?.getBoundingClientRect();
-      if (rect) setPreviewPos({ top: rect.top, left: rect.left - 16 });
-      setHovered(true);
+      if (rect) {
+        setHoverPos({ top: rect.top, left: rect.left - 16 });
+        setHovered(true);
+      }
     }, 150);
   }
 
   function handleMouseLeave() {
+    if (isTouch) return;
     if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = null;
     setHovered(false);
   }
+
+  function handleTouchStart() {
+    if (!isTouch) return;
+    if (isPreviewed) {
+      onDismissPreview();
+      onClick?.();
+      return;
+    }
+    const rect = rowRef.current?.getBoundingClientRect();
+    if (rect) {
+      onShowPreview({
+        top: Math.min(rect.top, window.innerHeight - 320),
+        left: Math.min(rect.left, window.innerWidth - 200),
+      });
+    }
+  }
+
+  const showPreview = isTouch ? isPreviewed : hovered;
+  const activePos = isTouch ? previewPos : hoverPos;
 
   return (
     <div
       ref={rowRef}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onClick={onClick}
-      className={`relative flex items-center justify-between p-1.5 rounded-lg hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-colors ${onClick ? 'cursor-pointer' : ''}`}
+      onTouchStart={handleTouchStart}
+      onClick={() => { if (!isTouch) onClick?.(); }}
+      className={`relative flex items-center justify-between p-1.5 rounded-lg hover:bg-primary/10 border border-transparent hover:border-primary/20 transition-colors ${onClick && !isTouch ? 'cursor-pointer' : ''}`}
     >
       <div className="flex items-center gap-2">
         <span className="text-primary font-bold text-label-sm">{count}x</span>
@@ -154,13 +206,17 @@ function PoolListRow({ card, count, onClick }: { card: Card; count: number; onCl
         )}
       </div>
 
-      {hovered && previewPos && createPortal(
-        <div
-          className="fixed pointer-events-none z-50 w-48 aspect-[2.5/3.5] rounded-xl overflow-hidden shadow-2xl border border-primary/40"
-          style={{ top: previewPos.top, left: previewPos.left, transform: 'translateX(-100%)' }}
-        >
-          <img className="w-full h-full object-cover" src={card.details.image_small} alt={card.name} />
-        </div>,
+      {showPreview && activePos && createPortal(
+          <div
+            className="fixed pointer-events-none z-[100] w-44 aspect-[2.5/3.5] rounded-xl overflow-hidden shadow-2xl border border-primary/40"
+            style={{
+              top: isTouch ? '50%' : activePos.top,
+              left: isTouch ? '50%' : activePos.left,
+              transform: isTouch ? 'translate(-50%, -50%)' : 'translateX(-100%)',
+            }}
+          >
+            <img className="w-full h-full object-cover" src={card.details.image_small} alt={card.name} />
+          </div>,
         document.body
       )}
     </div>
