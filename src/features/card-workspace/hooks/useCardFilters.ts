@@ -12,9 +12,9 @@ export interface UseCardFiltersResult {
   setSearch: (value: string) => void;
   activeColors: ManaColor[];
   toggleColor: (color: ManaColor) => void;
-  activeCmc: CmcBucket | null;
+  activeCmc: CmcBucket[];
   toggleCmc: (bucket: CmcBucket) => void;
-  activeType: string | null;
+  activeType: string[];
   toggleType: (type: string) => void;
   /** `cards`, filtered by the current search/color/CMC/type state. */
   filteredCards: Card[];
@@ -37,19 +37,19 @@ export interface UseCardFiltersResult {
 export function useCardFilters(cards: Card[]): UseCardFiltersResult {
   const [search, setSearch] = useState('');
   const [activeColors, setActiveColors] = useState<ManaColor[]>([]);
-  const [activeCmc, setActiveCmc] = useState<CmcBucket | null>(null);
-  const [activeType, setActiveType] = useState<string | null>(null);
+  const [activeCmc, setActiveCmc] = useState<CmcBucket[]>([]);
+  const [activeType, setActiveType] = useState<string[]>([]);
 
   function toggleColor(color: ManaColor) {
     setActiveColors((prev) => (prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]));
   }
 
   function toggleCmc(bucket: CmcBucket) {
-    setActiveCmc((prev) => (prev === bucket ? null : bucket));
+    setActiveCmc((prev) => (prev.includes(bucket) ? prev.filter((b) => b !== bucket) : [...prev, bucket]));
   }
 
   function toggleType(type: string) {
-    setActiveType((prev) => (prev === type ? null : type));
+    setActiveType((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
   }
 
   const filteredCards = useMemo(

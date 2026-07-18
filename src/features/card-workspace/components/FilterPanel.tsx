@@ -11,12 +11,12 @@ import { CollapsibleSection } from '../../../shared/components/CollapsibleSectio
 
 export type FilterPanelProps = CardFilterControls;
 
-function activeFilterCount(search: string, activeColors: ManaColor[], activeCmc: CmcBucket | null, activeType: string | null): number {
+function activeFilterCount(search: string, activeColors: ManaColor[], activeCmc: CmcBucket[], activeType: string[]): number {
   let n = 0;
   if (search) n++;
   n += activeColors.length;
-  if (activeCmc) n++;
-  if (activeType) n++;
+  n += activeCmc.length;
+  n += activeType.length;
   return n;
 }
 
@@ -73,7 +73,7 @@ export function FilterPanel({
           {/* Row 2: color pips + CMC */}
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1.5 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20">
-              {(['W', 'U', 'B', 'R', 'G'] as ManaColor[]).map((color) => (
+              {(['W', 'U', 'B', 'R', 'G', 'C'] as ManaColor[]).map((color) => (
                 <button
                   key={color}
                   className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-[14px] border transition-all ${
@@ -96,12 +96,12 @@ export function FilterPanel({
                   <button
                     key={bucket}
                     className={`w-9 h-9 rounded-lg text-label-sm border transition-all ${
-                      activeCmc === bucket
+                      activeCmc.includes(bucket)
                         ? 'bg-primary/20 text-primary border-primary/40 font-bold'
                         : 'bg-surface-container-high hover:bg-primary/20 border-outline-variant/20'
                     }`}
                     onClick={() => onToggleCmc(bucket)}
-                    aria-pressed={activeCmc === bucket}
+                    aria-pressed={activeCmc.includes(bucket)}
                   >
                     {bucket}
                   </button>
@@ -116,12 +116,12 @@ export function FilterPanel({
               <button
                 key={type}
                 className={`px-4 py-2 rounded-full text-label-sm transition-colors font-medium border min-h-[40px] ${
-                  activeType === type
+                  activeType.includes(type)
                     ? 'bg-primary/10 border-primary/30 text-primary'
                     : 'bg-surface-container-low border-outline-variant/20 text-on-surface-variant hover:border-primary/50'
                 }`}
                 onClick={() => onToggleType(type)}
-                aria-pressed={activeType === type}
+                aria-pressed={activeType.includes(type)}
               >
                 {type}
               </button>

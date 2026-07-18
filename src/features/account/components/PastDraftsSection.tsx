@@ -29,8 +29,9 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
           <span className="material-symbols-outlined text-primary text-[32px]">history_edu</span>
           Past Drafts
         </h2>
-        <span className="font-label-sm text-label-sm bg-surface-container-high px-3 py-1 rounded-full text-outline-variant">
-          Total: {pagination.totalItems} Drafts
+        <span className="font-label-md text-label-md bg-primary/10 border border-primary/30 text-primary px-4 py-1.5 rounded-full flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">history_edu</span>
+          {pagination.totalItems} Draft{pagination.totalItems !== 1 ? 's' : ''}
         </span>
       </div>
 
@@ -41,18 +42,26 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
             <div key={game.gameID} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <button
-                  className="font-label-sm text-primary text-left"
-                  title={game.gameID}
+                  className="font-label-sm text-primary text-left underline decoration-dotted underline-offset-2"
+                  title={`${game.gameID} — Click to copy`}
                   onClick={() => copyToClipboard(game.gameID)}
                 >
-                  #{game.gameID}
+                  Click to copy Game-ID
                 </button>
                 <span className="text-label-sm text-on-surface-variant">{formatDate(game.createdAt)}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <div>
                   <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Cube</span>
-                  <p className="text-on-surface font-body-md">{game.cubeID}</p>
+                  <a
+                    href={`https://cubecobra.com/cube/list/${game.cubeID}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-on-surface font-body-md text-primary hover:underline"
+                    title="Click to visit cube on CubeCobra"
+                  >
+                    {game.cubeID}
+                  </a>
                 </div>
                 <div>
                   <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player 1</span>
@@ -92,7 +101,7 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
             <thead>
               <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">
                 <th className="px-4 py-4 font-label-md text-label-md text-outline">Game ID</th>
-                <th className="px-4 py-4 font-label-md text-label-md text-outline">Cube ID</th>
+                <th className="px-4 py-4 font-label-md text-label-md text-outline">Cube</th>
                 <th className="px-4 py-4 font-label-md text-label-md text-outline">Player 1</th>
                 <th className="px-4 py-4 font-label-md text-label-md text-outline">Player 2</th>
                 <th className="px-4 py-4 font-label-md text-label-md text-outline">Date</th>
@@ -104,17 +113,24 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
                 <tr key={game.gameID} className="group hover:bg-surface-container/50 transition-colors">
                   <td className="px-4 py-5">
                     <button
-                      className="font-label-md text-primary relative group/id cursor-pointer"
-                      title={game.gameID}
+                      className="font-label-md text-primary cursor-pointer underline decoration-dotted underline-offset-2"
+                      title={`${game.gameID} — Click to copy`}
                       onClick={() => copyToClipboard(game.gameID)}
                     >
-                      <span className="group-hover/id:invisible transition-all">Game ID</span>
-                      <span className="absolute inset-0 invisible group-hover/id:visible transition-all whitespace-nowrap text-primary font-label-md">
-                        #{game.gameID}
-                      </span>
+                      Click to copy Game-ID
                     </button>
                   </td>
-                  <td className="px-4 py-5 font-body-md text-on-surface-variant">{game.cubeID}</td>
+                  <td className="px-4 py-5">
+                    <a
+                      href={`https://cubecobra.com/cube/list/${game.cubeID}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-body-md text-primary hover:underline"
+                      title="Click to visit cube on CubeCobra"
+                    >
+                      {game.cubeID}
+                    </a>
+                  </td>
                   <td className="px-4 py-5 font-body-md font-semibold text-on-surface">{game.player1Name}</td>
                   <td className="px-4 py-5 font-body-md font-semibold text-on-surface">{game.player2Name}</td>
                   <td className="px-4 py-5 font-label-sm text-on-surface-variant">{formatDate(game.createdAt)}</td>

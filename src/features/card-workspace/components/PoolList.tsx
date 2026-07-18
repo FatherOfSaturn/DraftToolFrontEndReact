@@ -63,9 +63,9 @@ export function PoolList({
                 type="button"
                 title={`Add a ${land.name}`}
                 onClick={() => onAddLand(land.name)}
-                className={`mana-symbol ${land.manaClass} m-0 hover:scale-110 transition-transform`}
+                className="w-8 h-11 rounded overflow-hidden border border-outline-variant/20 hover:scale-110 hover:border-primary/40 transition-all shrink-0"
               >
-                {land.symbol}
+                <img src={land.imageUrl} alt={land.name} className="w-full h-full object-cover" loading="lazy" />
               </button>
             ))}
           </div>

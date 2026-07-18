@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { Header } from '../../../shared/components/layout/Header';
 import { FilterPanel } from '../../card-workspace/components/FilterPanel';
 import { CardGrid } from '../../card-workspace/components/CardGrid';
@@ -8,7 +8,7 @@ import { StatusScreen } from '../../../shared/components/StatusScreen';
 import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
 import { gameApi } from '../../draft/api/gameApi';
 import { buildCard } from '../../card-workspace/utils/importDecklist';
-import { BASIC_LAND_FRAME } from '../../../shared/lib/basicLands';
+import { BASIC_LAND_FRAME, BASIC_LANDS } from '../../../shared/lib/basicLands';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { useAuth } from '../../auth/AuthContext';
 import { accountApi } from '../../account/api/accountApi';
@@ -35,8 +35,11 @@ import type { Card } from '../../../shared/model/cardTypes';
  */
 export function DeckBuilderPage() {
   const { gameID, playerName } = useParams<{ gameID?: string; playerName?: string }>();
+  const location = useLocation();
   const { account } = useAuth();
   const { showToast } = useToast();
+
+  const deckCardIds = (location.state as { deckCardIds?: string[] } | null)?.deckCardIds;
 
   const [decklist, setDecklist] = useState<Card[]>([]);
   const [sideboard, setSideboard] = useState<Card[]>([]);
@@ -51,7 +54,32 @@ export function DeckBuilderPage() {
     setError(null);
     setDecklist([]);
     setSideboard([]);
-    setPoolTab(gameID && playerName ? 'list' : 'import');
+    setPoolTab(gameID && playerName ? 'list' : deckCardIds ? 'list' : 'import');
+
+    // If we received card IDs from navigation state (e.g. "View in Deckbuilder"),
+    // create placeholder Card objects. Full card data will come from the API later.
+    if (deckCardIds && deckCardIds.length > 0) {
+      const placeholders: Card[] = deckCardIds.map((id) => ({
+        cardID: id,
+        name: id,
+        details: {
+          set: '',
+          set_name: '',
+          scryfall_id: '',
+          image_small: '',
+          image_normal: '',
+          image_flip: null,
+          name: id,
+          parsed_cost: [],
+        },
+        cmc: 0,
+        type_line: 'Unknown',
+        reveal: true,
+      }));
+      setDecklist(placeholders);
+      setLoading(false);
+      return;
+    }
 
     if (!gameID || !playerName) {
       setLoading(false);
@@ -80,7 +108,7 @@ export function DeckBuilderPage() {
     return () => {
       cancelled = true;
     };
-  }, [gameID, playerName]);
+  }, [gameID, playerName, deckCardIds]);
 
   const { filteredCards: visibleCards, filterPanelProps } = useCardFilters(decklist);
 
@@ -100,7 +128,13 @@ export function DeckBuilderPage() {
   }
 
   function addLand(name: string) {
-    setDecklist((prev) => [...prev, buildCard(name, 'Basic Land', BASIC_LAND_FRAME[name] ?? 'C')]);
+    const land = BASIC_LANDS.find((l) => l.name === name);
+    const card = buildCard(name, 'Basic Land', BASIC_LAND_FRAME[name] ?? 'C');
+    if (land) {
+      card.details.image_small = land.imageUrl;
+      card.details.image_normal = land.imageUrl;
+    }
+    setDecklist((prev) => [...prev, card]);
   }
 
   async function exportPool() {

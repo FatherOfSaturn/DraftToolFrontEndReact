@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../../features/auth/AuthContext';
 
 export interface HeaderProps {
   search?: {
@@ -20,7 +21,6 @@ const NAV_LINKS: NavLinkDef[] = [
   { label: 'Draft', to: '/draft-selection', icon: 'style', activePrefixes: ['/draft-setup', '/draft/'] },
   { label: 'Deck Building', to: '/deckbuilder', icon: 'dashboard' },
   { label: 'Mulligan Simulator', to: '/mulligan-simulator', icon: 'casino' },
-  { label: 'Account', to: '/account', icon: 'person' },
 ];
 
 const SECONDARY_LINKS = [
@@ -31,6 +31,7 @@ const SECONDARY_LINKS = [
 export function Header({ search }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { account } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close mobile menu on route change
@@ -120,9 +121,9 @@ export function Header({ search }: HeaderProps) {
           )}
           <button
             className="px-md py-xs bg-primary text-on-primary font-label-md text-label-md rounded-lg active:scale-95 duration-200 hover:brightness-110 transition-all"
-            onClick={() => navigate('/login')}
+            onClick={() => navigate(account ? '/account' : '/login')}
           >
-            Sign In
+            {account ? 'Account' : 'Sign In'}
           </button>
           {/* Hamburger — visible below md */}
           <button

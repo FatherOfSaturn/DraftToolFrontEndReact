@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Header } from '../../../shared/components/layout/Header';
 import { Footer } from '../../../shared/components/layout/Footer';
 import { gameApi } from '../api/gameApi';
@@ -24,9 +25,10 @@ const MAX_EXTRA_PICKS = 8;
  */
 export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   const { account } = useAuth();
+  const [searchParams] = useSearchParams();
 
   // --- Manifest Ritual (create game) form state ---
-  const [cubeID, setCubeID] = useState('');
+  const [cubeID, setCubeID] = useState(() => searchParams.get('cubeID') ?? '');
   const [yourName, setYourName] = useState(account?.email ?? '');
   const [partnerTag, setPartnerTag] = useState('');
   const [extraPicks, setExtraPicks] = useState(2);

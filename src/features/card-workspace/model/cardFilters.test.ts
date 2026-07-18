@@ -42,8 +42,8 @@ describe('card filters', () => {
     expect(filterCards([bolt, island], {
       search: 'bolt',
       activeColors: ['R'],
-      activeCmc: '1',
-      activeType: 'Instant',
+      activeCmc: ['1'],
+      activeType: ['Instant'],
     })).toEqual([bolt]);
   });
 });
