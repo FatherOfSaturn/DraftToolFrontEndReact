@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { type CardCategory } from '../../../shared/lib/cardCategory';
-import { lookupTypeLine } from '../../../shared/lib/cardTypeLookup';
 import { probabilityOfAtLeast } from '../../../shared/lib/hypergeometric';
-import { parseDecklist } from '../../../shared/lib/parseDecklist';
-import { expandDecklist, shuffle, type ExpandedCard } from '../model/mulliganUtils';
+import { importDecklist } from '../../card-workspace/utils/importDecklist';
+import { scryfallApi } from '../../card-workspace/api/scryfallApi';
+import { expandFromCards, shuffle, type ExpandedCard } from '../model/mulliganUtils';
+import type { Card } from '../../../shared/model/cardTypes';
 
 const SAMPLE_DECKLIST = `4 Counterspell
 4 Brainstorm
@@ -15,25 +17,61 @@ const SAMPLE_DECKLIST = `4 Counterspell
 10 Forest`;
 
 export function useMulliganSimulator() {
+  const location = useLocation();
+  const deckCardIds = (location.state as { deckCardIds?: string[] } | null)?.deckCardIds;
+
   const [decklistText, setDecklistText] = useState(SAMPLE_DECKLIST);
-  const [infusedText, setInfusedText] = useState(SAMPLE_DECKLIST);
-  const [deck, setDeck] = useState<ExpandedCard[]>(() => expandDecklist(parseDecklist(SAMPLE_DECKLIST)));
+  const [deck, setDeck] = useState<ExpandedCard[]>(() => expandFromCards([]));
+  const [loading, setLoading] = useState(false);
+  const [unknownNames, setUnknownNames] = useState<string[]>([]);
   const [{ hand, library }, setDrawState] = useState<{ hand: ExpandedCard[]; library: ExpandedCard[] }>(() => {
-    const shuffled = shuffle(expandDecklist(parseDecklist(SAMPLE_DECKLIST)));
-    return { hand: shuffled.slice(0, 7), library: shuffled.slice(7) };
+    return { hand: [], library: [] };
   });
   const [wellAtLeast, setWellAtLeast] = useState(2);
   const [wellCategory, setWellCategory] = useState<CardCategory>('Land');
   const [wellInNext, setWellInNext] = useState(10);
 
+  // Load deck on first render: either from nav state card IDs, or sample decklist
+  const [initialized, setInitialized] = useState(false);
+  if (!initialized) {
+    setInitialized(true);
+    setLoading(true);
+
+    if (deckCardIds && deckCardIds.length > 0) {
+      // Resolve saved deck card IDs via the Scryfall API
+      Promise.allSettled(
+        deckCardIds.map((id) => scryfallApi.getCardById(id))
+      ).then((results) => {
+        const resolved: Card[] = [];
+        let failed = 0;
+        for (const r of results) {
+          if (r.status === 'fulfilled') {
+            resolved.push(r.value);
+          } else {
+            failed++;
+          }
+        }
+        const expanded = expandFromCards(resolved);
+        const shuffled = shuffle(expanded);
+        setDeck(expanded);
+        setUnknownNames(failed > 0 ? [`${failed} card${failed === 1 ? '' : 's'} could not be loaded`] : []);
+        setDrawState({ hand: shuffled.slice(0, 7), library: shuffled.slice(7) });
+        setLoading(false);
+      });
+    } else {
+      // Load sample decklist via the batch API
+      importDecklist(SAMPLE_DECKLIST).then((result) => {
+        const expanded = expandFromCards(result.cards);
+        const shuffled = shuffle(expanded);
+        setDeck(expanded);
+        setUnknownNames(result.unknownNames);
+        setDrawState({ hand: shuffled.slice(0, 7), library: shuffled.slice(7) });
+        setLoading(false);
+      });
+    }
+  }
+
   const deckSize = deck.length;
-  const unknownNames = useMemo(() => {
-    const names = new Set<string>();
-    parseDecklist(infusedText).forEach((entry) => {
-      if (lookupTypeLine(entry.name) === null) names.add(entry.name);
-    });
-    return [...names];
-  }, [infusedText]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<CardCategory, number> = {
@@ -88,13 +126,21 @@ export function useMulliganSimulator() {
     });
   }, [deckSize, categoryCounts, wellCategory, wellAtLeast, wellInNext]);
 
-  function handleInfuseList() {
-    const entries = parseDecklist(decklistText);
-    const expanded = expandDecklist(entries);
-    const shuffled = shuffle(expanded);
-    setDeck(expanded);
-    setInfusedText(decklistText);
-    setDrawState({ hand: shuffled.slice(0, 7), library: shuffled.slice(7) });
+  async function handleInfuseList() {
+    setLoading(true);
+    try {
+      const result = await importDecklist(decklistText);
+      const expanded = expandFromCards(result.cards);
+      const shuffled = shuffle(expanded);
+      setDeck(expanded);
+      setUnknownNames(result.unknownNames);
+      setDrawState({ hand: shuffled.slice(0, 7), library: shuffled.slice(7) });
+    } catch {
+      setDeck([]);
+      setDrawState({ hand: [], library: [] });
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleMulligan() {
@@ -114,6 +160,7 @@ export function useMulliganSimulator() {
     decklistText,
     setDecklistText,
     deckSize,
+    loading,
     unknownNames,
     categoryCounts,
     hand,

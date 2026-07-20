@@ -76,7 +76,7 @@ function EditableCell({ value, onSave, emptyFallback = '—', truncate }: Editab
 
   return (
     <div className="flex items-center justify-between gap-2 group/edit min-w-0">
-      <span className={`font-body-md text-on-surface ${truncate ? 'text-sm max-w-[160px] truncate' : 'font-semibold'}`}>
+      <span className={`font-body-md text-on-surface ${truncate ? 'text-sm line-clamp-2' : 'font-semibold'}`}>
         {value || emptyFallback}
       </span>
       <button
@@ -109,93 +109,61 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
         {error && <div className="px-4 py-3 bg-error/10 text-error font-label-sm border-b border-error/20">{error}</div>}
 
-        {/* Mobile: card list */}
-        <div className="md:hidden divide-y divide-outline-variant/20">
+        <div className="p-4">
           {loading && (
-            <div className="px-4 py-10 text-center text-on-surface-variant font-body-md">Loading decks…</div>
+            <div className="py-10 text-center text-on-surface-variant font-body-md">Loading decks…</div>
           )}
           {!loading && decks.length === 0 && (
-            <div className="px-4 py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</div>
+            <div className="py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</div>
           )}
-          {!loading && decks.map((deck) => (
-            <div key={deck.deckID} className="p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <EditableCell
-                  value={deck.name}
-                  onSave={(name) => onUpdate(deck.deckID, name, deck.description, deck.cardIds)}
-                />
-                <button
-                  className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors text-[18px] shrink-0"
-                  title="Delete deck"
-                  onClick={() => onDelete(deck.deckID)}
-                >
-                  delete
-                </button>
-              </div>
-              <EditableCell
-                value={deck.description}
-                onSave={(description) => onUpdate(deck.deckID, deck.name, description, deck.cardIds)}
-                truncate
-              />
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-on-surface-variant">{deck.cardIds.length} cards</span>
-                <button
-                  className="font-label-sm text-label-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-all"
-                  onClick={() => navigate('/deckbuilder', { state: { deckCardIds: deck.cardIds } })}
-                >
-                  View in Deckbuilder
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Desktop: table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Name</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Description</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Cards</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/20">
-              {loading && <tr><td colSpan={4} className="px-4 py-10 text-center text-on-surface-variant font-body-md">Loading decks…</td></tr>}
-              {!loading && decks.length === 0 && <tr><td colSpan={4} className="px-4 py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</td></tr>}
-              {!loading && decks.map((deck) => (
-                <tr key={deck.deckID} className="group hover:bg-surface-container/50 transition-colors">
-                  <td className="px-4 py-4">
+          {!loading && decks.length > 0 && (
+            <div className="grid grid-cols-1 gap-4">
+              {decks.map((deck) => (
+                <div key={deck.deckID} className="glass-panel rounded-xl p-4 space-y-4">
+                  <div className="flex justify-between items-start">
                     <EditableCell
                       value={deck.name}
                       onSave={(name) => onUpdate(deck.deckID, name, deck.description, deck.cardIds)}
                     />
-                  </td>
-                  <td className="px-4 py-4 max-w-[200px]">
-                    <EditableCell
-                      value={deck.description}
-                      onSave={(description) => onUpdate(deck.deckID, deck.name, description, deck.cardIds)}
-                      truncate
-                    />
-                  </td>
-                  <td className="px-4 py-4 font-label-sm text-primary">{deck.cardIds.length}</td>
-                  <td className="px-4 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
+                    <button
+                      className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors text-[18px] shrink-0"
+                      title="Delete deck"
+                      onClick={() => onDelete(deck.deckID)}
+                    >
+                      delete
+                    </button>
+                  </div>
+
+                  <EditableCell
+                    value={deck.description}
+                    onSave={(description) => onUpdate(deck.deckID, deck.name, description, deck.cardIds)}
+                    truncate
+                  />
+
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="material-symbols-outlined text-secondary text-[16px]">style</span>
+                    <span className="text-secondary font-medium">{deck.cardIds.length} Cards</span>
+                    <div className="flex items-center gap-2 ml-auto">
                       <button
-                        className="font-label-sm text-label-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-all"
+                        className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all"
                         onClick={() => navigate('/deckbuilder', { state: { deckCardIds: deck.cardIds } })}
                       >
-                        View in Deckbuilder
+                        Deckbuilder
                       </button>
-                      <button className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors text-[18px]" title="Delete deck" onClick={() => onDelete(deck.deckID)}>delete</button>
+                      <button
+                        className="px-3 py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant hover:bg-surface-variant/50 text-xs font-label-sm transition-all"
+                        onClick={() => navigate('/mulligan-simulator', { state: { deckCardIds: deck.cardIds } })}
+                      >
+                        Mulligan Sim
+                      </button>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
+
         <Pagination
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}

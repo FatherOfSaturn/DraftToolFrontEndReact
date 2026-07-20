@@ -5,6 +5,7 @@ interface DecklistPaneProps {
   decklistText: string;
   onDecklistTextChange: (value: string) => void;
   onInfuseList: () => void;
+  loading: boolean;
   deckSize: number;
   landInOpenerPct: number;
   creatureByT3Pct: number;
@@ -16,6 +17,7 @@ export function DecklistPane({
   decklistText,
   onDecklistTextChange,
   onInfuseList,
+  loading,
   deckSize,
   landInOpenerPct,
   creatureByT3Pct,
@@ -56,10 +58,11 @@ export function DecklistPane({
               </p>
             )}
             <button
-              className="w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all arcane-glow"
+              className="w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all arcane-glow disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={onInfuseList}
+              disabled={loading || !decklistText.trim()}
             >
-              Load Deck
+              {loading ? 'Loading…' : 'Load Deck'}
             </button>
             <p className="text-center text-on-surface-variant font-label-sm text-label-sm">
               {deckSize} cards in deck

@@ -1,22 +1,19 @@
 import { categorizeTypeLine, type CardCategory } from '../../../shared/lib/cardCategory';
-import { lookupTypeLine } from '../../../shared/lib/cardTypeLookup';
-import type { DecklistEntry } from '../../../shared/lib/parseDecklist';
+import type { Card } from '../../../shared/model/cardTypes';
 
 export interface ExpandedCard {
   name: string;
   category: CardCategory;
+  imageUrl?: string;
 }
 
-export function expandDecklist(entries: DecklistEntry[]): ExpandedCard[] {
-  const expanded: ExpandedCard[] = [];
-  for (const entry of entries) {
-    const typeLine = lookupTypeLine(entry.name);
-    const category = categorizeTypeLine(typeLine);
-    for (let i = 0; i < entry.quantity; i++) {
-      expanded.push({ name: entry.name, category });
-    }
-  }
-  return expanded;
+/** Build ExpandedCard[] from resolved Card objects (e.g. from the Scryfall API). */
+export function expandFromCards(cards: Card[]): ExpandedCard[] {
+  return cards.map((card) => ({
+    name: card.name,
+    category: categorizeTypeLine(card.type_line),
+    imageUrl: card.details.image_small || card.details.image_normal || undefined,
+  }));
 }
 
 export function shuffle<T>(items: T[]): T[] {

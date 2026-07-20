@@ -1,52 +1,15 @@
 import { parseDecklist } from '../../../shared/lib/parseDecklist';
-import { lookupTypeLine } from '../../../shared/lib/cardTypeLookup';
-import { placeholderArt, type ArtFrameKey } from '../../../shared/lib/placeholderArt';
+import { BASIC_LANDS } from '../../../shared/lib/basicLands';
+import { scryfallApi } from '../api/scryfallApi';
 import type { Card } from '../../../shared/model/cardTypes';
 
-/**
- * Turns pasted decklist text into real, draftable Card objects — the
- * missing piece between "a player pastes a list of names" and "the
- * card grid/pool sidebar have something to render." Reuses the same
- * small built-in name lookup table the Mulligan Simulator uses
- * (cardTypeLookup.ts) — names not in that table resolve to a generic
- * "Unknown" card rather than failing to import.
- *
- * TODO(scryfall): once a real card-lookup API exists, this is the file
- * to change — everything downstream (CardGrid, PoolSidebar) already
- * just consumes Card objects, so swapping the resolution source here
- * doesn't require touching either of those.
- */
+const BASIC_LAND_NAMES = new Set(BASIC_LANDS.map((l) => l.name.toLowerCase()));
 
-let importCounter = 0;
+let buildCardCounter = 0;
 
-/** Very rough cost guess from a type_line, just enough to pick a
- * placeholder-art tint — this is not real mana-cost parsing, since the
- * lookup table only stores type_line, not parsed_cost. Imported cards
- * get an empty parsed_cost (no color pips shown in the UI) unless/until
- * a real card database supplies one. */
-function frameKeyForTypeLine(typeLine: string): ArtFrameKey {
-  const lower = typeLine.toLowerCase();
-  if (lower.includes('plains') || lower.includes('white')) return 'W';
-  if (lower.includes('island') || lower.includes('blue')) return 'U';
-  if (lower.includes('swamp') || lower.includes('black')) return 'B';
-  if (lower.includes('mountain') || lower.includes('red')) return 'R';
-  if (lower.includes('forest') || lower.includes('green')) return 'G';
-  return 'C';
-}
-
-export interface ImportDecklistResult {
-  cards: Card[];
-  /** Names from the pasted text that weren't found in the lookup table
-   * — these still get imported (as "Unknown" type cards), this list is
-   * just for showing the same "N cards not recognized" notice the
-   * Mulligan Simulator shows. */
-  unknownNames: string[];
-}
-
-export function buildCard(name: string, typeLine: string, frameKey: ArtFrameKey): Card {
-  importCounter += 1;
-  const image = placeholderArt(name, frameKey);
-  const cardID = `import-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${importCounter}`;
+export function buildCard(name: string, typeLine: string): Card {
+  buildCardCounter += 1;
+  const cardID = `card-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${buildCardCounter}`;
   return {
     cardID,
     name,
@@ -57,8 +20,8 @@ export function buildCard(name: string, typeLine: string, frameKey: ArtFrameKey)
       set: 'IMPORT',
       set_name: 'Imported',
       scryfall_id: cardID,
-      image_small: image,
-      image_normal: image,
+      image_small: '',
+      image_normal: '',
       image_flip: null,
       name,
       parsed_cost: [],
@@ -66,20 +29,74 @@ export function buildCard(name: string, typeLine: string, frameKey: ArtFrameKey)
   };
 }
 
-export function importDecklist(text: string): ImportDecklistResult {
+export interface ImportDecklistResult {
+  cards: Card[];
+  unknownNames: string[];
+}
+
+/**
+ * Resolves a pasted decklist into real Card objects by looking up each
+ * unique card name via the backend Scryfall batch API. Basic lands are
+ * resolved locally (no API call). Quantity handling is done entirely
+ * on the frontend — the API returns one Card per unique name, and we
+ * duplicate it N times based on the quantity in the decklist.
+ */
+export async function importDecklist(text: string): Promise<ImportDecklistResult> {
   const entries = parseDecklist(text);
-  const cards: Card[] = [];
   const unknownNames: string[] = [];
 
-  for (const entry of entries) {
-    const typeLine = lookupTypeLine(entry.name);
-    if (typeLine === null) unknownNames.push(entry.name);
+  const uniqueNames = [...new Set(entries.map((e) => e.name))];
+  const cardCache = new Map<string, Card>();
 
-    const resolvedTypeLine = typeLine ?? 'Unknown';
-    const frameKey = typeLine ? frameKeyForTypeLine(typeLine) : 'C';
+  // Resolve basic lands locally
+  for (const name of uniqueNames) {
+    if (BASIC_LAND_NAMES.has(name.toLowerCase())) {
+      const land = BASIC_LANDS.find((l) => l.name.toLowerCase() === name.toLowerCase());
+      if (land) {
+        const card: Card = {
+          cardID: `basic-${land.name.toLowerCase()}`,
+          name: land.name,
+          cmc: 0,
+          type_line: `Basic Land — ${land.name}`,
+          reveal: true,
+          details: {
+            set: 'land',
+            set_name: 'Basic Land',
+            scryfall_id: `basic-${land.name.toLowerCase()}`,
+            image_small: land.imageUrl,
+            image_normal: land.imageUrl,
+            image_flip: null,
+            name: land.name,
+            parsed_cost: [],
+          },
+        };
+        cardCache.set(name, card);
+      }
+    }
+  }
+
+  // Fetch non-land cards via the batch endpoint (single HTTP call)
+  const toFetch = uniqueNames.filter((n) => !cardCache.has(n));
+  if (toFetch.length > 0) {
+    const result = await scryfallApi.getCardsByNames(toFetch);
+    for (const card of result.cards) {
+      cardCache.set(card.name, card);
+    }
+    unknownNames.push(...result.notFound);
+  }
+
+  // Build card list with quantities, giving each instance a unique cardID
+  const cards: Card[] = [];
+  for (const entry of entries) {
+    const card = cardCache.get(entry.name);
+    if (!card) continue;
 
     for (let i = 0; i < entry.quantity; i++) {
-      cards.push(buildCard(entry.name, resolvedTypeLine, frameKey));
+      cards.push({
+        ...card,
+        cardID: i === 0 ? card.cardID : `${card.cardID}-${i}`,
+        details: { ...card.details },
+      });
     }
   }
 

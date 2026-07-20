@@ -8,10 +8,11 @@ import { StatusScreen } from '../../../shared/components/StatusScreen';
 import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
 import { gameApi } from '../../draft/api/gameApi';
 import { buildCard } from '../../card-workspace/utils/importDecklist';
-import { BASIC_LAND_FRAME, BASIC_LANDS } from '../../../shared/lib/basicLands';
+import { BASIC_LANDS } from '../../../shared/lib/basicLands';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { useAuth } from '../../auth/AuthContext';
 import { accountApi } from '../../account/api/accountApi';
+import { scryfallApi } from '../../card-workspace/api/scryfallApi';
 import { useToast } from '../../../shared/components/Toast';
 import type { Card } from '../../../shared/model/cardTypes';
 
@@ -57,28 +58,31 @@ export function DeckBuilderPage() {
     setPoolTab(gameID && playerName ? 'list' : deckCardIds ? 'list' : 'import');
 
     // If we received card IDs from navigation state (e.g. "View in Deckbuilder"),
-    // create placeholder Card objects. Full card data will come from the API later.
+    // fetch real card data from the backend Scryfall API.
     if (deckCardIds && deckCardIds.length > 0) {
-      const placeholders: Card[] = deckCardIds.map((id) => ({
-        cardID: id,
-        name: id,
-        details: {
-          set: '',
-          set_name: '',
-          scryfall_id: '',
-          image_small: '',
-          image_normal: '',
-          image_flip: null,
-          name: id,
-          parsed_cost: [],
-        },
-        cmc: 0,
-        type_line: 'Unknown',
-        reveal: true,
-      }));
-      setDecklist(placeholders);
-      setLoading(false);
-      return;
+      setLoading(true);
+      Promise.allSettled(
+        deckCardIds.map((id) => scryfallApi.getCardById(id))
+      ).then((results) => {
+        if (cancelled) return;
+        const resolved: Card[] = [];
+        let failed = 0;
+        for (const r of results) {
+          if (r.status === 'fulfilled') resolved.push(r.value);
+          else failed++;
+        }
+        setDecklist(resolved);
+        if (resolved.length === 0) {
+          setError('None of the saved cards could be loaded.');
+        } else if (failed > 0) {
+          showToast(`${failed} card(s) could not be found and were skipped.`);
+        }
+      }).catch((err) => {
+        if (!cancelled) setError(getErrorMessage(err));
+      }).finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+      return () => { cancelled = true; };
     }
 
     if (!gameID || !playerName) {
@@ -129,7 +133,7 @@ export function DeckBuilderPage() {
 
   function addLand(name: string) {
     const land = BASIC_LANDS.find((l) => l.name === name);
-    const card = buildCard(name, 'Basic Land', BASIC_LAND_FRAME[name] ?? 'C');
+    const card = buildCard(name, 'Basic Land');
     if (land) {
       card.details.image_small = land.imageUrl;
       card.details.image_normal = land.imageUrl;
