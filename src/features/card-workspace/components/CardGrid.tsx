@@ -7,11 +7,12 @@ export interface CardGridProps {
   cards: Card[];
   stagedCardID: string | null;
   onStage: (card: Card) => void;
+  onDraftDirect?: (card: Card) => void;
   disabled: boolean;
   minSlots?: number;
 }
 
-export function CardGrid({ cards, stagedCardID, onStage, disabled, minSlots = 10 }: CardGridProps) {
+export function CardGrid({ cards, stagedCardID, onStage, onDraftDirect, disabled, minSlots = 10 }: CardGridProps) {
   const placeholderCount = Math.max(0, minSlots - cards.length);
 
   return (
@@ -22,6 +23,7 @@ export function CardGrid({ cards, stagedCardID, onStage, disabled, minSlots = 10
           card={card}
           staged={stagedCardID === card.cardID}
           onStage={() => onStage(card)}
+          onDraftDirect={onDraftDirect ? () => onDraftDirect(card) : undefined}
           disabled={disabled}
         />
       ))}
@@ -36,10 +38,11 @@ interface CardTileProps {
   card: Card;
   staged: boolean;
   onStage: () => void;
+  onDraftDirect?: () => void;
   disabled: boolean;
 }
 
-function CardTile({ card, staged, onStage, disabled }: CardTileProps) {
+function CardTile({ card, staged, onStage, onDraftDirect, disabled }: CardTileProps) {
   const isTouch = useIsTouchDevice();
   const colors = cardColors(card);
   const [showingBack, setShowingBack] = useState(false);
@@ -56,6 +59,7 @@ function CardTile({ card, staged, onStage, disabled }: CardTileProps) {
     <button
       type="button"
       onClick={onStage}
+      onDoubleClick={onDraftDirect}
       disabled={disabled}
       aria-pressed={staged}
       className={`group relative aspect-[2.5/3.5] bg-surface-container rounded-xl overflow-hidden transition-colors duration-300 flex flex-col border-2 text-left disabled:cursor-not-allowed disabled:opacity-60 ${

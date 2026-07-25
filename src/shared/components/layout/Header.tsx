@@ -21,6 +21,7 @@ const NAV_LINKS: NavLinkDef[] = [
   { label: 'Draft', to: '/draft-selection', icon: 'style', activePrefixes: ['/draft-setup', '/draft/'] },
   { label: 'Deck Building', to: '/deckbuilder', icon: 'dashboard' },
   { label: 'Mulligan Simulator', to: '/mulligan-simulator', icon: 'casino' },
+  { label: 'Feature Requests', to: '/feature-requests', icon: 'lightbulb' },
 ];
 
 const SECONDARY_LINKS = [

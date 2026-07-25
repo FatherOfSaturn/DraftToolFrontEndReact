@@ -17,7 +17,7 @@ function copyDraftLink(gameID: string, partnerName: string) {
 export function StatsBar({ playerName, partnerName, doublePicksRemaining, packsLeft, packsTotal, gameID }: StatsBarProps) {
   const pct = packsTotal > 0 ? Math.round(((packsTotal - packsLeft) / packsTotal) * 100) : 0;
   return (
-    <section className="fixed top-16 w-full z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/10 px-margin-mobile md:px-margin-desktop h-12 flex items-center justify-between overflow-x-auto whitespace-nowrap gap-lg md:gap-lg no-scrollbar">
+    <section className="fixed top-16 w-full z-40 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/10 px-margin-mobile md:px-margin-desktop h-12 flex items-center justify-between overflow-x-auto whitespace-nowrap gap-md lg:gap-lg no-scrollbar">
       <div className="flex gap-md items-center">
         <div className="flex items-center gap-xs">
           <span className="text-on-surface-variant font-label-sm text-label-sm hidden sm:inline">PLAYER:</span>
@@ -48,11 +48,11 @@ export function StatsBar({ playerName, partnerName, doublePicksRemaining, packsL
           <span className="text-primary font-bold text-label-md">{doublePicksRemaining}</span>
         </div>
       </div>
-      <div className="flex gap-lg items-center">
+      <div className="flex gap-md lg:gap-lg items-center">
         <div className="flex items-center gap-base">
           <div className="bg-primary-container/20 px-sm py-1 rounded-full border border-primary-container/30">
             <span className="text-primary font-label-sm text-label-sm">
-              PACKS LEFT: {packsLeft}/{packsTotal}
+              <span className="hidden sm:inline">PACKS LEFT: </span>{packsLeft}/{packsTotal}
             </span>
           </div>
           <div className="h-1.5 w-20 md:w-32 bg-surface-variant rounded-full overflow-hidden">

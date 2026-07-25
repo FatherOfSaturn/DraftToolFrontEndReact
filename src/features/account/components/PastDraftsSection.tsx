@@ -51,7 +51,7 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
                     title={`${game.gameID} — Click to copy`}
                     onClick={() => copyToClipboard(game.gameID)}
                   >
-                    Game ID: {game.gameID}
+                    Click to copy Game ID
                   </button>
                   <span className="text-label-sm text-on-surface-variant shrink-0">{formatDate(game.createdAt)}</span>
                 </div>
@@ -69,7 +69,7 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
                   </a>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
                   <div className="flex items-center gap-4">
                     <div>
                       <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player 1</span>
@@ -80,7 +80,7 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
                       <p className="text-on-surface font-semibold">{game.player2Name}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 self-start">
                     <button
                       className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all"
                       onClick={() => navigate(`/deckbuilder/${encodeURIComponent(game.gameID)}/${encodeURIComponent(game.player1Name)}`)}

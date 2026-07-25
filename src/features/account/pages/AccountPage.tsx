@@ -36,6 +36,7 @@ export function AccountPage() {
               dateFilter={filters.dateFilter}
               onDateFilterChange={filters.setDateFilter}
               onApply={filters.applyFilters}
+              onReset={filters.resetFilters}
             />
           </div>
         </header>

@@ -7,6 +7,7 @@ interface PastDraftFiltersProps {
   dateFilter: string;
   onDateFilterChange: (value: string) => void;
   onApply: () => void;
+  onReset: () => void;
 }
 
 export function PastDraftFilters({
@@ -15,6 +16,7 @@ export function PastDraftFilters({
   dateFilter,
   onDateFilterChange,
   onApply,
+  onReset,
 }: PastDraftFiltersProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
@@ -34,9 +36,14 @@ export function PastDraftFilters({
           <input className="bg-transparent border-none focus:ring-0 text-label-md text-on-surface w-40 [color-scheme:dark]" type="date" value={dateFilter} onChange={(event) => onDateFilterChange(event.target.value)} />
         </div>
       </div>
-      <button className="self-end bg-surface-variant hover:bg-primary-container/20 text-primary border border-primary/30 font-label-md text-label-md px-6 py-2.5 rounded-lg transition-all h-[42px]" onClick={onApply}>
-        Apply Filters
-      </button>
+      <div className="flex items-center gap-2 self-end">
+        <button className="bg-surface-variant hover:bg-surface-container-highest text-on-surface-variant border border-outline-variant/30 font-label-md text-label-md px-4 py-2.5 rounded-lg transition-all h-[42px]" onClick={onReset}>
+          Reset
+        </button>
+        <button className="bg-surface-variant hover:bg-primary-container/20 text-primary border border-primary/30 font-label-md text-label-md px-6 py-2.5 rounded-lg transition-all h-[42px]" onClick={onApply}>
+          Apply Filters
+        </button>
+      </div>
     </>
   );
 

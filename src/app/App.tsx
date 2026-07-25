@@ -9,8 +9,10 @@ import { DeckBuilderPage } from '../features/deck-builder/pages/DeckBuilderPage'
 import { DraftRouteWrapper } from '../features/draft/pages/DraftRouteWrapper';
 import { DraftSelectionPage } from '../features/draft/pages/DraftSelectionPage';
 import { DraftSetupPage } from '../features/draft/pages/DraftSetupPage';
+import { FeatureRequestPage } from '../features/feature-requests/pages/FeatureRequestPage';
 import { HomePage } from '../features/home/pages/HomePage';
 import { MulliganSimulatorPage } from '../features/mulligan-simulator/pages/MulliganSimulatorPage';
+import { ScrollToTop } from '../shared/components/ScrollToTop';
 import { ToastProvider } from '../shared/components/Toast';
 
 /**
@@ -35,6 +37,7 @@ export function App() {
     <GoogleOAuthProvider clientId={env.googleClientId}>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <ToastProvider>
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -55,6 +58,7 @@ export function App() {
                 }
               />
               <Route path="/mulligan-simulator" element={<MulliganSimulatorPage />} />
+              <Route path="/feature-requests" element={<FeatureRequestPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
