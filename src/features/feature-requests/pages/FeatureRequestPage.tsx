@@ -11,9 +11,9 @@ export function FeatureRequestPage() {
       <main className="pt-16 px-margin-mobile md:px-margin-desktop pb-xl">
         <div className="max-w-6xl mx-auto">
           <div className="mb-lg">
-            <h2 className="font-headline-lg text-headline-lg text-on-surface mb-xs">Request New Features</h2>
+            <h2 className="font-headline-lg text-headline-lg text-on-surface mb-xs">Support & Feature Requests</h2>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Help shape the future of Pyramid Draft by submitting your ideas below.
+              Report bugs, request features, or get help with Pyramid Draft.
             </p>
           </div>
 
