@@ -5,6 +5,7 @@ import type { SupportRequest } from '../../feature-requests/api/supportApi';
 
 interface StatsCardsProps {
   supportRequests: SupportRequest[];
+  accountID: string;
 }
 
 interface DraftCounts {
@@ -13,17 +14,17 @@ interface DraftCounts {
   winston: number;
 }
 
-export function StatsCards({ supportRequests }: StatsCardsProps) {
+export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
   const [donations, setDonations] = useState<DonationStats | null>(null);
   const [drafts, setDrafts] = useState<DraftCounts | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      adminApi.getDonationStats(),
-      adminApi.getDraftTypeCount('pyramid'),
-      adminApi.getDraftTypeCount('chaos'),
-      adminApi.getDraftTypeCount('winston'),
+      adminApi.getDonationStats(accountID),
+      adminApi.getDraftTypeCount(accountID, 'pyramid'),
+      adminApi.getDraftTypeCount(accountID, 'chaos'),
+      adminApi.getDraftTypeCount(accountID, 'winston'),
     ])
       .then(([d, py, ch, wi]) => {
         if (!cancelled) {

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { useAuth } from '../../auth/AuthContext';
 import { accountApi } from '../api/accountApi';
 
 export function AccountProfile() {
-  const { account, refreshAccount } = useAuth();
+  const { account, refreshAccount, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -92,6 +93,15 @@ export function AccountProfile() {
         </button>
       </div>
       {profileError && <p className="mt-2 font-label-sm text-error" role="alert">{profileError}</p>}
+      <div className="flex items-center gap-6 pt-3 border-t border-outline-variant/10 mt-3">
+        <button
+          className="text-error font-label-sm hover:underline flex items-center gap-1"
+          onClick={() => { logout(); navigate('/'); }}
+        >
+          <span className="material-symbols-outlined text-[16px]">logout</span>
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }

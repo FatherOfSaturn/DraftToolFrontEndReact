@@ -6,8 +6,10 @@ import { StatsCards } from '../components/StatsCards';
 import { AccountSearch } from '../components/AccountSearch';
 import { SupportTicketsTable } from '../components/SupportTicketsTable';
 import { supportApi, type SupportRequest } from '../../feature-requests/api/supportApi';
+import { useAuth } from '../../auth/AuthContext';
 
 export function AdminPage() {
+  const { account } = useAuth();
   const [supportRequests, setSupportRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,7 +44,7 @@ export function AdminPage() {
 
           <div className="px-margin-mobile md:px-margin-desktop flex flex-col gap-xl">
             {/* Stats Cards */}
-            <StatsCards supportRequests={supportRequests} />
+            <StatsCards supportRequests={supportRequests} accountID={account?.accountID!} />
 
             {/* Account Search */}
             <AccountSearch />

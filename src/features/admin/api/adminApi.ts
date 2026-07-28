@@ -11,11 +11,11 @@ export const adminApi = {
     return requestJson<AdminCheck>(`/admin/check/${segment(accountID)}`);
   },
 
-  getDonationStats(): Promise<DonationStats> {
-    return requestJson<DonationStats>('/admin/stats/donations');
+  getDonationStats(accountID: string): Promise<DonationStats> {
+    return requestJson<DonationStats>(`/admin/${segment(accountID)}/stats/donations`);
   },
 
-  getDraftTypeCount(draftType: string): Promise<number> {
-    return requestJson<number>(`/admin/stats/drafts/${segment(draftType)}`);
+  getDraftTypeCount(accountID: string, draftType: string): Promise<number> {
+    return requestJson<number>(`/admin/${segment(accountID)}/stats/drafts/${segment(draftType)}`);
   },
 };
