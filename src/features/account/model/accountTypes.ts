@@ -26,5 +26,11 @@ export interface GameSummary {
   gameState: GameState;
   player1Name: string;
   player2Name: string;
+  player1CurrentPack: number;
+  player1TotalPacks: number;
+  player1DoneDrafting: boolean;
+  player2CurrentPack: number;
+  player2TotalPacks: number;
+  player2DoneDrafting: boolean;
   createdAt: string;
 }

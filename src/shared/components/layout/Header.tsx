@@ -22,6 +22,7 @@ const NAV_LINKS: NavLinkDef[] = [
   { label: 'Deck Building', to: '/deckbuilder', icon: 'dashboard' },
   { label: 'Mulligan Simulator', to: '/mulligan-simulator', icon: 'casino' },
   { label: 'Support', to: '/feature-requests', icon: 'lightbulb' },
+  { label: 'Admin', to: '/admin', icon: 'admin_panel_settings' },
 ];
 
 const SECONDARY_LINKS = [
@@ -32,7 +33,7 @@ const SECONDARY_LINKS = [
 export function Header({ search }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { account } = useAuth();
+  const { account, isAdmin } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // Close mobile menu on route change
@@ -83,7 +84,7 @@ export function Header({ search }: HeaderProps) {
 
         {/* Desktop nav */}
         <div className="hidden md:flex items-center gap-lg">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.filter((link) => isAdmin || link.to !== '/admin').map((link) => (
             <Link
               key={link.to}
               to={link.to}
@@ -154,7 +155,7 @@ export function Header({ search }: HeaderProps) {
         }`}
       >
         <div className="flex flex-col p-lg gap-1">
-          {NAV_LINKS.map((link) => (
+          {NAV_LINKS.filter((link) => isAdmin || link.to !== '/admin').map((link) => (
             <Link
               key={link.to}
               to={link.to}

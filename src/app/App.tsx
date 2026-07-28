@@ -10,6 +10,7 @@ import { DraftRouteWrapper } from '../features/draft/pages/DraftRouteWrapper';
 import { DraftSelectionPage } from '../features/draft/pages/DraftSelectionPage';
 import { DraftSetupPage } from '../features/draft/pages/DraftSetupPage';
 import { FeatureRequestPage } from '../features/feature-requests/pages/FeatureRequestPage';
+import { AdminPage } from '../features/admin/pages/AdminPage';
 import { HomePage } from '../features/home/pages/HomePage';
 import { MulliganSimulatorPage } from '../features/mulligan-simulator/pages/MulliganSimulatorPage';
 import { ScrollToTop } from '../shared/components/ScrollToTop';
@@ -59,6 +60,18 @@ export function App() {
               />
               <Route path="/mulligan-simulator" element={<MulliganSimulatorPage />} />
               <Route path="/feature-requests" element={<FeatureRequestPage />} />
+              <Route
+                path="/admin"
+                element={
+                  env.skipAuth ? (
+                    <AdminPage />
+                  ) : (
+                    <RequireAuth>
+                      <AdminPage />
+                    </RequireAuth>
+                  )
+                }
+              />
               <Route path="/login" element={<LoginPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
