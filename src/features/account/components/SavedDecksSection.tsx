@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
 import type { DeckPagination } from '../hooks/useAccountDecks';
 import type { Deck } from '../model/accountTypes';
@@ -11,13 +12,6 @@ interface SavedDecksSectionProps {
   onUpdate: (deckID: string, name: string, description: string, cardIds: string[]) => void;
   onCreateNew: () => void;
   pagination: DeckPagination;
-}
-
-function formatISODate(iso: string): string {
-  return new Date(iso)
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase()
-    .replace(',', '');
 }
 
 interface EditableCellProps {
@@ -82,7 +76,7 @@ function EditableCell({ value, onSave, emptyFallback = '—', truncate }: Editab
 
   return (
     <div className="flex items-center justify-between gap-2 group/edit min-w-0">
-      <span className={`font-body-md text-on-surface ${truncate ? 'text-sm max-w-[160px] truncate' : 'font-semibold'}`}>
+      <span className={`font-body-md text-on-surface ${truncate ? 'text-sm line-clamp-2' : 'font-semibold'}`}>
         {value || emptyFallback}
       </span>
       <button
@@ -97,6 +91,8 @@ function EditableCell({ value, onSave, emptyFallback = '—', truncate }: Editab
 }
 
 export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, onCreateNew, pagination }: SavedDecksSectionProps) {
+  const navigate = useNavigate();
+
   return (
     <section className="xl:col-span-5 space-y-6">
       <div className="flex items-center justify-between">
@@ -104,52 +100,70 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
           <span className="material-symbols-outlined text-secondary text-[32px]">auto_fix_high</span>
           Saved Decks
         </h2>
-        <span className="font-label-sm text-label-sm bg-surface-container-high px-3 py-1 rounded-full text-outline-variant">
-          Total: {pagination.totalItems}
+        <span className="font-label-md text-label-md bg-secondary/10 border border-secondary/30 text-secondary px-4 py-1.5 rounded-full flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">auto_fix_high</span>
+          {pagination.totalItems} Deck{pagination.totalItems !== 1 ? 's' : ''}
         </span>
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
         {error && <div className="px-4 py-3 bg-error/10 text-error font-label-sm border-b border-error/20">{error}</div>}
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Name</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Description</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Cards</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline">Updated</th>
-                <th className="px-4 py-3 font-label-md text-label-md text-outline text-right" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/20">
-              {loading && <tr><td colSpan={5} className="px-4 py-10 text-center text-on-surface-variant font-body-md">Loading decks…</td></tr>}
-              {!loading && decks.length === 0 && <tr><td colSpan={5} className="px-4 py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</td></tr>}
-              {!loading && decks.map((deck) => (
-                <tr key={deck.deckID} className="group hover:bg-surface-container/50 transition-colors">
-                  <td className="px-4 py-4">
+
+        <div className="p-4">
+          {loading && (
+            <div className="py-10 text-center text-on-surface-variant font-body-md">Loading decks…</div>
+          )}
+          {!loading && decks.length === 0 && (
+            <div className="py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</div>
+          )}
+          {!loading && decks.length > 0 && (
+            <div className="grid grid-cols-1 gap-4">
+              {decks.map((deck) => (
+                <div key={deck.deckID} className="glass-panel rounded-xl p-4 space-y-4">
+                  <div className="flex justify-between items-start">
                     <EditableCell
                       value={deck.name}
                       onSave={(name) => onUpdate(deck.deckID, name, deck.description, deck.cardIds)}
                     />
-                  </td>
-                  <td className="px-4 py-4 max-w-[200px]">
-                    <EditableCell
-                      value={deck.description}
-                      onSave={(description) => onUpdate(deck.deckID, deck.name, description, deck.cardIds)}
-                      truncate
-                    />
-                  </td>
-                  <td className="px-4 py-4 font-label-sm text-primary">{deck.cardIds.length}</td>
-                  <td className="px-4 py-4 font-label-sm text-on-surface-variant">{formatISODate(deck.updatedAt)}</td>
-                  <td className="px-4 py-4 text-right">
-                    <button className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors text-[18px]" title="Delete deck" onClick={() => onDelete(deck.deckID)}>delete</button>
-                  </td>
-                </tr>
+                    <button
+                      className="material-symbols-outlined text-on-surface-variant hover:text-error transition-colors text-[18px] shrink-0"
+                      title="Delete deck"
+                      onClick={() => onDelete(deck.deckID)}
+                    >
+                      delete
+                    </button>
+                  </div>
+
+                  <EditableCell
+                    value={deck.description}
+                    onSave={(description) => onUpdate(deck.deckID, deck.name, description, deck.cardIds)}
+                    truncate
+                  />
+
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="material-symbols-outlined text-secondary text-[16px]">style</span>
+                    <span className="text-secondary font-medium">{deck.cardIds.length} Cards</span>
+                    <div className="flex items-center gap-2 ml-auto">
+                      <button
+                        className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all"
+                        onClick={() => navigate('/deckbuilder', { state: { deckCardIds: deck.cardIds } })}
+                      >
+                        Deckbuilder
+                      </button>
+                      <button
+                        className="px-3 py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant hover:bg-surface-variant/50 text-xs font-label-sm transition-all"
+                        onClick={() => navigate('/mulligan-simulator', { state: { deckCardIds: deck.cardIds } })}
+                      >
+                        Mulligan Sim
+                      </button>
+                    </div>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          )}
         </div>
+
         <Pagination
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}

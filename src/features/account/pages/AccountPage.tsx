@@ -17,7 +17,7 @@ export function AccountPage() {
 
   return (
     <div className="font-body-md text-on-surface bg-surface-dim min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
-      <Header search={{ value: filters.search, onChange: filters.setSearch, placeholder: 'Search drafts...' }} />
+      <Header />
       <main className="pt-32 pb-24 px-4 md:px-margin-desktop max-w-[1400px] mx-auto min-h-screen relative flex-1">
         <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
           <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-primary/10 blur-[120px] rounded-full" />
@@ -36,6 +36,7 @@ export function AccountPage() {
               dateFilter={filters.dateFilter}
               onDateFilterChange={filters.setDateFilter}
               onApply={filters.applyFilters}
+              onReset={filters.resetFilters}
             />
           </div>
         </header>

@@ -1,11 +1,33 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { expandDecklist, shuffle } from './mulliganUtils';
+import { expandFromCards, shuffle } from './mulliganUtils';
+import type { Card } from '../../../shared/model/cardTypes';
 
 afterEach(() => vi.restoreAllMocks());
 
+function fakeCard(name: string, typeLine: string): Card {
+  return {
+    cardID: name,
+    name,
+    cmc: 0,
+    type_line: typeLine,
+    reveal: true,
+    details: {
+      set: 'test',
+      set_name: 'Test',
+      scryfall_id: name,
+      image_small: '',
+      image_normal: '',
+      image_flip: null,
+      name,
+      parsed_cost: [],
+    },
+  };
+}
+
 describe('mulligan utilities', () => {
-  it('expands quantities into individual categorized cards', () => {
-    expect(expandDecklist([{ quantity: 2, name: 'Island' }])).toEqual([
+  it('expands resolved Card objects into categorized cards', () => {
+    const cards = [fakeCard('Island', 'Basic Land — Island'), fakeCard('Island', 'Basic Land — Island')];
+    expect(expandFromCards(cards)).toEqual([
       { name: 'Island', category: 'Land' },
       { name: 'Island', category: 'Land' },
     ]);

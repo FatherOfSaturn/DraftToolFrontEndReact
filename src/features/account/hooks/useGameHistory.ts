@@ -22,6 +22,7 @@ export interface Filters {
   dateFilter: string;
   setDateFilter: (value: string) => void;
   applyFilters: () => void;
+  resetFilters: () => void;
 }
 
 export function useGameHistory(accountID?: string) {
@@ -125,6 +126,14 @@ export function useGameHistory(accountID?: string) {
     applyFilters: () => {
       setAppliedPlayerName(playerNameFilter);
       setAppliedDate(dateFilter);
+      setCurrentPage(1);
+    },
+    resetFilters: () => {
+      setSearch('');
+      setPlayerNameFilter('');
+      setDateFilter('');
+      setAppliedPlayerName('');
+      setAppliedDate('');
       setCurrentPage(1);
     },
   };

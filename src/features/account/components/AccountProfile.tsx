@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { useAuth } from '../../auth/AuthContext';
 import { accountApi } from '../api/accountApi';
 
 export function AccountProfile() {
-  const { account, refreshAccount } = useAuth();
+  const { account, refreshAccount, logout } = useAuth();
+  const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -42,10 +43,11 @@ export function AccountProfile() {
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-3 mt-2">
+    <div className="space-y-1.5 mt-3">
+      <div className="flex items-center gap-6 flex-nowrap">
+        <span className="font-label-sm text-outline uppercase tracking-widest w-36 shrink-0 whitespace-nowrap">Display Name</span>
         {isEditing ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-nowrap min-w-0">
             <input
               className="bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-1.5 text-on-surface font-body-md"
               value={draftName}
@@ -65,17 +67,41 @@ export function AccountProfile() {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <span className="font-body-lg text-on-surface-variant">{account.displayName}</span>
+          <div className="flex items-center gap-2 flex-nowrap min-w-0">
+            <span className="font-body-lg text-on-surface whitespace-nowrap">{account.displayName}</span>
             <button className="material-symbols-outlined text-outline-variant hover:text-primary transition-colors text-[18px]" onClick={startEditing}>
               edit
             </button>
           </div>
         )}
-        <span className="text-outline-variant">·</span>
-        <span className="font-body-md text-on-surface-variant">{account.email}</span>
+      </div>
+      <div className="flex items-center gap-6">
+        <span className="font-label-sm text-outline uppercase tracking-widest w-36 shrink-0">Email</span>
+        <span className="font-body-md text-on-surface">{account.email}</span>
+      </div>
+      <div className="flex items-center gap-6">
+        <span className="font-label-sm text-outline uppercase tracking-widest w-36 shrink-0">Account ID</span>
+        <span className="font-mono text-sm text-on-surface bg-surface-container-high px-2 py-1 rounded border border-outline-variant/20 select-all">
+          {account.accountID}
+        </span>
+        <button
+          className="material-symbols-outlined text-outline-variant hover:text-primary transition-colors text-[18px]"
+          title="Copy Account ID"
+          onClick={() => navigator.clipboard.writeText(account.accountID).catch(() => {})}
+        >
+          content_copy
+        </button>
       </div>
       {profileError && <p className="mt-2 font-label-sm text-error" role="alert">{profileError}</p>}
+      <div className="flex items-center gap-6 pt-3 border-t border-outline-variant/10 mt-3">
+        <button
+          className="text-error font-label-sm hover:underline flex items-center gap-1"
+          onClick={() => { logout(); navigate('/'); }}
+        >
+          <span className="material-symbols-outlined text-[16px]">logout</span>
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }

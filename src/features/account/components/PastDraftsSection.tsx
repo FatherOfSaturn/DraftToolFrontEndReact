@@ -19,9 +19,99 @@ function copyToClipboard(text: string) {
   navigator.clipboard.writeText(text).catch(() => {});
 }
 
-export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps) {
-  const navigate = useNavigate();
+function getGameBadge(game: GameSummary): { label: string; icon: string; color: string } {
+  if (game.gameState === 'game_complete') {
+    return { label: 'Complete', icon: 'check_circle', color: 'text-on-surface-variant' };
+  }
+  if (game.gameState === 'game_merged') {
+    return { label: 'Round 2', icon: 'swap_horiz', color: 'text-secondary' };
+  }
+  if (game.player1DoneDrafting && game.player2DoneDrafting) {
+    return { label: 'Both done', icon: 'merge', color: 'text-tertiary' };
+  }
+  return { label: 'In Progress', icon: 'edit', color: 'text-primary' };
+}
 
+function playerProgressLabel(current: number, total: number, done: boolean): string {
+  if (done) return 'Done';
+  if (total === 0) return '—';
+  return `Pack ${current} of ${total}`;
+}
+
+function playerProgressColor(done: boolean, opponentDone: boolean): string {
+  if (done) return 'text-on-surface-variant';
+  if (opponentDone) return 'text-secondary';
+  return 'text-primary';
+}
+
+function playerAction(
+  gameState: GameSummary['gameState'],
+  done: boolean,
+  opponentDone: boolean,
+): { label: string; target: 'draft' | 'deckbuilder' } | null {
+  if (gameState === 'game_complete') {
+    return { label: 'Draftboard', target: 'deckbuilder' };
+  }
+  if (gameState === 'game_merged') {
+    return { label: 'Draftboard', target: 'deckbuilder' };
+  }
+  if (!done) {
+    return { label: 'Continue Drafting', target: 'draft' };
+  }
+  if (done && opponentDone) {
+    return { label: 'Draftboard', target: 'deckbuilder' };
+  }
+  return null;
+}
+
+function PlayerRow({
+  game,
+  name,
+  currentPack,
+  totalPacks,
+  done,
+  opponentDone,
+}: {
+  game: GameSummary;
+  name: string;
+  currentPack: number;
+  totalPacks: number;
+  done: boolean;
+  opponentDone: boolean;
+}) {
+  const navigate = useNavigate();
+  const action = playerAction(game.gameState, done, opponentDone);
+  const progress = playerProgressLabel(currentPack, totalPacks, done);
+  const color = playerProgressColor(done, opponentDone);
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+      <div className="flex flex-col">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player</span>
+        <p className="text-on-surface font-semibold text-sm">{name}</p>
+        <span className={`text-[11px] font-label-sm ${color}`}>{progress}</span>
+      </div>
+      {action && (
+        <button
+          className={`px-3 py-1 rounded-lg text-xs font-label-sm transition-all self-start ${
+            action.target === 'draft' && !done
+              ? 'bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20'
+              : 'border border-outline-variant/30 text-on-surface-variant hover:bg-surface-variant/50'
+          }`}
+          onClick={() =>
+            navigate(
+              `/${action.target}/${encodeURIComponent(game.gameID)}/${encodeURIComponent(name)}`,
+            )
+          }
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps) {
   return (
     <section className="xl:col-span-7 space-y-6">
       <div className="flex items-center justify-between">
@@ -29,71 +119,81 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
           <span className="material-symbols-outlined text-primary text-[32px]">history_edu</span>
           Past Drafts
         </h2>
-        <span className="font-label-sm text-label-sm bg-surface-container-high px-3 py-1 rounded-full text-outline-variant">
-          Total: {pagination.totalItems} Drafts
+        <span className="font-label-md text-label-md bg-primary/10 border border-primary/30 text-primary px-4 py-1.5 rounded-full flex items-center gap-2">
+          <span className="material-symbols-outlined text-[16px]">history_edu</span>
+          {pagination.totalItems} Draft{pagination.totalItems !== 1 ? 's' : ''}
         </span>
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-high/50 border-b border-outline-variant/30">
-                <th className="px-4 py-4 font-label-md text-label-md text-outline">Game ID</th>
-                <th className="px-4 py-4 font-label-md text-label-md text-outline">Cube ID</th>
-                <th className="px-4 py-4 font-label-md text-label-md text-outline">Player 1</th>
-                <th className="px-4 py-4 font-label-md text-label-md text-outline">Player 2</th>
-                <th className="px-4 py-4 font-label-md text-label-md text-outline">Date</th>
-                <th className="px-4 py-4 font-label-md text-label-md text-outline text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/20">
-              {games.map((game) => (
-                <tr key={game.gameID} className="group hover:bg-surface-container/50 transition-colors">
-                  <td className="px-4 py-5">
+        {games.length === 0 && (
+          <div className="p-10 text-center text-on-surface-variant font-body-md">
+            No drafts match these filters.
+          </div>
+        )}
+        {games.length > 0 && (
+          <div className="p-4 grid grid-cols-1 gap-4">
+            {games.map((game) => {
+              const badge = getGameBadge(game);
+
+              return (
+                <div key={game.gameID} className="glass-panel rounded-xl p-4 space-y-3">
+                  <div className="flex justify-between items-start">
                     <button
-                      className="font-label-md text-primary relative group/id cursor-pointer"
-                      title={game.gameID}
+                      className="font-label-sm text-primary underline decoration-dotted underline-offset-2"
+                      title={`${game.gameID} — Click to copy`}
                       onClick={() => copyToClipboard(game.gameID)}
                     >
-                      <span className="group-hover/id:invisible transition-all">Game ID</span>
-                      <span className="absolute inset-0 invisible group-hover/id:visible transition-all whitespace-nowrap text-primary font-label-md">
-                        #{game.gameID}
-                      </span>
+                      Click to copy Game ID
                     </button>
-                  </td>
-                  <td className="px-4 py-5 font-body-md text-on-surface-variant">{game.cubeID}</td>
-                  <td className="px-4 py-5 font-body-md font-semibold text-on-surface">{game.player1Name}</td>
-                  <td className="px-4 py-5 font-body-md font-semibold text-on-surface">{game.player2Name}</td>
-                  <td className="px-4 py-5 font-label-sm text-on-surface-variant">{formatDate(game.createdAt)}</td>
-                  <td className="px-4 py-5 text-right">
-                    <div className="flex flex-col items-end gap-1.5">
-                      <button
-                        className="font-label-sm text-label-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-all"
-                        onClick={() => navigate(`/deckbuilder/${encodeURIComponent(game.gameID)}/${encodeURIComponent(game.player1Name)}`)}
-                      >
-                        Player 1 Draftboard
-                      </button>
-                      <button
-                        className="font-label-sm text-label-sm bg-primary/10 hover:bg-primary/20 text-primary px-3 py-1.5 rounded-lg border border-primary/20 transition-all"
-                        onClick={() => navigate(`/deckbuilder/${encodeURIComponent(game.gameID)}/${encodeURIComponent(game.player2Name)}`)}
-                      >
-                        Player 2 Draftboard
-                      </button>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-label-sm ${badge.color} flex items-center gap-1`}>
+                        <span className="material-symbols-outlined text-[14px]">{badge.icon}</span>
+                        {badge.label}
+                      </span>
+                      <span className="text-label-sm text-on-surface-variant shrink-0">{formatDate(game.createdAt)}</span>
                     </div>
-                  </td>
-                </tr>
-              ))}
-              {games.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-on-surface-variant font-body-md">
-                    No drafts match these filters.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                  </div>
+
+                  <div className="text-sm">
+                    <span className="text-on-surface-variant">Cube: </span>
+                    <a
+                      href={`https://cubecobra.com/cube/list/${game.cubeID}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                      title="Click to visit cube on CubeCobra"
+                    >
+                      {game.cubeID}
+                    </a>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                    <div className="flex items-start gap-6">
+                      <PlayerRow
+                        game={game}
+                        name={game.player1Name}
+                        currentPack={game.player1CurrentPack}
+                        totalPacks={game.player1TotalPacks}
+                        done={game.player1DoneDrafting}
+                        opponentDone={game.player2DoneDrafting}
+                      />
+                      <PlayerRow
+                        game={game}
+                        name={game.player2Name}
+                        currentPack={game.player2CurrentPack}
+                        totalPacks={game.player2TotalPacks}
+                        done={game.player2DoneDrafting}
+                        opponentDone={game.player1DoneDrafting}
+                      />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         <Pagination
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}

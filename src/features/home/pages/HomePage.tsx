@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Header } from '../../../shared/components/layout/Header';
 import { Footer } from '../../../shared/components/layout/Footer';
+import { FAVORITE_CUBES } from '../../../shared/lib/favoriteCubes';
 
 /**
  * Marketing/landing page. Sign In, Donate, newsletter signup, and the
@@ -12,8 +13,6 @@ import { Footer } from '../../../shared/components/layout/Footer';
 export function HomePage() {
   const { hash } = useLocation();
 
-  // React Router doesn't auto-scroll to a hash target the way a plain
-  // <a href="#donate"> would on a static page, so do it manually.
   useEffect(() => {
     if (!hash) return;
     const id = hash.slice(1);
@@ -26,6 +25,7 @@ export function HomePage() {
       <main className="pt-16">
         <HeroSection />
         <ExperienceSection />
+        <FavoriteCubesSection />
         <ArchitectSection />
         <DonationSection />
       </main>
@@ -36,7 +36,7 @@ export function HomePage() {
 
 function HeroSection() {
   return (
-    <section className="relative min-h-[921px] flex items-center justify-center overflow-hidden px-margin-desktop">
+    <section className="relative min-h-[70vh] md:min-h-[921px] flex items-center justify-center overflow-hidden px-margin-mobile md:px-margin-desktop">
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-surface-dim/50 to-surface-dim" />
       <div className="relative z-10 text-center max-w-4xl">
         <div className="inline-flex items-center gap-xs px-md py-xs rounded-full glass-panel mb-md border border-primary/30">
@@ -51,7 +51,7 @@ function HeroSection() {
         <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-2xl mx-auto">
           A side project by a Magic player who wanted a faster way to draft cubes, and also take on a new side project.
         </p>
-        <div className="flex items-center justify-center gap-md">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-md">
           <Link
             className="group relative px-xl py-md bg-inverse-primary text-white font-headline-md rounded-xl overflow-hidden hover:scale-105 transition-all inline-block"
             to="/draft-selection"
@@ -78,14 +78,14 @@ function HeroSection() {
 
 function ExperienceSection() {
   return (
-    <section id="experience" className="py-xl px-margin-desktop bg-surface-dim">
+    <section id="experience" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-dim">
       <div className="mb-xl text-center">
         <h3 className="font-display text-headline-lg text-white mb-xs">A Few Useful Tools</h3>
         <div className="w-24 h-1 bg-primary mx-auto rounded-full opacity-50" />
       </div>
       <div className="grid grid-cols-12 gap-gutter max-w-7xl mx-auto">
         {/* Main Feature */}
-        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl p-lg flex flex-col justify-end relative overflow-hidden group min-h-[400px]">
+        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl p-lg flex flex-col justify-end relative overflow-hidden group min-h-[280px] md:min-h-[400px]">
           <div
             className="absolute inset-0 z-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
             style={{
@@ -97,12 +97,12 @@ function ExperienceSection() {
           <div className="relative z-10">
             <h4 className="font-headline-lg text-white mb-sm">The Unique Draft Experience</h4>
             <p className="font-body-md text-on-surface-variant max-w-md">
-              The Namesake of the site, the Pyramid Draft is a unique drafting experience that is fun to experience in person, but a pain to set up. A small tool was set up to draft, and the rest of the features sprialed out of control.
+              The Namesake of the site, the Pyramid Draft is a unique drafting experience that is fun to experience in person, but a pain to set up. A small tool was set up to draft, and the rest of the features spiraled out of control.
             </p>
           </div>
         </div>
 
-        {/* Small Feature 1 */}
+        {/* Streamline */}
         <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
           <span className="material-symbols-outlined text-secondary text-4xl mb-md">auto_fix_high</span>
           <h4 className="font-headline-md text-white mb-sm">Streamline Your Draft</h4>
@@ -111,7 +111,7 @@ function ExperienceSection() {
           </p>
         </div>
 
-        {/* Small Feature 2 */}
+        {/* Save Prior Drafts */}
         <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
           <span className="material-symbols-outlined text-primary text-4xl mb-md">cloud_sync</span>
           <h4 className="font-headline-md text-white mb-sm">Save Your Prior Drafts</h4>
@@ -120,32 +120,60 @@ function ExperienceSection() {
           </p>
         </div>
 
-        {/* Featured Draft Card */}
-        <div className="col-span-12 md:col-span-8 glass-panel rounded-2xl flex items-center p-lg gap-lg group overflow-hidden">
-          <div className="w-1/3 aspect-[3/4] rounded-xl overflow-hidden shadow-2xl transition-transform group-hover:rotate-2">
-            <img
-              className="w-full h-full object-cover"
-              alt="Featured cube illustration"
-              src="https://images.unsplash.com/photo-1633613286848-e6f43bbafb8d?w=600&q=80"
-            />
-          </div>
-          <div className="w-2/3">
-            <div className="flex gap-xs mb-sm">
-              <div className="w-6 h-6 rounded-full bg-primary/20 border border-primary/50 flex items-center justify-center text-[10px] text-primary">
-                P
+        {/* Deckbuilder */}
+        <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
+          <span className="material-symbols-outlined text-tertiary text-4xl mb-md">dashboard</span>
+          <h4 className="font-headline-md text-white mb-sm">Built-In Deckbuilder</h4>
+          <p className="font-body-md text-on-surface-variant">
+            After your draft, build your deck directly in the browser. Filter, search, and organize your pool with built-in analytics.
+          </p>
+        </div>
+
+        {/* Mulligan Simulator */}
+        <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
+          <span className="material-symbols-outlined text-error text-4xl mb-md">casino</span>
+          <h4 className="font-headline-md text-white mb-sm">Mulligan Simulator</h4>
+          <p className="font-body-md text-on-surface-variant">
+            Test your deck's opening hand consistency with probability calculations and interactive mulligan practice.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FavoriteCubesSection() {
+  return (
+    <section className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-container-low">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-xl">
+          <span className="inline-block px-4 py-1 rounded-full bg-primary-container/10 border border-primary/20 text-primary font-label-sm text-label-sm mb-md uppercase tracking-widest">
+            Featured Cubes
+          </span>
+          <h3 className="font-display text-headline-lg text-white mb-xs">Favorite Cubes</h3>
+          <p className="font-body-md text-on-surface-variant max-w-2xl mx-auto">
+            Cubes that are personal favorites — friends of mine, or my own. I love playing all kinds of Magic but these I find particularly enjoyable to draft.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+          {FAVORITE_CUBES.map((cube) => (
+            <Link
+              key={cube.cubeID}
+              to={`/draft-setup?cubeID=${encodeURIComponent(cube.cubeID)}`}
+              className="glass-panel rounded-2xl p-lg flex flex-col h-full border-primary/10 hover:border-primary/40 hover:scale-[1.02] transition-all group"
+            >
+              <div className="w-14 h-14 rounded-xl bg-primary-container/20 border border-primary/30 flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
+                <span className="material-symbols-outlined text-primary text-3xl">{cube.icon}</span>
               </div>
-              <div className="w-6 h-6 rounded-full bg-secondary/20 border border-secondary/50 flex items-center justify-center text-[10px] text-secondary">
-                U
+              <h4 className="font-headline-md text-white mb-sm">{cube.name}</h4>
+              <p className="font-body-md text-on-surface-variant flex-grow">{cube.description}</p>
+              <div className="mt-md flex items-center gap-xs text-primary font-label-md">
+                Start Drafting
+                <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </div>
-            </div>
-            <h4 className="font-headline-lg text-white mb-sm">Favorite Cubes</h4>
-            <p className="font-body-md text-on-surface-variant mb-md">
-              Test out some Cubes that are favorites of mine, either friends of mine, or my own personal cube. I love playing all kinds of Magic but these I find particularly enjoyable to draft.
-            </p>
-            <Link className="text-primary font-label-md flex items-center gap-xs hover:gap-md transition-all" to="/draft-selection">
-              View This Week's Cube <span className="material-symbols-outlined">arrow_forward</span>
             </Link>
-          </div>
+          ))}
         </div>
       </div>
     </section>
@@ -154,7 +182,7 @@ function ExperienceSection() {
 
 function ArchitectSection() {
   return (
-    <section id="backstory" className="py-xl px-margin-desktop bg-surface-container-low relative overflow-hidden">
+    <section id="backstory" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-container-low relative overflow-hidden">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-xl relative z-10">
         <div className="w-full md:w-1/2">
           <div className="relative">
@@ -178,7 +206,7 @@ function ArchitectSection() {
             I love Magic, writing code, and learning new things. This project allowed me to learn a lot. My life has gotten very busy, and due to that I did utilize AI to basically redo all of my Front-End code. My previous attempts felt very low quality and this last recreation I think looks a lot cleaner. I used React, and free tiers of Google Stitch, and Claude to realize a lot of the wireframes and mockups.
           </p>
           <div className="flex items-center gap-md">
-            <a className="flex flex-col" href="#">
+            <a className="flex flex-col" href="https://github.com/FatherOfSaturn" target="_blank" rel="noopener noreferrer">
               <span className="font-label-sm text-label-sm text-primary uppercase">
                 Follow me on GitHub
               </span>
@@ -186,12 +214,12 @@ function ArchitectSection() {
             </a>
             <div className="h-10 w-[1px] bg-outline-variant" />
             <div className="flex gap-sm">
-              <button className="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:bg-primary/20 transition-all">
+              <a href="https://github.com/FatherOfSaturn" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:bg-primary/20 transition-all">
                 <span className="material-symbols-outlined text-on-surface">public</span>
-              </button>
-              <button className="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:bg-primary/20 transition-all">
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full glass-panel flex items-center justify-center hover:bg-primary/20 transition-all">
                 <span className="material-symbols-outlined text-on-surface">history_edu</span>
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -229,7 +257,7 @@ const TIERS = [
 
 function DonationSection() {
   return (
-    <section id="donate" className="py-xl px-margin-desktop bg-surface-dim">
+    <section id="donate" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-dim">
       <div className="max-w-4xl mx-auto glass-panel rounded-[2rem] p-xl text-center relative overflow-hidden glow-purple">
         <div className="relative z-10">
           <span className="material-symbols-outlined text-tertiary text-5xl mb-md">auto_awesome</span>

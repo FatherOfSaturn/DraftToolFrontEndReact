@@ -1,15 +1,8 @@
 import { Link } from 'react-router-dom';
 
-/**
- * The single shared footer, used on every page. Previously every page
- * had its own footer with different copy ("Manifesto" vs "Privacy
- * Leylines" vs "Arcane Foundry", etc) — this is now the one canonical
- * version (taken from the original Home page footer, per product
- * direction), used everywhere.
- */
 export function Footer() {
   return (
-    <footer className="bg-surface-container-lowest py-xl px-margin-desktop border-t border-outline-variant/20">
+    <footer className="bg-surface-container-lowest py-xl px-margin-mobile md:px-margin-desktop border-t border-outline-variant/20">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-xl">
         <div className="max-w-xs">
           <div className="flex items-center gap-xs mb-md">
@@ -23,21 +16,37 @@ export function Footer() {
             something beyond the ordinary.
           </p>
           <div className="flex gap-md">
-            <span className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors">
+            <a
+              href="https://github.com/FatherOfSaturn"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors"
+              title="GitHub"
+            >
               hub
-            </span>
-            <span className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors">
+            </a>
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors"
+              title="LinkedIn"
+            >
               alternate_email
-            </span>
-            <span className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors">
-              token
-            </span>
+            </a>
+            <a
+              href="/#donate"
+              className="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer transition-colors"
+              title="Support the project"
+            >
+              favorite
+            </a>
           </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-xl">
           <div>
-            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Sanctum</h6>
+            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Support</h6>
             <ul className="space-y-sm font-body-md text-on-surface-variant">
               <li>
                 <Link className="hover:text-primary transition-colors" to="/draft-selection">
@@ -45,33 +54,28 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
-                  Public Cubes
-                </a>
-              </li>
-              <li>
-                <a className="hover:text-primary transition-colors" href="#">
-                  Hall of Fame
+                <a className="hover:text-primary transition-colors" href="/#donate">
+                  Donate
                 </a>
               </li>
             </ul>
           </div>
           <div>
-            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Scrolls</h6>
+            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Helpful Links</h6>
             <ul className="space-y-sm font-body-md text-on-surface-variant">
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
-                  About
+                <a className="hover:text-primary transition-colors" href="https://cubecobra.com" target="_blank" rel="noopener noreferrer">
+                  CubeCobra
                 </a>
               </li>
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
-                  Development Log
+                <a className="hover:text-primary transition-colors" href="https://scryfall.com" target="_blank" rel="noopener noreferrer">
+                  Scryfall
                 </a>
               </li>
               <li>
-                <a className="hover:text-primary transition-colors" href="#">
-                  Privacy Leylines
+                <a className="hover:text-primary transition-colors" href="https://magic.wizards.com/en/mtgarena" target="_blank" rel="noopener noreferrer">
+                  MTG Arena
                 </a>
               </li>
             </ul>

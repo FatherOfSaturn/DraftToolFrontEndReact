@@ -172,6 +172,15 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
             }),
           };
         });
+
+        // If this normal pick exhausted the player's packs, re-fetch game
+        // data immediately so the frontend picks up any server-side state
+        // change (e.g. GAME_COMPLETE when both players finish).
+        if (!doublePick && player.currentDraftPack + 1 >= player.cardPacks.length) {
+          refreshGameInfo().catch(() => {
+            // Ignore — merge poller handles retries.
+          });
+        }
       } catch (err) {
         setError(getErrorMessage(err));
         throw err;
@@ -179,7 +188,7 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
         setDrafting(false);
       }
     },
-    [gameInfo, player, currentPack]
+    [gameInfo, player, currentPack, refreshGameInfo]
   );
 
   return {

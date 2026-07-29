@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import type { Card } from '../../../shared/model/cardTypes';
+import { CollapsibleSection } from '../../../shared/components/CollapsibleSection';
 import { importDecklist } from '../utils/importDecklist';
+import type { Card } from '../../../shared/model/cardTypes';
 
 interface ImportDecklistTabProps {
   onImportCards: (cards: Card[]) => void;
@@ -8,49 +9,62 @@ interface ImportDecklistTabProps {
 
 export function ImportDecklistTab({ onImportCards }: ImportDecklistTabProps) {
   const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
   const [unknownNames, setUnknownNames] = useState<string[]>([]);
-  const [lastImportCount, setLastImportCount] = useState<number | null>(null);
+  const [importedCount, setImportedCount] = useState<number | null>(null);
 
-  function handleImportClick() {
-    const { cards, unknownNames: unknown } = importDecklist(text);
-    setUnknownNames(unknown);
-    setLastImportCount(cards.length);
-    if (cards.length > 0) onImportCards(cards);
+  async function handleImport() {
+    if (!text.trim()) return;
+    setLoading(true);
+    setUnknownNames([]);
+    setImportedCount(null);
+    try {
+      const result = await importDecklist(text);
+      setUnknownNames(result.unknownNames);
+      setImportedCount(result.cards.length);
+      if (result.cards.length > 0) {
+        onImportCards(result.cards);
+      }
+    } catch {
+      setUnknownNames(['Failed to fetch cards from the server.']);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
-    <div className="flex flex-col gap-sm h-full">
-      <p className="text-on-surface-variant font-label-sm text-label-sm opacity-70">
-        Paste a decklist (Standard MTG format) to add every card straight to your pool. (Ephemeral)
-      </p>
-      <textarea
-        className="flex-1 min-h-[240px] w-full bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg p-sm font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all resize-none"
-        placeholder={'4 Counterspell\n4 Brainstorm\n20 Island...'}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-      />
-      {unknownNames.length > 0 && (
-        <p className="text-[11px] text-on-surface-variant/80 leading-snug">
-          <span className="text-tertiary font-semibold">{unknownNames.length}</span> card
-          {unknownNames.length === 1 ? '' : 's'} not in the local type lookup yet (added as Unknown):{' '}
-          {unknownNames.slice(0, 4).join(', ')}
-          {unknownNames.length > 4 ? '…' : ''}
+    <CollapsibleSection title="Import Decklist" icon="upload" defaultOpen={false}>
+      <div className="p-md flex flex-col gap-sm">
+        <p className="text-on-surface-variant font-label-sm text-label-sm opacity-70">
+          Paste your Decklist here (EX: 2 Lightning Bolt)
         </p>
-      )}
-      {lastImportCount !== null && (
-        <p className="text-label-sm text-secondary text-center">
-          {lastImportCount > 0
-            ? `Added ${lastImportCount} card${lastImportCount === 1 ? '' : 's'}.`
-            : 'No cards found in that text.'}
-        </p>
-      )}
-      <button
-        className="w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-        onClick={handleImportClick}
-        disabled={text.trim().length === 0}
-      >
-        Import Decklist
-      </button>
-    </div>
+        <textarea
+          className="w-full max-h-[40dvh] bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg p-sm font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all resize-none"
+          placeholder={'4 Counterspell\n4 Brainstorm\n20 Island...'}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+        {unknownNames.length > 0 && (
+          <p className="text-[11px] text-on-surface-variant/80 leading-snug">
+            <span className="text-tertiary font-semibold">{unknownNames.length}</span> card
+            {unknownNames.length === 1 ? '' : 's'} not found:{' '}
+            {unknownNames.slice(0, 4).join(', ')}
+            {unknownNames.length > 4 ? '…' : ''}
+          </p>
+        )}
+        {importedCount !== null && importedCount > 0 && (
+          <p className="text-[11px] text-green-400/80 leading-snug">
+            Imported {importedCount} card{importedCount === 1 ? '' : 's'} successfully.
+          </p>
+        )}
+        <button
+          className="w-full sticky bottom-0 bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all arcane-glow disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleImport}
+          disabled={loading || !text.trim()}
+        >
+          {loading ? 'Importing…' : 'Import'}
+        </button>
+      </div>
+    </CollapsibleSection>
   );
 }

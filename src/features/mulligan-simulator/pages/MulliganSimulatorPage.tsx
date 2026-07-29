@@ -16,6 +16,7 @@ export function MulliganSimulatorPage() {
           decklistText={simulator.decklistText}
           onDecklistTextChange={simulator.setDecklistText}
           onInfuseList={simulator.handleInfuseList}
+          loading={simulator.loading}
           deckSize={simulator.deckSize}
           landInOpenerPct={simulator.landInOpenerPct}
           creatureByT3Pct={simulator.creatureByT3Pct}

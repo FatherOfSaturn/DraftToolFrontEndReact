@@ -178,6 +178,18 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
     setSuperPickArmed((v) => !v);
   }
 
+  async function draftDirect(card: Card) {
+    if (drafting || confirmingRef.current) return;
+    confirmingRef.current = true;
+    try {
+      await draftCard(card, superPickArmed);
+      setStagedCardID(null);
+      setSuperPickArmed(false);
+    } finally {
+      confirmingRef.current = false;
+    }
+  }
+
   if (loading) {
     return <StatusScreen>Loading draft…</StatusScreen>;
   }
@@ -233,6 +245,7 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
               cards={visibleCards}
               stagedCardID={stagedCardID}
               onStage={stageCard}
+              onDraftDirect={draftDirect}
               disabled={drafting}
             />
 

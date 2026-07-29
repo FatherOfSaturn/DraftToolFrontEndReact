@@ -1,6 +1,6 @@
 import type { Card } from '../../../shared/model/cardTypes';
 
-export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G';
+export type ManaColor = 'W' | 'U' | 'B' | 'R' | 'G' | 'C';
 export type CmcBucket = '0' | '1' | '2' | '3' | '4' | '5+';
 
 const COLOR_FROM_SYMBOL: Record<string, ManaColor> = { W: 'W', U: 'U', B: 'B', R: 'R', G: 'G' };
@@ -22,8 +22,8 @@ export function cmcBucketFor(cmc: number): CmcBucket {
 export interface CardFilterState {
   search: string;
   activeColors: ManaColor[];
-  activeCmc: CmcBucket | null;
-  activeType: string | null;
+  activeCmc: CmcBucket[];
+  activeType: string[];
 }
 
 export interface CardFilterControls extends CardFilterState {
@@ -33,22 +33,27 @@ export interface CardFilterControls extends CardFilterState {
   onToggleType: (type: string) => void;
 }
 
-/**
- * Applies a search/color/CMC/type filter set to a card list. Pure and
- * dependency-free so it's trivial to unit test and reuse anywhere a card
- * list needs filtering — currently the draft board (filters the current
- * pack) and the deck builder (filters the decklist) via the
- * `useCardFilters` hook, which previously each had their own copy of
- * this exact predicate.
- */
 export function filterCards(cards: Card[], { search, activeColors, activeCmc, activeType }: CardFilterState): Card[] {
   return cards.filter((card) => {
     if (search && !card.name.toLowerCase().includes(search.toLowerCase())) return false;
-    if (activeType && !card.type_line.includes(activeType)) return false;
-    if (activeCmc && cmcBucketFor(card.cmc) !== activeCmc) return false;
+    if (activeType.length > 0) {
+      const matchesType = activeType.some((t) => {
+        if (t === 'Other') {
+          const knownTypes = ['Creature', 'Sorcery', 'Instant', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle'];
+          return !knownTypes.some((kt) => card.type_line.includes(kt));
+        }
+        return card.type_line.includes(t);
+      });
+      if (!matchesType) return false;
+    }
+    if (activeCmc.length > 0 && !activeCmc.includes(cmcBucketFor(card.cmc))) return false;
     if (activeColors.length > 0) {
       const colors = cardColors(card);
-      if (!colors.some((c) => activeColors.includes(c))) return false;
+      if (activeColors.includes('C')) {
+        if (colors.length > 0 && !colors.some((c) => activeColors.includes(c))) return false;
+      } else {
+        if (!colors.some((c) => activeColors.includes(c))) return false;
+      }
     }
     return true;
   });
@@ -60,6 +65,7 @@ export const COLOR_PIP_STYLES: Record<ManaColor, string> = {
   B: 'bg-surface-variant hover:bg-on-surface-variant/20 text-white border-outline-variant/30',
   R: 'bg-error-container/30 hover:bg-error-container/50 text-error border-error/30',
   G: 'bg-green-700/20 hover:bg-green-700/40 text-green-400 border-green-700/30',
+  C: 'bg-gray-600/20 hover:bg-gray-600/40 text-gray-400 border-gray-600/30',
 };
 
 export const COLOR_PIP_ACTIVE: Record<ManaColor, string> = {
@@ -68,6 +74,7 @@ export const COLOR_PIP_ACTIVE: Record<ManaColor, string> = {
   B: 'bg-on-surface-variant/30 border-white',
   R: 'bg-error-container/60 border-error',
   G: 'bg-green-700/60 border-green-400',
+  C: 'bg-gray-600/60 border-gray-400',
 };
 
 export const CARD_COLOR_BADGE: Record<string, string> = {
@@ -76,6 +83,7 @@ export const CARD_COLOR_BADGE: Record<string, string> = {
   B: 'bg-gray-700',
   R: 'bg-red-600',
   G: 'bg-green-600',
+  C: 'bg-gray-600',
 };
 
-export const TYPE_FILTERS = ['Creature', 'Sorcery', 'Instant', 'Artifact', 'Enchantment', 'Land'];
+export const TYPE_FILTERS = ['Creature', 'Sorcery', 'Instant', 'Artifact', 'Enchantment', 'Land', 'Planeswalker', 'Battle', 'Other'] as const;
