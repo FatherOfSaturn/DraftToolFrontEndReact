@@ -94,31 +94,28 @@ function CardTile({ card, staged, onStage, onDraftDirect, disabled }: CardTilePr
             <span className="material-symbols-outlined text-[16px]">check</span>
           </div>
         )}
-        <div
-          className={`absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-background/80 to-transparent transition-opacity flex items-end justify-end p-md ${
-            isTouch ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-          }`}
-        >
-          <span
-            role="button"
-            tabIndex={hasFlipImage ? 0 : -1}
-            onClick={handleFlipClick}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') handleFlipClick(e as unknown as MouseEvent);
-            }}
-            aria-label={hasFlipImage ? 'Show card back' : 'No card back available'}
-            aria-disabled={!hasFlipImage}
-            className={`material-symbols-outlined w-9 h-9 rounded-lg shadow-xl flex items-center justify-center ${
-              isTouch ? '' : 'transform translate-y-4 group-hover:translate-y-0 transition-transform'
-            } ${
-              hasFlipImage
-                ? 'bg-primary text-on-primary cursor-pointer hover:brightness-110'
-                : 'bg-surface-variant text-on-surface-variant/40 cursor-not-allowed'
+        {hasFlipImage && (
+          <div
+            className={`absolute inset-x-0 bottom-0 h-16 transition-opacity flex items-end justify-center p-md ${
+              isTouch ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             }`}
           >
-            flip_camera_android
-          </span>
-        </div>
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={handleFlipClick}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') handleFlipClick(e as unknown as MouseEvent);
+              }}
+              aria-label="Show card back"
+              className={`material-symbols-outlined w-9 h-9 rounded-lg flex items-center justify-center bg-primary text-on-primary cursor-pointer hover:brightness-110 ${
+                isTouch ? '' : 'transform translate-y-4 group-hover:translate-y-0 transition-transform'
+              }`}
+            >
+              flip_camera_android
+            </span>
+          </div>
+        )}
       </div>
     </button>
   );

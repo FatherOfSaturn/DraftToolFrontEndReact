@@ -87,11 +87,11 @@ function randomPack(size = 10): Card[] {
   return picks.map(mkCard);
 }
 
-function buildPlayer(name: string, accountID: string, packCount: number, doublePicks: number): Player {
+function buildPlayer(name: string, accountID: string, packCount: number, packSize: number, doublePicks: number): Player {
   const cardPacks: CardPack[] = Array.from({ length: packCount }, (_, i) => ({
     packNumber: i,
-    cardsInPack: randomPack(10),
-    originalCardsInPack: 10,
+    cardsInPack: randomPack(packSize),
+    originalCardsInPack: packSize,
     doubleDraftedFlag: false,
   }));
 
@@ -121,9 +121,10 @@ function generateGameID(): string {
 export const mockGameApi = {
   async createAndStartGame(creationInfo: GameCreationInfo): Promise<GameInfo> {
     const gameID = generateGameID();
-    const packCount = 15;
+    const packCount = creationInfo.packsPerPlayer ?? 15;
+    const packSize = creationInfo.cardsPerPack ?? 10;
     const players = creationInfo.players.map((p) =>
-      buildPlayer(p.name || 'Player', p.accountID, packCount, creationInfo.numberOfDoubleDraftPicksPerPlayer)
+      buildPlayer(p.name || 'Player', p.accountID, packCount, packSize, creationInfo.numberOfDoubleDraftPicksPerPlayer)
     );
 
     const gameInfo: GameInfo = {
@@ -146,8 +147,8 @@ export const mockGameApi = {
         gameID,
         gameState: 'GAME_IN_PROGRESS',
         players: [
-          buildPlayer('You', 'mock-player-you', 15, 3),
-          buildPlayer('Opponent', 'mock-player-opponent', 15, 3),
+          buildPlayer('You', 'mock-player-you', 15, 10, 3),
+          buildPlayer('Opponent', 'mock-player-opponent', 15, 10, 3),
         ],
       };
       mockGames.set(gameID, game);

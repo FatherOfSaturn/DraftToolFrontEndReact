@@ -11,20 +11,20 @@ import { lobbyApi } from '../../lobby/api/lobbyApi';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { useAuth } from '../../auth/AuthContext';
 
-interface DraftSetupPageProps {
+interface ClassicDraftSetupPageProps {
   onEnterDraft: (gameID: string, playerName: string) => void;
 }
 
-const MAX_EXTRA_PICKS = 8;
-
-export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
+export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPageProps) {
   const { account } = useAuth();
   const [searchParams] = useSearchParams();
 
   // Setup form state
   const [cubeID, setCubeID] = useState(() => searchParams.get('cubeID') ?? '');
   const [yourName, setYourName] = useState(account?.email ?? '');
-  const [extraPicks, setExtraPicks] = useState(2);
+  const [numberOfPlayers, setNumberOfPlayers] = useState(4);
+  const [packsPerPlayer, setPacksPerPlayer] = useState(3);
+  const [cardsPerPack, setCardsPerPack] = useState(15);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -111,16 +111,21 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
     try {
       const config: Record<string, unknown> = {
         cubeID: cubeID.trim(),
-        numberOfDoubleDraftPicksPerPlayer: extraPicks,
+        numberOfPlayers,
+        packsPerPlayer,
+        cardsPerPack,
       };
       const hostAccountID = account?.accountID ?? crypto.randomUUID();
+      const hostDisplayName = yourName.trim();
       sessionStorage.setItem('lobby_host_account_id', hostAccountID);
 
       const lobby = await lobbyApi.createLobby({
-        draftType: 'pyramid',
+        draftType: 'classic',
         config,
         hostAccountID,
-        hostDisplayName: yourName.trim(),
+        hostDisplayName,
+        minPlayers: numberOfPlayers,
+        maxPlayers: numberOfPlayers,
       });
 
       const hostToken = lobby.players[0].playerToken;
@@ -128,7 +133,7 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
       setLobbyCode(lobby.lobbyCode);
       setPlayerToken(hostToken);
       setMySlotIndex(0);
-      setMyName(yourName.trim());
+      setMyName(hostDisplayName);
       setIsHost(true);
     } catch (err) {
       setCreateError(getErrorMessage(err));
@@ -195,11 +200,12 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
       <Header />
 
       <main className="flex-grow pt-24 pb-xl relative">
-        <div className="max-w-[1200px] mx-auto relative z-10 px-4">
+        <div className="max-w-[1200px] mx-auto relative z-10 px-margin-mobile md:px-margin-desktop">
           <section className="text-center mb-xl">
-            <h1 className="font-display text-display mb-4 text-on-surface">Pyramid Draft</h1>
+            <h1 className="font-display text-display mb-4 text-on-surface">Classic Draft</h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
-              Two person draft of a cube. Hate drafting is more difficult. Easier to have a plan going in to a draft. Will see over 90% of a standard cube size. See the <a href="https://www.google.com">wordpress</a> here for more information.
+              The traditional draft experience. Gather up to 12 players, set your cube and pack
+              configuration, and draft like the pros.
             </p>
           </section>
 
@@ -216,65 +222,76 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-lg items-stretch">
-              {/* Path 1: Create a Game */}
-              <div className="glass-panel p-lg rounded-xl flex flex-col">
-                <div className="mb-8">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="material-symbols-outlined text-primary text-3xl">auto_fix_high</span>
-                    <h2 className="font-headline-md text-headline-md text-on-surface">Create Pyramid Draft</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-stretch">
+              {/* Left Column: Create Lobby */}
+              <div className="lg:col-span-7 flex flex-col gap-lg">
+                <div className="glass-panel p-lg rounded-xl flex flex-col">
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="material-symbols-outlined text-primary text-3xl">auto_awesome</span>
+                      <h2 className="font-headline-md text-headline-md text-on-surface">Create Classic Draft</h2>
+                    </div>
+                    <p className="text-on-surface-variant font-body-md">
+                      Create a lobby and share the link with other players. They'll join automatically.
+                    </p>
                   </div>
-                  <p className="text-on-surface-variant font-body-md">
-                    Create a lobby and share the link with your partner. They'll join automatically.
-                  </p>
-                </div>
 
-                <div className="space-y-6 flex-grow">
-                  <LabeledTextField
-                    label="CUBE ID"
-                    placeholder="e.g. arcane-vintage-303"
-                    value={cubeID}
-                    onChange={setCubeID}
-                  />
-                  <LabeledTextField
-                    label={account ? 'YOUR NAME (AUTO-POPULATED)' : 'YOUR NAME'}
-                    placeholder="Archmage Jace"
-                    value={yourName}
-                    onChange={setYourName}
-                  />
-                  <div>
-                    <label className="block font-label-md text-label-md text-primary mb-2">EXTRA PICKS</label>
-                    <div className="flex items-center gap-4">
-                      <input
-                        className="flex-grow accent-primary"
-                        max={MAX_EXTRA_PICKS}
-                        min={0}
-                        type="range"
-                        value={extraPicks}
-                        onChange={(e) => setExtraPicks(Number(e.target.value))}
+                  <div className="space-y-6 flex-grow">
+                    <LabeledTextField
+                      label="CUBE ID"
+                      placeholder="e.g. arcane-legacy-77"
+                      value={cubeID}
+                      onChange={setCubeID}
+                    />
+                    <LabeledTextField
+                      label={account ? 'YOUR NAME (AUTO-POPULATED)' : 'YOUR NAME'}
+                      placeholder="Chandra Nalaar"
+                      value={yourName}
+                      onChange={setYourName}
+                    />
+                    <div className="grid grid-cols-3 gap-4">
+                      <StepperInput
+                        label="PLAYERS"
+                        value={numberOfPlayers}
+                        min={4}
+                        max={12}
+                        onChange={setNumberOfPlayers}
                       />
-                      <span className="bg-surface-container-high px-3 py-1 rounded-md font-label-md text-tertiary">
-                        {extraPicks}
-                      </span>
+                      <StepperInput
+                        label="PACKS PER PLAYER"
+                        value={packsPerPlayer}
+                        min={1}
+                        max={20}
+                        onChange={setPacksPerPlayer}
+                      />
+                      <StepperInput
+                        label="CARDS PER PACK"
+                        value={cardsPerPack}
+                        min={5}
+                        max={30}
+                        onChange={setCardsPerPack}
+                      />
                     </div>
                   </div>
+
+                  {createError && <p className="mt-4 text-sm text-error">{createError}</p>}
+                  {joinError && <p className="mt-4 text-sm text-error">{joinError}</p>}
+
+                  <button
+                    className="w-full mt-lg bg-primary hover:bg-primary-container text-on-primary font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleCreateLobby}
+                    disabled={creating}
+                  >
+                    <span className="material-symbols-outlined">lan</span>
+                    {creating ? 'Creating…' : 'Create Lobby'}
+                  </button>
                 </div>
-
-                {createError && <p className="mt-4 text-sm text-error">{createError}</p>}
-                {joinError && <p className="mt-4 text-sm text-error">{joinError}</p>}
-
-                <button
-                  className="w-full mt-lg mana-gradient text-on-primary-container font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  onClick={handleCreateLobby}
-                  disabled={creating}
-                >
-                  <span className="material-symbols-outlined">lan</span>
-                  {creating ? 'Creating…' : 'Create Lobby'}
-                </button>
               </div>
 
-              {/* Path 2: Find a Game */}
-              <FindGameSection onEnterDraft={onEnterDraft} />
+              {/* Right Column: Find Game */}
+              <div className="lg:col-span-5">
+                <FindGameSection onEnterDraft={onEnterDraft} />
+              </div>
             </div>
           )}
 
@@ -287,36 +304,6 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
                 setLobbyCode(null);
               }}
             />
-          )}
-
-          {/* Status section */}
-          {!inLobby && (
-            <section className="mt-xl glass-panel p-md rounded-xl border-outline-variant/20">
-              <div className="flex flex-col md:flex-row justify-between items-center gap-md">
-                <div className="flex items-center gap-8">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-tertiary-container animate-pulse" />
-                    <span className="font-label-md text-label-sm text-on-surface-variant">SERVERS: STABLE</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-outline text-sm">groups</span>
-                    <span className="font-label-md text-label-sm text-on-surface-variant">
-                      ACTIVE DRAFTS: 1,248
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-4">
-                  <div className="bg-surface-container px-4 py-2 rounded-lg border border-outline-variant/30 flex items-center gap-3">
-                    <span className="material-symbols-outlined text-primary text-sm">bolt</span>
-                    <span className="font-label-md text-label-sm text-on-surface">LATENCY: 24MS</span>
-                  </div>
-                  <div className="bg-surface-container px-4 py-2 rounded-lg border border-outline-variant/30 flex items-center gap-3">
-                    <span className="material-symbols-outlined text-tertiary text-sm">history</span>
-                    <span className="font-label-md text-label-sm text-on-surface">LAST DRAFT: 2M AGO</span>
-                  </div>
-                </div>
-              </div>
-            </section>
           )}
         </div>
       </main>
@@ -377,6 +364,46 @@ function NamePromptModal({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+interface StepperInputProps {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  onChange: (value: number) => void;
+}
+
+function StepperInput({ label, value, min, max, onChange }: StepperInputProps) {
+  return (
+    <div className="flex flex-col gap-xs">
+      <span className="font-label-sm text-outline">{label}</span>
+      <div className="flex items-center bg-surface-container-lowest rounded-lg overflow-hidden border border-outline/20">
+        <button
+          className="px-2 py-1 hover:bg-surface-container-high text-on-surface transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          onClick={() => onChange(Math.max(min, value - 1))}
+          disabled={value <= min}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[18px]">remove</span>
+        </button>
+        <input
+          className="w-full bg-transparent text-center font-display text-[18px] text-on-surface border-none focus:ring-0"
+          readOnly
+          type="number"
+          value={value}
+        />
+        <button
+          className="px-2 py-1 hover:bg-surface-container-high text-on-surface transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+          onClick={() => onChange(Math.min(max, value + 1))}
+          disabled={value >= max}
+          type="button"
+        >
+          <span className="material-symbols-outlined text-[18px]">add</span>
+        </button>
+      </div>
     </div>
   );
 }

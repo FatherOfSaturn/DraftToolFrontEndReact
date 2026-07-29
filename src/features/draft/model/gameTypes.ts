@@ -43,6 +43,8 @@ export interface GameCreationInfo {
   gameID: string;
   cubeID: string;
   numberOfDoubleDraftPicksPerPlayer: number;
+  packsPerPlayer?: number;
+  cardsPerPack?: number;
   players: PlayerStart[];
 }
 

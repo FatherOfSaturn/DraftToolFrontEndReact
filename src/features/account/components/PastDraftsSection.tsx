@@ -93,11 +93,7 @@ function PlayerRow({
       </div>
       {action && (
         <button
-          className={`px-3 py-1 rounded-lg text-xs font-label-sm transition-all self-start ${
-            action.target === 'draft' && !done
-              ? 'bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20'
-              : 'border border-outline-variant/30 text-on-surface-variant hover:bg-surface-variant/50'
-          }`}
+          className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all self-start"
           onClick={() =>
             navigate(
               `/${action.target}/${encodeURIComponent(game.gameID)}/${encodeURIComponent(name)}`,

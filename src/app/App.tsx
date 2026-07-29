@@ -9,6 +9,8 @@ import { DeckBuilderPage } from '../features/deck-builder/pages/DeckBuilderPage'
 import { DraftRouteWrapper } from '../features/draft/pages/DraftRouteWrapper';
 import { DraftSelectionPage } from '../features/draft/pages/DraftSelectionPage';
 import { DraftSetupPage } from '../features/draft/pages/DraftSetupPage';
+import { ClassicDraftSetupPage } from '../features/draft/pages/ClassicDraftSetupPage';
+import type { RitualDefinition } from '../features/draft/pages/DraftSelectionPage';
 import { FeatureRequestPage } from '../features/feature-requests/pages/FeatureRequestPage';
 import { AdminPage } from '../features/admin/pages/AdminPage';
 import { HomePage } from '../features/home/pages/HomePage';
@@ -20,7 +22,8 @@ import { ToastProvider } from '../shared/components/Toast';
  * Route table:
  *   /                              HomePage
  *   /draft-selection               DraftSelectionPage (choose a draft mode)
- *   /draft-setup                   DraftSetupPage (create or join a game)
+ *   /draft-setup                   DraftSetupPage (create or join pyramid draft)
+ *   /draft-setup/classic           ClassicDraftSetupPage (create or join classic draft)
  *   /draft/:gameID/:playerName     DraftPage (the live draft board), via DraftRouteWrapper
  *   /deckbuilder/:gameID?/:playerName?   DeckBuilderPage (params optional — see its own docs)
  *   /account                       AccountPage
@@ -28,7 +31,7 @@ import { ToastProvider } from '../shared/components/Toast';
  *   /login                         LoginPage
  *   *                              redirects to /
  *
- * The two *Route wrapper functions below exist only so their pages can
+ * The three *Route wrapper functions below exist only so their pages can
  * take a plain callback prop (onSelectRitual, onEnterDraft, etc.)
  * instead of depending on react-router directly — keeps those page
  * components easier to reuse or test outside a router.
@@ -44,6 +47,7 @@ export function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/draft-selection" element={<DraftSelectionRoute />} />
               <Route path="/draft-setup" element={<DraftSetupRoute />} />
+              <Route path="/draft-setup/classic" element={<ClassicDraftSetupRoute />} />
               <Route path="/draft/:gameID/:playerName" element={<DraftRouteWrapper />} />
               <Route path="/deckbuilder/:gameID?/:playerName?" element={<DeckBuilderPage />} />
               <Route
@@ -82,12 +86,18 @@ export function App() {
   );
 }
 
-// Draft mode selection currently routes every option to the same setup flow.
+// Draft mode selection routes each ritual card to the appropriate setup flow.
 function DraftSelectionRoute() {
   const navigate = useNavigate();
   return (
     <DraftSelectionPage
-      onSelectRitual={() => navigate('/draft-setup')}
+      onSelectRitual={(ritual: RitualDefinition) => {
+        if (ritual.id === 'planeswalkers-trial') {
+          navigate('/draft-setup/classic');
+        } else {
+          navigate('/draft-setup');
+        }
+      }}
       onCreateNewRitual={() => navigate('/draft-setup')}
     />
   );
@@ -99,6 +109,17 @@ function DraftSetupRoute() {
   const navigate = useNavigate();
   return (
     <DraftSetupPage
+      onEnterDraft={(gameID, playerName) =>
+        navigate(`/draft/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`)
+      }
+    />
+  );
+}
+
+function ClassicDraftSetupRoute() {
+  const navigate = useNavigate();
+  return (
+    <ClassicDraftSetupPage
       onEnterDraft={(gameID, playerName) =>
         navigate(`/draft/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`)
       }

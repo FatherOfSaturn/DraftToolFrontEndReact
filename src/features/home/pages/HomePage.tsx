@@ -26,6 +26,7 @@ export function HomePage() {
         <HeroSection />
         <ExperienceSection />
         <FavoriteCubesSection />
+        <DataPrivacySection />
         <ArchitectSection />
         <DonationSection />
       </main>
@@ -180,6 +181,76 @@ function FavoriteCubesSection() {
   );
 }
 
+function DataPrivacySection() {
+  return (
+    <section id="privacy" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-dim">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-xl">
+          <span className="material-symbols-outlined text-primary text-4xl mb-sm block">security</span>
+          <h3 className="font-display text-headline-lg text-white mb-xs">Data & Privacy</h3>
+          <div className="w-24 h-1 bg-primary mx-auto rounded-full opacity-50" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+          <div className="glass-panel rounded-2xl p-lg">
+            <h4 className="font-headline-md text-white mb-md flex items-center gap-sm">
+              <span className="material-symbols-outlined text-primary">info</span>
+              What We Gather
+            </h4>
+            <ul className="space-y-3 text-on-surface-variant font-body-md">
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                <span><strong className="text-white">Google account info</strong> (email, name, avatar) if you sign in via Google OAuth — we never see your password</span>
+              </li>
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                <span><strong className="text-white">Draft data</strong> — cube used, packs opened, picks made, and final deck lists</span>
+              </li>
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                <span><strong className="text-white">Cube preferences</strong> and configuration choices</span>
+              </li>
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
+                <span><strong className="text-white">Basic analytics</strong> — page visits, draft types used, aggregate usage patterns</span>
+              </li>
+            </ul>
+          </div>
+
+          <div className="glass-panel rounded-2xl p-lg">
+            <h4 className="font-headline-md text-white mb-md flex items-center gap-sm">
+              <span className="material-symbols-outlined text-secondary">visibility</span>
+              Why We Gather It
+            </h4>
+            <ul className="space-y-3 text-on-surface-variant font-body-md">
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
+                <span><strong className="text-white">Save drafts</strong> so you can revisit, build decks, and export later</span>
+              </li>
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
+                <span><strong className="text-white">Find past games</strong> by account instead of needing to remember a Draft ID</span>
+              </li>
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
+                <span><strong className="text-white">Future development of draft bot</strong> I won't be sharing the fact that you are a filthy blue player</span>
+              </li>
+              <li className="flex items-start gap-sm">
+                <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
+                <span><strong className="text-white">Keep the page running</strong> to see what might break, where cracks are starting to show in the infrastructure</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <p className="text-center text-on-surface-variant font-body-sm mt-lg max-w-2xl mx-auto">
+          I don't sell or share your personal data. Google OAuth is used only for authentication — I request the minimum scope needed, I do NOT even want your data as I feel it makes more work for me to protect it.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function ArchitectSection() {
   return (
     <section id="backstory" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-container-low relative overflow-hidden">
@@ -191,7 +262,7 @@ function ArchitectSection() {
               <img
                 className="w-full h-full object-cover"
                 alt="Portrait of the creator"
-                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=800&q=80"
+                src="https://media.licdn.com/dms/image/v2/D4E03AQHzuayqUSirVg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1712250858703?e=1787184000&v=beta&t=CvOM8rbzTGfYAyWOkj6v4Kk6i3chWSZf23xbCKzkcqc"
               />
             </div>
           </div>
@@ -199,11 +270,10 @@ function ArchitectSection() {
         <div className="w-full md:w-1/2">
           <h3 className="font-display text-display text-white mb-md">Meet the Creator</h3>
           <p className="font-body-lg text-on-surface-variant mb-md italic">
-            "Every card is a thread in the tapestry of strategy. My goal was to create a loom that
-            feels as magical as the spells being cast."
+            "It is impossible for a man to learn what he thinks he already knows." - Epictetus
           </p>
           <p className="font-body-md text-on-surface-variant mb-lg">
-            I love Magic, writing code, and learning new things. This project allowed me to learn a lot. My life has gotten very busy, and due to that I did utilize AI to basically redo all of my Front-End code. My previous attempts felt very low quality and this last recreation I think looks a lot cleaner. I used React, and free tiers of Google Stitch, and Claude to realize a lot of the wireframes and mockups.
+            I love Magic, writing code, and learning new things. This project allowed me to learn a lot. My life has gotten very busy, and due to that I did utilize AI to basically redo all of my Front-End code. My previous attempts felt very low quality and this last recreation I think looks a lot cleaner. I used React, and free tiers of Google Stitch, and OpenCode to realize a lot of the wireframes and mockups.
           </p>
           <div className="flex items-center gap-md">
             <a className="flex flex-col" href="https://github.com/FatherOfSaturn" target="_blank" rel="noopener noreferrer">
@@ -234,21 +304,21 @@ function ArchitectSection() {
 const TIERS = [
   {
     name: 'Acolyte',
-    price: '$5 / mo',
+    price: '$0 / mo',
     labelClass: 'font-label-sm text-label-sm text-tertiary block mb-xs uppercase',
     barClass: 'h-full bg-tertiary w-1/4 group-hover:w-full transition-all duration-500',
     highlighted: false,
   },
   {
     name: 'Mage',
-    price: '$15 / mo',
+    price: '$0 / mo',
     labelClass: 'font-label-sm text-label-sm text-primary block mb-xs uppercase',
     barClass: 'h-full bg-primary w-1/2 group-hover:w-full transition-all duration-500',
     highlighted: true,
   },
   {
     name: 'Archmage',
-    price: '$50 / mo',
+    price: '$0 / mo',
     labelClass: 'font-label-sm text-label-sm text-secondary block mb-xs uppercase',
     barClass: 'h-full bg-secondary w-3/4 group-hover:w-full transition-all duration-500',
     highlighted: false,
@@ -293,7 +363,7 @@ function DonationSection() {
             ))}
           </div>
           <button className="px-xl py-md bg-tertiary text-on-tertiary font-headline-md rounded-xl hover:shadow-[0_0_30px_rgba(255,181,157,0.4)] transition-all">
-            Donate via Mana Crystal
+            Donate via Stripe
           </button>
         </div>
       </div>

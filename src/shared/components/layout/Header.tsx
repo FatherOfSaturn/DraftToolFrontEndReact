@@ -26,7 +26,7 @@ const NAV_LINKS: NavLinkDef[] = [
 ];
 
 const SECONDARY_LINKS = [
-  { label: 'Meet the Creator', to: '/#backstory', icon: 'person_search' },
+  { label: 'Data & Privacy', to: '/#privacy', icon: 'security' },
   { label: 'Donate', to: '/#donate', icon: 'favorite' },
 ];
 

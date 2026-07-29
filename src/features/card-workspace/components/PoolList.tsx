@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { BASIC_LANDS } from '../../../shared/lib/basicLands';
 import { useIsTouchDevice } from '../../../shared/hooks/useIsTouchDevice';
@@ -51,8 +51,20 @@ export function PoolList({
     setPreviewedCard(name);
   }
 
+  useEffect(() => {
+    if (!previewedCard) return;
+    function handleTouch(e: TouchEvent) {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-pool-list]')) {
+        dismissPreview();
+      }
+    }
+    document.addEventListener('touchstart', handleTouch, { passive: true });
+    return () => document.removeEventListener('touchstart', handleTouch);
+  }, [previewedCard]);
+
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" data-pool-list>
       {onAddLand && (
         <div className="flex justify-between items-center mb-1.5 bg-surface-container-high/40 rounded-lg px-2 py-1 border border-outline-variant/10">
           <span className="text-[10px] font-label-sm text-on-surface-variant uppercase">Quick Add Land</span>

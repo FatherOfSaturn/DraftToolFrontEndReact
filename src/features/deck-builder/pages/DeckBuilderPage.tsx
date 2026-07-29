@@ -4,6 +4,7 @@ import { Header } from '../../../shared/components/layout/Header';
 import { FilterPanel } from '../../card-workspace/components/FilterPanel';
 import { CardGrid } from '../../card-workspace/components/CardGrid';
 import { PoolSidebar, type PoolSidebarTab } from '../../card-workspace/components/PoolSidebar';
+import { SaveDeckModal } from '../../card-workspace/components/SaveDeckModal';
 import { StatusScreen } from '../../../shared/components/StatusScreen';
 import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
 import { gameApi } from '../../draft/api/gameApi';
@@ -40,12 +41,17 @@ export function DeckBuilderPage() {
   const { account } = useAuth();
   const { showToast } = useToast();
 
-  const deckCardIds = (location.state as { deckCardIds?: string[] } | null)?.deckCardIds;
+  const locState = location.state as { deckCardIds?: string[]; deckID?: string; deckName?: string; deckDescription?: string } | null;
+  const deckCardIds = locState?.deckCardIds;
+  const editingDeckID = locState?.deckID ?? null;
+  const editingDeckName = locState?.deckName ?? '';
+  const editingDeckDescription = locState?.deckDescription ?? '';
 
   const [decklist, setDecklist] = useState<Card[]>([]);
   const [sideboard, setSideboard] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
 
   // Default to 'import' for the blank mode, 'list' when arriving from a draft
   const [poolTab, setPoolTab] = useState<PoolSidebarTab>(gameID ? 'list' : 'import');
@@ -151,15 +157,22 @@ export function DeckBuilderPage() {
     }
   }
 
-  async function saveDeck() {
-    if (!account || !gameID) return;
-    try {
-      const cardIds = decklist.map((c) => c.cardID);
-      await accountApi.createDeck(account.accountID, gameID, `Deck created from Draft: ${gameID}`, cardIds);
-      showToast('Successfully Saved Deck');
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
+  async function handleUpdateDeck(name: string, description: string) {
+    if (!account || !editingDeckID) return;
+    const cardIds = decklist.map((c) => c.cardID);
+    await accountApi.updateDeck(account.accountID, editingDeckID, name, description, cardIds);
+    showToast('Successfully Updated Deck');
+  }
+
+  async function handleSaveNewDeck(name: string, description: string) {
+    if (!account) return;
+    const cardIds = decklist.map((c) => c.cardID);
+    await accountApi.createDeck(account.accountID, name, description, cardIds);
+    showToast('Successfully Saved Deck');
+  }
+
+  function handleSaveClick() {
+    setShowSaveModal(true);
   }
 
   if (loading) {
@@ -186,7 +199,7 @@ export function DeckBuilderPage() {
         onMoveToList={moveToList}
         onAddLand={addLand}
         onExport={exportPool}
-        onSaveDeck={account ? saveDeck : undefined}
+        onSaveDeck={account ? handleSaveClick : undefined}
       />
 
       <main className="mt-20 mb-16 xl:mr-80 px-margin-mobile md:px-margin-desktop py-lg">
@@ -206,6 +219,17 @@ export function DeckBuilderPage() {
           </p>
         )}
       </main>
+
+      {showSaveModal && (
+        <SaveDeckModal
+          defaultName={editingDeckName || (gameID ?? 'My Deck')}
+          defaultDescription={editingDeckDescription}
+          showUpdate={!!editingDeckID}
+          onUpdate={handleUpdateDeck}
+          onSaveAsNew={handleSaveNewDeck}
+          onCancel={() => setShowSaveModal(false)}
+        />
+      )}
     </div>
   );
 }

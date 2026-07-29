@@ -146,12 +146,12 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
                     <div className="flex items-center gap-2 ml-auto">
                       <button
                         className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all"
-                        onClick={() => navigate('/deckbuilder', { state: { deckCardIds: deck.cardIds } })}
+                        onClick={() => navigate('/deckbuilder', { state: { deckCardIds: deck.cardIds, deckID: deck.deckID, deckName: deck.name, deckDescription: deck.description } })}
                       >
                         Deckbuilder
                       </button>
                       <button
-                        className="px-3 py-1 rounded-lg border border-outline-variant/30 text-on-surface-variant hover:bg-surface-variant/50 text-xs font-label-sm transition-all"
+                        className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all"
                         onClick={() => navigate('/mulligan-simulator', { state: { deckCardIds: deck.cardIds } })}
                       >
                         Mulligan Sim
@@ -172,9 +172,9 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
           onNext={pagination.nextPage}
         />
         <div className="p-4 bg-surface-container-high/30 border-t border-outline-variant/20">
-          <button className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-outline-variant/50 hover:border-primary/50 hover:bg-primary/5 transition-all group" onClick={onCreateNew}>
-            <span className="material-symbols-outlined text-primary text-[20px]">add</span>
-            <span className="font-label-md text-on-surface-variant group-hover:text-primary">Create New Deck</span>
+          <button className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all" onClick={onCreateNew}>
+            <span className="material-symbols-outlined text-[16px]">add</span>
+            Create New Deck
           </button>
         </div>
       </div>

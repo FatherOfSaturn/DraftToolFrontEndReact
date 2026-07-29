@@ -29,9 +29,21 @@ const RITUALS: RitualDefinition[] = [
     glowClass: 'ritual-gradient',
   },
   {
+    id: 'planeswalkers-trial',
+    name: "Classic Draft",
+    tag: 'LEGACY',
+    tagTextClass: 'text-primary',
+    tagBorderClass: 'border-primary/30',
+    description:
+      'A test of legends. Draft from the most powerful legacy cards ever printed in a high-stakes competitive environment.',
+    icon: 'military_tech',
+    cardBorderClass: '',
+    artGradientClass: 'bg-gradient-to-br from-primary-container/30 via-surface-container to-secondary-container/20',
+  },
+  {
     id: 'chaos-manifest',
     name: 'Chaos Draft',
-    tag: 'RANDOMIZED',
+    tag: 'UNDER_CONSTRUCTION',
     tagTextClass: 'text-secondary',
     tagBorderClass: 'border-secondary/30',
     description:
@@ -43,7 +55,7 @@ const RITUALS: RitualDefinition[] = [
   {
     id: 'alchemists-lab',
     name: "Winston Draft",
-    tag: 'CUSTOM SET',
+    tag: 'UNDER_CONSTRUCTION',
     tagTextClass: 'text-tertiary',
     tagBorderClass: 'border-tertiary/30',
     description:
@@ -51,18 +63,6 @@ const RITUALS: RitualDefinition[] = [
     icon: 'science',
     cardBorderClass: 'border-tertiary/20',
     artGradientClass: 'bg-gradient-to-br from-tertiary-container/50 via-surface-container to-surface-container-high',
-  },
-  {
-    id: 'planeswalkers-trial',
-    name: "Classic Draft",
-    tag: 'LEGACY',
-    tagTextClass: 'text-primary',
-    tagBorderClass: 'border-primary/30',
-    description:
-      'A test of legends. Draft from the most powerful legacy cards ever printed in a high-stakes competitive environment.',
-    icon: 'military_tech',
-    cardBorderClass: '',
-    artGradientClass: 'bg-gradient-to-br from-primary-container/30 via-surface-container to-secondary-container/20',
   },
 ];
 
