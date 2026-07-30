@@ -28,6 +28,7 @@ export function MulliganSimulatorPage() {
           hand={simulator.hand}
           deckSize={simulator.deckSize}
           librarySize={simulator.librarySize}
+          loading={simulator.loading}
           onMulligan={simulator.handleMulligan}
           onDrawCard={simulator.handleDrawCard}
           manaScrewPct={simulator.manaScrewPct}

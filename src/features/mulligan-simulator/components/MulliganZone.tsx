@@ -47,6 +47,7 @@ interface MulliganZoneProps {
   hand: ExpandedCard[];
   deckSize: number;
   librarySize: number;
+  loading: boolean;
   onMulligan: () => void;
   onDrawCard: () => void;
   manaScrewPct: number;
@@ -54,7 +55,7 @@ interface MulliganZoneProps {
   categoryCounts: Record<CardCategory, number>;
 }
 
-export function MulliganZone({ hand, deckSize, librarySize, onMulligan, onDrawCard, manaScrewPct, avgCardCost, categoryCounts }: MulliganZoneProps) {
+export function MulliganZone({ hand, deckSize, librarySize, loading, onMulligan, onDrawCard, manaScrewPct, avgCardCost, categoryCounts }: MulliganZoneProps) {
   const [hoveredType, setHoveredType] = useState<CardCategory | null>(null);
 
   const presentCategories = CATEGORY_ORDER.filter((cat) => categoryCounts[cat] > 0);
@@ -92,7 +93,13 @@ export function MulliganZone({ hand, deckSize, librarySize, onMulligan, onDrawCa
           {hand.map((card, index) => (
             <HandCard key={`${card.name}-${index}`} card={card} />
           ))}
-          {hand.length === 0 && (
+          {loading && hand.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-3 py-xl">
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              <p className="text-on-surface-variant font-body-md">Fetching cards…</p>
+            </div>
+          )}
+          {!loading && hand.length === 0 && (
             <p className="text-on-surface-variant font-body-md py-xl">
               Paste a decklist and hit "Load Deck" to draw an opening hand.
             </p>
@@ -187,7 +194,7 @@ export function MulliganZone({ hand, deckSize, librarySize, onMulligan, onDrawCa
 
 function HandCard({ card }: { card: ExpandedCard }) {
   return (
-    <div className="group relative w-24 md:w-32 aspect-[5/7] bg-surface-container rounded-lg border border-primary/40 overflow-hidden transition-transform duration-500 hover:-translate-y-4 hover:scale-110">
+    <div className="group relative w-24 md:w-32 aspect-[5/7] bg-surface-container rounded-lg border border-primary/40 overflow-hidden transition-transform duration-300 hover:-translate-y-12 hover:scale-150 hover:z-50">
       {card.imageUrl ? (
         <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
       ) : (
