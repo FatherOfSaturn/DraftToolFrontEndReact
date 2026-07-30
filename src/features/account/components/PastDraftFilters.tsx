@@ -6,6 +6,8 @@ interface PastDraftFiltersProps {
   onPartnerFilterChange: (value: string) => void;
   dateFilter: string;
   onDateFilterChange: (value: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (value: string) => void;
   onApply: () => void;
   onReset: () => void;
 }
@@ -15,6 +17,8 @@ export function PastDraftFilters({
   onPartnerFilterChange,
   dateFilter,
   onDateFilterChange,
+  statusFilter,
+  onStatusFilterChange,
   onApply,
   onReset,
 }: PastDraftFiltersProps) {
@@ -34,6 +38,22 @@ export function PastDraftFilters({
         <div className="flex items-center bg-surface-container-lowest rounded-lg px-3 py-2 border border-outline-variant/30">
           <span className="material-symbols-outlined text-outline text-[18px] mr-2">calendar_today</span>
           <input className="bg-transparent border-none focus:ring-0 text-label-md text-on-surface w-40 [color-scheme:dark]" type="date" value={dateFilter} onChange={(event) => onDateFilterChange(event.target.value)} />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1">
+        <label className="font-label-sm text-label-sm text-outline px-1">Filter by Status</label>
+        <div className="flex items-center bg-surface-container-lowest rounded-lg px-3 py-2 border border-outline-variant/30">
+          <span className="material-symbols-outlined text-outline text-[18px] mr-2">flag</span>
+          <select
+            className="bg-transparent border-none focus:ring-0 text-label-md text-on-surface w-40"
+            value={statusFilter}
+            onChange={(event) => onStatusFilterChange(event.target.value)}
+          >
+            <option value="">All</option>
+            <option value="game_started">In Progress</option>
+            <option value="game_merged">Round 2</option>
+            <option value="game_complete">Complete</option>
+          </select>
         </div>
       </div>
       <div className="flex items-center gap-2 self-end">

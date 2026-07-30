@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { useAuth } from '../../auth/AuthContext';
+import { useToast } from '../../../shared/components/Toast';
 import { accountApi } from '../api/accountApi';
 
 export function AccountProfile() {
   const { account, refreshAccount, logout } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -87,7 +89,7 @@ export function AccountProfile() {
         <button
           className="material-symbols-outlined text-outline-variant hover:text-primary transition-colors text-[18px]"
           title="Copy Account ID"
-          onClick={() => navigator.clipboard.writeText(account.accountID).catch(() => {})}
+          onClick={() => navigator.clipboard.writeText(account.accountID).then(() => showToast('Copied Account ID')).catch(() => {})}
         >
           content_copy
         </button>

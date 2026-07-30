@@ -7,20 +7,22 @@ import { scryfallApi } from '../../card-workspace/api/scryfallApi';
 import { expandFromCards, shuffle, type ExpandedCard } from '../model/mulliganUtils';
 import type { Card } from '../../../shared/model/cardTypes';
 
-const SAMPLE_DECKLIST = `4 Counterspell
-4 Brainstorm
-4 Lightning Bolt
-2 Path to Exile
-2 Sol Ring
-17 Island
-17 Mountain
-10 Forest`;
+function buildDecklistText(cards: Card[]): string {
+  const counts = new Map<string, number>();
+  for (const c of cards) {
+    counts.set(c.name, (counts.get(c.name) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([name, count]) => `${count} ${name}`)
+    .join('\n');
+}
 
 export function useMulliganSimulator() {
   const location = useLocation();
   const deckCardIds = (location.state as { deckCardIds?: string[] } | null)?.deckCardIds;
 
-  const [decklistText, setDecklistText] = useState(SAMPLE_DECKLIST);
+  const [decklistText, setDecklistText] = useState('');
   const [deck, setDeck] = useState<ExpandedCard[]>(() => expandFromCards([]));
   const [loading, setLoading] = useState(false);
   const [unknownNames, setUnknownNames] = useState<string[]>([]);
@@ -31,14 +33,13 @@ export function useMulliganSimulator() {
   const [wellCategory, setWellCategory] = useState<CardCategory>('Land');
   const [wellInNext, setWellInNext] = useState(10);
 
-  // Load deck on first render: either from nav state card IDs, or sample decklist
+  // Load deck on first render from nav state card IDs
   const [initialized, setInitialized] = useState(false);
   if (!initialized) {
     setInitialized(true);
-    setLoading(true);
 
     if (deckCardIds && deckCardIds.length > 0) {
-      // Resolve saved deck card IDs via the Scryfall API
+      setLoading(true);
       Promise.allSettled(
         deckCardIds.map((id) => scryfallApi.getCardById(id))
       ).then((results) => {
@@ -51,20 +52,12 @@ export function useMulliganSimulator() {
             failed++;
           }
         }
+        const text = buildDecklistText(resolved);
+        setDecklistText(text);
         const expanded = expandFromCards(resolved);
         const shuffled = shuffle(expanded);
         setDeck(expanded);
         setUnknownNames(failed > 0 ? [`${failed} card${failed === 1 ? '' : 's'} could not be loaded`] : []);
-        setDrawState({ hand: shuffled.slice(0, 7), library: shuffled.slice(7) });
-        setLoading(false);
-      });
-    } else {
-      // Load sample decklist via the batch API
-      importDecklist(SAMPLE_DECKLIST).then((result) => {
-        const expanded = expandFromCards(result.cards);
-        const shuffled = shuffle(expanded);
-        setDeck(expanded);
-        setUnknownNames(result.unknownNames);
         setDrawState({ hand: shuffled.slice(0, 7), library: shuffled.slice(7) });
         setLoading(false);
       });
@@ -89,6 +82,12 @@ export function useMulliganSimulator() {
       counts[card.category] += 1;
     });
     return counts;
+  }, [deck]);
+
+  const avgCardCost = useMemo(() => {
+    const nonLands = deck.filter((c) => c.category !== 'Land');
+    if (nonLands.length === 0) return 0;
+    return nonLands.reduce((sum, c) => sum + c.cmc, 0) / nonLands.length;
   }, [deck]);
 
   const landInOpenerPct = useMemo(
@@ -163,6 +162,7 @@ export function useMulliganSimulator() {
     loading,
     unknownNames,
     categoryCounts,
+    avgCardCost,
     hand,
     librarySize: library.length,
     landInOpenerPct,

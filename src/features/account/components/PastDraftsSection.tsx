@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
+import { useToast } from '../../../shared/components/Toast';
 import type { Pagination as PaginationState } from '../hooks/useGameHistory';
 import type { GameSummary } from '../model/accountTypes';
 
@@ -13,10 +14,6 @@ function formatDate(iso: string): string {
     .toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
     .toUpperCase()
     .replace(',', '');
-}
-
-function copyToClipboard(text: string) {
-  navigator.clipboard.writeText(text).catch(() => {});
 }
 
 function getGameBadge(game: GameSummary): { label: string; icon: string; color: string } {
@@ -108,6 +105,12 @@ function PlayerRow({
 }
 
 export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps) {
+  const { showToast } = useToast();
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text).then(() => showToast('Copied Game ID')).catch(() => {});
+  }
+
   return (
     <section className="xl:col-span-7 space-y-6">
       <div className="flex items-center justify-between">

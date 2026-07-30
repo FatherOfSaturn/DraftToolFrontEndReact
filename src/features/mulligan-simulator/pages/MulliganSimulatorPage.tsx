@@ -31,6 +31,8 @@ export function MulliganSimulatorPage() {
           onMulligan={simulator.handleMulligan}
           onDrawCard={simulator.handleDrawCard}
           manaScrewPct={simulator.manaScrewPct}
+          avgCardCost={simulator.avgCardCost}
+          categoryCounts={simulator.categoryCounts}
         />
 
         <InsightsPane

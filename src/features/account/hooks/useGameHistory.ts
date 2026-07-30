@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { accountApi } from '../api/accountApi';
-import type { GameSummary } from '../model/accountTypes';
+import type { GameState, GameSummary } from '../model/accountTypes';
 
 const PAGE_SIZE = 10;
 
@@ -21,6 +21,8 @@ export interface Filters {
   setPlayerNameFilter: (value: string) => void;
   dateFilter: string;
   setDateFilter: (value: string) => void;
+  statusFilter: string;
+  setStatusFilter: (value: string) => void;
   applyFilters: () => void;
   resetFilters: () => void;
 }
@@ -33,8 +35,11 @@ export function useGameHistory(accountID?: string) {
   const [search, setSearch] = useState('');
   const [playerNameFilter, setPlayerNameFilter] = useState('');
   const [dateFilter, setDateFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [appliedPlayerName, setAppliedPlayerName] = useState('');
   const [appliedDate, setAppliedDate] = useState('');
+  const [appliedStatus, setAppliedStatus] = useState('');
+
   const [currentPage, setCurrentPage] = useState(1);
 
   const requestVersion = useRef(0);
@@ -95,9 +100,11 @@ export function useGameHistory(accountID?: string) {
         if (gameDate !== appliedDate) return false;
       }
 
+      if (appliedStatus && game.gameState !== appliedStatus) return false;
+
       return true;
     });
-  }, [games, search, appliedPlayerName, appliedDate]);
+  }, [games, search, appliedPlayerName, appliedDate, appliedStatus]);
 
   const totalPages = Math.max(1, Math.ceil(filteredGames.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
@@ -123,17 +130,22 @@ export function useGameHistory(accountID?: string) {
     setPlayerNameFilter,
     dateFilter,
     setDateFilter,
+    statusFilter,
+    setStatusFilter,
     applyFilters: () => {
       setAppliedPlayerName(playerNameFilter);
       setAppliedDate(dateFilter);
+      setAppliedStatus(statusFilter);
       setCurrentPage(1);
     },
     resetFilters: () => {
       setSearch('');
       setPlayerNameFilter('');
       setDateFilter('');
+      setStatusFilter('');
       setAppliedPlayerName('');
       setAppliedDate('');
+      setAppliedStatus('');
       setCurrentPage(1);
     },
   };

@@ -35,6 +35,8 @@ export function AccountPage() {
               onPartnerFilterChange={filters.setPlayerNameFilter}
               dateFilter={filters.dateFilter}
               onDateFilterChange={filters.setDateFilter}
+              statusFilter={filters.statusFilter}
+              onStatusFilterChange={filters.setStatusFilter}
               onApply={filters.applyFilters}
               onReset={filters.resetFilters}
             />

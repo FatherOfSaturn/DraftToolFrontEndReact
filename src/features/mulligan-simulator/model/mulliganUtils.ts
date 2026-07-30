@@ -4,6 +4,7 @@ import type { Card } from '../../../shared/model/cardTypes';
 export interface ExpandedCard {
   name: string;
   category: CardCategory;
+  cmc: number;
   imageUrl?: string;
 }
 
@@ -12,6 +13,7 @@ export function expandFromCards(cards: Card[]): ExpandedCard[] {
   return cards.map((card) => ({
     name: card.name,
     category: categorizeTypeLine(card.type_line),
+    cmc: card.cmc,
     imageUrl: card.details.image_small || card.details.image_normal || undefined,
   }));
 }
