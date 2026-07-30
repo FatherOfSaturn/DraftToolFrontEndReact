@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { accountApi } from '../api/accountApi';
-import type { GameState, GameSummary } from '../model/accountTypes';
+import type { GameSummary } from '../model/accountTypes';
 
 const PAGE_SIZE = 10;
 
