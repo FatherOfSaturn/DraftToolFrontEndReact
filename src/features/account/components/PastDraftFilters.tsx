@@ -45,14 +45,14 @@ export function PastDraftFilters({
         <div className="flex items-center bg-surface-container-lowest rounded-lg px-3 py-2 border border-outline-variant/30">
           <span className="material-symbols-outlined text-outline text-[18px] mr-2">flag</span>
           <select
-            className="bg-transparent border-none focus:ring-0 text-label-md text-on-surface w-40"
+            className="bg-transparent border-none focus:ring-0 text-label-md text-on-surface w-40 [color-scheme:dark]"
             value={statusFilter}
             onChange={(event) => onStatusFilterChange(event.target.value)}
           >
-            <option value="">All</option>
-            <option value="game_started">In Progress</option>
-            <option value="game_merged">Round 2</option>
-            <option value="game_complete">Complete</option>
+            <option value="" className="bg-surface-container-lowest text-on-surface">All</option>
+            <option value="game_in_progress" className="bg-surface-container-lowest text-on-surface">In Progress</option>
+            <option value="game_merged" className="bg-surface-container-lowest text-on-surface">Round 2</option>
+            <option value="game_complete" className="bg-surface-container-lowest text-on-surface">Complete</option>
           </select>
         </div>
       </div>

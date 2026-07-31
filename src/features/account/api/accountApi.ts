@@ -3,6 +3,13 @@ import { requestJson, requestVoid } from '../../../shared/api/httpClient';
 
 const segment = encodeURIComponent;
 
+function normalizeGameSummary(game: GameSummary): GameSummary {
+  return {
+    ...game,
+    gameState: game.gameState.toLowerCase() as GameSummary['gameState'],
+  };
+}
+
 export const accountApi = {
   login(idToken: string): Promise<Account> {
     return requestJson<Account>('/account/login', {
@@ -58,6 +65,8 @@ export const accountApi = {
   },
 
   getGameHistory(accountID: string): Promise<GameSummary[]> {
-    return requestJson<GameSummary[]>(`/game/history/${segment(accountID)}`);
+    return requestJson<GameSummary[]>(`/game/history/${segment(accountID)}`).then((games) =>
+      games.map(normalizeGameSummary)
+    );
   },
 };

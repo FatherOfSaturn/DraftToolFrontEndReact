@@ -18,7 +18,7 @@ export interface Deck {
   updatedAt: string;
 }
 
-export type GameState = 'game_started' | 'game_merged' | 'game_complete';
+export type GameState = 'game_created' | 'game_in_progress' | 'game_merged' | 'game_complete';
 
 export interface GameSummary {
   gameID: string;

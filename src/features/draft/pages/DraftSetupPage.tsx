@@ -199,7 +199,9 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
           <section className="text-center mb-xl">
             <h1 className="font-display text-display mb-4 text-on-surface">Pyramid Draft</h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant max-w-2xl mx-auto">
-              Two person draft of a cube. Hate drafting is more difficult. Easier to have a plan going in to a draft. Will see over 90% of a standard cube size. See the <a href="https://www.google.com">wordpress</a> here for more information.
+              Two person draft of a cube. Hate drafting is more difficult. Easier to have a plan going in to a draft. Will see over 90% of a standard cube size. See the <a href="https://desolatelighthouse.wordpress.com/2020/12/21/pyramid-draft/" className="text-primary hover:underline">
+                wordpress here
+              </a> for more information.
             </p>
           </section>
 
