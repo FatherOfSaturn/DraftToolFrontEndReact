@@ -112,6 +112,34 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
   }
 
   return (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+      <div className="flex flex-col">
+        <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player</span>
+        <p className="text-on-surface font-semibold text-sm">{name}</p>
+        <span className={`text-[11px] font-label-sm ${color}`}>{progress}</span>
+      </div>
+      {action && (
+        <button
+          className={`px-3 py-1 rounded-lg text-xs font-label-sm transition-all self-start ${
+            action.target === 'draft' && !done
+              ? 'bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20'
+              : 'border border-outline-variant/30 text-on-surface-variant hover:bg-surface-variant/50'
+          }`}
+          onClick={() =>
+            navigate(
+              `/${action.target}/${encodeURIComponent(game.gameID)}/${encodeURIComponent(name)}`,
+            )
+          }
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps) {
+  return (
     <section className="xl:col-span-7 space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="font-headline-lg text-headline-lg flex items-center gap-3">
