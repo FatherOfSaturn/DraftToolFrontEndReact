@@ -28,8 +28,8 @@ describe('mulligan utilities', () => {
   it('expands resolved Card objects into categorized cards', () => {
     const cards = [fakeCard('Island', 'Basic Land — Island'), fakeCard('Island', 'Basic Land — Island')];
     expect(expandFromCards(cards)).toEqual([
-      { name: 'Island', category: 'Land' },
-      { name: 'Island', category: 'Land' },
+      { name: 'Island', category: 'Land', cmc: 0, imageUrl: undefined },
+      { name: 'Island', category: 'Land', cmc: 0, imageUrl: undefined },
     ]);
   });
 

@@ -148,14 +148,6 @@ export function useGameHistory(accountID?: string) {
       setAppliedStatus('');
       setCurrentPage(1);
     },
-    resetFilters: () => {
-      setSearch('');
-      setPlayerNameFilter('');
-      setDateFilter('');
-      setAppliedPlayerName('');
-      setAppliedDate('');
-      setCurrentPage(1);
-    },
   };
 
   return { games: pagedGames, allGames: games, filteredGames, isLoading, error, pagination, filters };
