@@ -207,6 +207,11 @@ export const mockGameApi = {
     return delay({ gameID, gameState: game.gameState });
   },
 
+  async deleteGame(gameID: string): Promise<void> {
+    mockGames.delete(gameID);
+    return delay(undefined);
+  },
+
   async deleteGamesWithStatus(_gameState: string): Promise<void> {
     return delay(undefined);
   },

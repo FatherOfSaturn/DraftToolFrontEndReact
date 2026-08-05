@@ -50,7 +50,7 @@ function playerAction(
     return { label: 'Draftboard', target: 'deckbuilder' };
   }
   if (gameState === 'game_merged') {
-    return { label: 'Draftboard', target: 'deckbuilder' };
+    return { label: 'Round 2', target: 'draft' };
   }
   if (!done) {
     return { label: 'Continue Drafting', target: 'draft' };

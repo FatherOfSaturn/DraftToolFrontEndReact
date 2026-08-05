@@ -41,6 +41,13 @@ export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
   const featTotal = supportRequests.filter((r) => r.type === 'new_feature').length;
   const featFixed = supportRequests.filter((r) => r.type === 'new_feature' && r.status === 'completed').length;
 
+  const statusCounts = {
+    new: supportRequests.filter((r) => r.status === 'new').length,
+    in_progress: supportRequests.filter((r) => r.status === 'in_progress').length,
+    blocked: supportRequests.filter((r) => r.status === 'blocked').length,
+    completed: supportRequests.filter((r) => r.status === 'completed').length,
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
       {/* Donation Overview */}
@@ -70,6 +77,12 @@ export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
         <div className="grid grid-cols-2 gap-md mt-xs">
           <SupportMiniBar label="Bugs" fixed={bugFixed} total={bugTotal} color="error" />
           <SupportMiniBar label="Features" fixed={featFixed} total={featTotal} color="primary" />
+        </div>
+        <div className="mt-sm pt-sm border-t border-outline-variant/10 grid grid-cols-4 gap-xs">
+          <StatusCount label="Open" count={statusCounts.new} color="text-on-surface" />
+          <StatusCount label="In Prog" count={statusCounts.in_progress} color="text-primary" />
+          <StatusCount label="Blocked" count={statusCounts.blocked} color="text-error" />
+          <StatusCount label="Resolved" count={statusCounts.completed} color="text-secondary" />
         </div>
       </div>
 
@@ -117,6 +130,15 @@ function SupportMiniBar({ label, fixed, total, color }: { label: string; fixed: 
         <div className={`h-full bg-${color} rounded-full relative z-10 shadow-[0_0_8px_rgba(213,186,255,0.6)]`} style={{ width: `${pct}%` }} />
       </div>
       <span className="font-label-sm text-outline mt-xs">Fixed/Total</span>
+    </div>
+  );
+}
+
+function StatusCount({ label, count, color }: { label: string; count: number; color: string }) {
+  return (
+    <div className="flex flex-col items-center gap-xs">
+      <span className={`font-headline-md ${color}`}>{count}</span>
+      <span className="font-label-sm text-outline uppercase tracking-tighter text-center">{label}</span>
     </div>
   );
 }

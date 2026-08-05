@@ -3,6 +3,7 @@ import type { SupportRequest, SupportType } from '../../feature-requests/api/sup
 
 interface SupportTicketsTableProps {
   requests: SupportRequest[];
+  onDelete: (id: string) => void;
 }
 
 const TYPE_LABELS: Record<SupportType, string> = {
@@ -22,7 +23,6 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
   completed: 'Resolved',
   blocked: 'Blocked',
-  deleted: 'Deleted',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -30,7 +30,6 @@ const STATUS_COLORS: Record<string, string> = {
   in_progress: 'text-primary',
   completed: 'text-secondary',
   blocked: 'text-error',
-  deleted: 'text-outline',
 };
 
 const PRIORITY_DOTS: Record<string, string> = {
@@ -40,7 +39,7 @@ const PRIORITY_DOTS: Record<string, string> = {
   low: 'bg-outline',
 };
 
-export function SupportTicketsTable({ requests }: SupportTicketsTableProps) {
+export function SupportTicketsTable({ requests, onDelete }: SupportTicketsTableProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -179,11 +178,20 @@ export function SupportTicketsTable({ requests }: SupportTicketsTableProps) {
                     <span className="material-symbols-outlined text-outline text-sm">visibility</span>
                   </button>
                   <button
-                    className="p-1 hover:bg-surface-container rounded-md"
+                    className="p-1 hover:bg-surface-container rounded-md mr-xs"
                     title="Mark as resolved"
                     onClick={() => alert('Status update coming soon.')}
                   >
                     <span className="material-symbols-outlined text-primary text-sm">check_circle</span>
+                  </button>
+                  <button
+                    className="p-1 hover:bg-error/10 rounded-md"
+                    title="Delete ticket"
+                    onClick={() => {
+                      if (window.confirm('Delete this ticket?')) onDelete(req.id);
+                    }}
+                  >
+                    <span className="material-symbols-outlined text-error text-sm">delete</span>
                   </button>
                 </td>
               </tr>

@@ -12,7 +12,6 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
   blocked: 'Blocked',
   completed: 'Completed',
-  deleted: 'Deleted',
 };
 
 function formatType(type: SupportType): string {

@@ -1,3 +1,4 @@
+import { useToast } from '../../../shared/components/Toast';
 import type { LobbyInfo } from '../model/lobbyTypes';
 
 interface LobbyViewProps {
@@ -24,6 +25,7 @@ export function LobbyView({
   isStarting,
   error,
 }: LobbyViewProps) {
+  const { showToast } = useToast();
   const basePath =
     lobbyInfo.draftType === 'pyramid' ? '/draft-setup' : `/draft-setup/${lobbyInfo.draftType}`;
   const shareUrl = `${window.location.origin}${basePath}?lobby=${lobbyInfo.lobbyCode}`;
@@ -33,6 +35,7 @@ export function LobbyView({
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(shareUrl);
+      showToast('Copied lobby link');
     } catch {
       // fallback
     }
@@ -41,6 +44,7 @@ export function LobbyView({
   async function copyCode() {
     try {
       await navigator.clipboard.writeText(lobbyInfo.lobbyCode);
+      showToast('Copied lobby code');
     } catch {
       // fallback
     }

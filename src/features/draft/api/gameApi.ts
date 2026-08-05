@@ -58,6 +58,13 @@ const realGameApi = {
     return requestJson<GameStatusMessage | null>(`/game/end/${segment(gameID)}`);
   },
 
+  /** DELETE /game/end/admin/delete/{gameID} */
+  deleteGame(gameID: string): Promise<void> {
+    return requestVoid(`/game/end/admin/delete/${segment(gameID)}`, {
+      method: 'DELETE',
+    });
+  },
+
   /** DELETE /game/end/admin/delete/random/{gameState} */
   deleteGamesWithStatus(gameState: string): Promise<void> {
     return requestVoid(`/game/end/admin/delete/random/${segment(gameState)}`, {

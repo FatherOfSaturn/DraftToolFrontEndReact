@@ -1,8 +1,8 @@
-import { requestJson } from '../../../shared/api/httpClient';
+import { requestJson, requestVoid } from '../../../shared/api/httpClient';
 
 export type SupportType = 'new_feature' | 'bug_fix' | 'misc_support';
 
-export type SupportStatus = 'new' | 'in_progress' | 'blocked' | 'completed' | 'deleted';
+export type SupportStatus = 'new' | 'in_progress' | 'blocked' | 'completed';
 
 export interface CreateSupportRequest {
   title: string;
@@ -36,5 +36,11 @@ export const supportApi = {
 
   getAll(): Promise<SupportRequest[]> {
     return requestJson<SupportRequest[]>('/support/');
+  },
+
+  delete(id: string): Promise<void> {
+    return requestVoid(`/support/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    });
   },
 };
