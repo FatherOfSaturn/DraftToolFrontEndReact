@@ -202,7 +202,12 @@ export const mockClassicGameApi = {
       gameID,
       gameState: info.gameState,
       draftDirection: info.draftDirection,
-      player,
+      player: {
+        ...player,
+        cardsLeftToDraft:
+          player.dealtCardPacks.length * (player.dealtCardPacks[0]?.originalCardsInPack ?? 0) -
+          player.cardsDrafted.length,
+      },
     });
   },
 

@@ -8,6 +8,8 @@ export function useLobbyLeaveGuard(
   status: LobbyStatus | null
 ): { markLeft: () => void } {
   const leftRef = useRef(false);
+  const statusRef = useRef(status);
+  statusRef.current = status;
 
   useEffect(() => {
     const code = lobbyCode;
@@ -24,7 +26,10 @@ export function useLobbyLeaveGuard(
     return () => {
       window.removeEventListener('beforeunload', onBeforeUnload);
 
-      if (!leftRef.current) {
+      // Only report a leave if the lobby is still waiting. When it flips to
+      // starting/started the game has begun — the cleanup fires on the way
+      // into the draft board and must not "leave" the started lobby.
+      if (!leftRef.current && statusRef.current === 'waiting') {
         lobbyApi.leaveLobby(code!, null, token);
       }
     };

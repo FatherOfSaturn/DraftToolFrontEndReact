@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { computeClassicCardsLeft } from './classicStats';
-import type { ClassicPlayer } from './classicGameTypes';
+import type { ClassicPlayer, DraftPlayerSnapshot } from './classicGameTypes';
 import type { Card, CardDetail } from '../../../shared/model/cardTypes';
 
 function detail(name: string): CardDetail {
@@ -20,7 +20,7 @@ function card(name: string): Card {
   return { cardID: `card-${name}`, name, cmc: 1, type_line: 'Instant', reveal: true, details: detail(name) };
 }
 
-function player(overrides: Partial<ClassicPlayer>): ClassicPlayer {
+function player(overrides: Partial<ClassicPlayer> & { cardsLeftToDraft?: number } = {}): ClassicPlayer & { cardsLeftToDraft?: number } {
   return {
     playerName: 'Alice',
     accountID: 'acc-1',
@@ -48,5 +48,18 @@ describe('computeClassicCardsLeft', () => {
 
   it('handles an empty dealtCardPacks list defensively', () => {
     expect(computeClassicCardsLeft(player({ dealtCardPacks: [], cardsDrafted: [card('a')] }))).toBe(-1);
+  });
+
+  it('prefers cardsLeftToDraft when the backend provides it', () => {
+    expect(computeClassicCardsLeft(player({ cardsLeftToDraft: 7 }))).toBe(7);
+  });
+
+  it('returns 0 without crashing when neither cardsLeftToDraft nor dealtCardPacks is present', () => {
+    const snapshot: DraftPlayerSnapshot = {
+      playerName: 'Alice',
+      activeCardPacks: [],
+      cardsDrafted: [],
+    };
+    expect(computeClassicCardsLeft(snapshot)).toBe(0);
   });
 });

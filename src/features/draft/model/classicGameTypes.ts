@@ -18,6 +18,26 @@ export interface ClassicPlayer {
   cardsDrafted: Card[];
 }
 
+/**
+ * The per-player view returned by `draftData`. The backend snapshot currently
+ * omits both `cardsLeftToDraft` and `dealtCardPacks`; they stay optional here
+ * so this frontend typechecks against the current backend.
+ *
+ * REMINDER (backend): add `@JsonProperty("cardsLeftToDraft") int cardsLeftToDraft`
+ * to the Java `DraftPlayerSnapshot` and populate it in
+ * `ClassicGameCoordinationWorker.getDraftData` as
+ * `dealtCardPacks.size() * dealtCardPacks[0].originalCardsInPack - cardsDrafted.size()`.
+ * The frontend will use it automatically once present.
+ */
+export interface DraftPlayerSnapshot {
+  playerName: string;
+  activeCardPacks: CardPack[];
+  cardsDrafted: Card[];
+  cardsLeftToDraft?: number;
+  /** Present on the richer mock response / full ClassicPlayer; absent on the backend snapshot. */
+  dealtCardPacks?: CardPack[];
+}
+
 export interface ClassicGameInfo {
   gameID: string;
   cubeID: string;
@@ -33,7 +53,7 @@ export interface ClassicDraftDataResponse {
   gameID: string;
   gameState: ClassicGameState;
   draftDirection: DraftDirection;
-  player: ClassicPlayer;
+  player: DraftPlayerSnapshot;
 }
 
 export interface ClassicDraftCheckResponse {
