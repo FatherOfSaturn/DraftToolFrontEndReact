@@ -8,6 +8,7 @@ import { SaveDeckModal } from '../../card-workspace/components/SaveDeckModal';
 import { StatusScreen } from '../../../shared/components/StatusScreen';
 import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
 import { gameApi } from '../../draft/api/gameApi';
+import { classicGameApi } from '../../draft/api/classicGameApi';
 import { buildCard } from '../../card-workspace/utils/importDecklist';
 import { BASIC_LANDS } from '../../../shared/lib/basicLands';
 import { getErrorMessage } from '../../../shared/lib/errors';
@@ -41,11 +42,20 @@ export function DeckBuilderPage() {
   const { account } = useAuth();
   const { showToast } = useToast();
 
-  const locState = location.state as { deckCardIds?: string[]; deckID?: string; deckName?: string; deckDescription?: string } | null;
+  const locState = location.state as {
+    deckCardIds?: string[];
+    deckID?: string;
+    deckName?: string;
+    deckDescription?: string;
+    gameType?: string;
+  } | null;
   const deckCardIds = locState?.deckCardIds;
   const editingDeckID = locState?.deckID ?? null;
   const editingDeckName = locState?.deckName ?? '';
   const editingDeckDescription = locState?.deckDescription ?? '';
+  // Classic drafts flag themselves via navigation state because the classic
+  // backend only serves full game data once the draft is complete.
+  const isClassic = locState?.gameType === 'classic';
 
   const [decklist, setDecklist] = useState<Card[]>([]);
   const [sideboard, setSideboard] = useState<Card[]>([]);
@@ -97,11 +107,13 @@ export function DeckBuilderPage() {
     }
 
     setLoading(true);
-    gameApi
-      .fetchGameData(gameID)
-      .then((info) => {
+    const playerPromise = isClassic
+      ? classicGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
+      : gameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName));
+
+    playerPromise
+      .then((player) => {
         if (cancelled) return;
-        const player = info.players.find((p) => p.playerName === playerName);
         if (player) {
           setDecklist(player.cardsDrafted);
         } else {
@@ -118,7 +130,7 @@ export function DeckBuilderPage() {
     return () => {
       cancelled = true;
     };
-  }, [gameID, playerName, deckCardIds]);
+  }, [gameID, playerName, deckCardIds, isClassic]);
 
   const { filteredCards: visibleCards, filterPanelProps } = useCardFilters(decklist);
 

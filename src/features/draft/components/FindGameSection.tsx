@@ -1,31 +1,63 @@
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { gameApi } from '../api/gameApi';
+import { classicGameApi } from '../api/classicGameApi';
+import { ApiError } from '../../../shared/api/httpClient';
 import { useState } from 'react';
 
 interface FindGameSectionProps {
   onEnterDraft: (gameID: string, playerName: string) => void;
+  /** Which backend to validate against first. Classic tries draftData first. */
+  mode?: 'pyramid' | 'classic';
 }
 
-export function FindGameSection({ onEnterDraft }: FindGameSectionProps) {
+export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSectionProps) {
   const [joinGameID, setJoinGameID] = useState('');
   const [joinName, setJoinName] = useState('');
   const [joining, setJoining] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+
+  async function joinPyramidGame(gameID: string, name: string) {
+    const info = await gameApi.fetchGameData(gameID);
+    const matchesPlayer = info.players.some((p) => p.playerName === name);
+    if (!matchesPlayer) {
+      throw new Error(`No player named "${name}" found in game ${gameID}.`);
+    }
+    onEnterDraft(info.gameID, name);
+  }
+
+  async function joinClassicGame(gameID: string, name: string) {
+    const data = await classicGameApi.draftData(gameID, name);
+    if (data.player.playerName !== name) {
+      throw new Error(`No player named "${name}" found in game ${gameID}.`);
+    }
+    onEnterDraft(data.gameID, name);
+  }
 
   async function handleEnterGrimoire() {
     if (!joinGameID.trim() || !joinName.trim()) {
       setJoinError('Game ID and your name are required.');
       return;
     }
+    const gameID = joinGameID.trim();
+    const name = joinName.trim();
     setJoining(true);
     setJoinError(null);
     try {
-      const info = await gameApi.fetchGameData(joinGameID.trim());
-      const matchesPlayer = info.players.some((p) => p.playerName === joinName.trim());
-      if (!matchesPlayer) {
-        throw new Error(`No player named "${joinName.trim()}" found in game ${joinGameID.trim()}.`);
+      if (mode === 'classic') {
+        try {
+          await joinClassicGame(gameID, name);
+        } catch (err) {
+          // Not a classic game — fall back to the pyramid lookup so a
+          // pyramid game entered here still works.
+          if (err instanceof ApiError && err.status === 404) {
+            await joinPyramidGame(gameID, name);
+          } else {
+            throw err;
+          }
+        }
+      } else {
+        await joinPyramidGame(gameID, name);
       }
-      onEnterDraft(info.gameID, joinName.trim());
     } catch (err) {
       setJoinError(getErrorMessage(err));
     } finally {

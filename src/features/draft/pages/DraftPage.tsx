@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDraftGame } from '../hooks/useDraftGame';
 import { usePackMergePoller } from '../hooks/usePackMergePoller';
-import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
-import { Header } from '../../../shared/components/layout/Header';
+import { DraftBoardView } from '../components/DraftBoardView';
 import { StatsBar } from '../components/StatsBar';
-import { PoolSidebar, type PoolSidebarTab } from '../../card-workspace/components/PoolSidebar';
-import { FilterPanel } from '../../card-workspace/components/FilterPanel';
-import { CardGrid } from '../../card-workspace/components/CardGrid';
-import { ExtraPickFab } from '../components/ExtraPickFab';
 import { StatusScreen } from '../../../shared/components/StatusScreen';
-import type { Card } from '../../../shared/model/cardTypes';
 
 // ---------------------------------------------------------------------------
 // Waiting-strategy extension point
@@ -102,9 +96,9 @@ interface DraftPageProps {
 }
 
 /**
- * The draft board screen. State + wiring + composition only — the actual UI
- * pieces (filter bar, card grid, pool sidebar, stats bar, extra-pick button)
- * each live in feature components so they can be reused elsewhere.
+ * The Pyramid Draft board screen. Wires the pyramid game hook and merge
+ * poller, then composes the shared DraftBoardView with pyramid-specific
+ * stats and waiting UI.
  */
 export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeStrategy }: DraftPageProps) {
   const navigate = useNavigate();
@@ -128,7 +122,7 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
     if (readyForDeckBuilder) {
       navigate(`/deckbuilder/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`, { replace: true });
     }
-  }, [readyForDeckBuilder, navigate]);
+  }, [readyForDeckBuilder, navigate, gameID, playerName]);
 
   // Merge poller — always called (hooks must be unconditional); the strategy
   // decides whether it's actually active via enablePolling.
@@ -142,54 +136,6 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
     onMerged: handleMerged,
   });
 
-  const [superPickArmed, setSuperPickArmed] = useState(false);
-  const [stagedCardID, setStagedCardID] = useState<string | null>(null);
-  const [poolTab, setPoolTab] = useState<PoolSidebarTab>('list');
-
-  const { filteredCards: visibleCards, filterPanelProps } = useCardFilters(currentPack?.cardsInPack ?? []);
-
-  const stagedCard = useMemo(
-    () => currentPack?.cardsInPack.find((c) => c.cardID === stagedCardID) ?? null,
-    [currentPack, stagedCardID]
-  );
-
-  // A ref (not state) guard against confirmPick firing twice in quick
-  // succession — see original comment in previous version for details.
-  const confirmingRef = useRef(false);
-
-  function stageCard(card: Card) {
-    setStagedCardID((prev) => (prev === card.cardID ? null : card.cardID));
-  }
-
-  async function confirmPick() {
-    if (!stagedCard || drafting || confirmingRef.current) return;
-    confirmingRef.current = true;
-    try {
-      await draftCard(stagedCard, superPickArmed);
-      setStagedCardID(null);
-      setSuperPickArmed(false);
-    } finally {
-      confirmingRef.current = false;
-    }
-  }
-
-  function toggleSuperPick() {
-    if (!canDoublePick) return;
-    setSuperPickArmed((v) => !v);
-  }
-
-  async function draftDirect(card: Card) {
-    if (drafting || confirmingRef.current) return;
-    confirmingRef.current = true;
-    try {
-      await draftCard(card, superPickArmed);
-      setStagedCardID(null);
-      setSuperPickArmed(false);
-    } finally {
-      confirmingRef.current = false;
-    }
-  }
-
   if (loading) {
     return <StatusScreen>Loading draft…</StatusScreen>;
   }
@@ -198,67 +144,25 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
     return <StatusScreen tone="error">Something went wrong: {error}</StatusScreen>;
   }
 
-
   return (
-    <div className="font-body-md text-on-surface bg-surface-dim min-h-screen selection:bg-primary-container selection:text-on-primary-container">
-      <Header />
-      <StatsBar
-        playerName={player?.playerName ?? playerName}
-        partnerName={partner?.playerName ?? null}
-        doublePicksRemaining={player?.doubleDraftPicksRemaining ?? 0}
-        packsLeft={Math.max(0, (player?.cardPacks.length ?? 0) - (player?.currentDraftPack ?? 0))}
-        packsTotal={player?.cardPacks.length ?? 0}
-        gameID={gameID}
-      />
-
-      {/* Pool sidebar stays visible while waiting so the player can review
-          what they've drafted so far. Confirm-pick is hidden. */}
-      <PoolSidebar
-        cards={player?.cardsDrafted ?? []}
-        total={player?.cardsDrafted.length ?? 0}
-        tab={poolTab === 'import' ? 'list' : poolTab}
-        onTabChange={setPoolTab}
-        showImportTab={false}
-        confirmAction={
-          packsExhausted
-            ? undefined
-            : {
-                stagedCard,
-                onConfirmPick: confirmPick,
-                confirming: drafting,
-              }
-        }
-      />
-
-      <main className="mt-28 mb-16 xl:mr-80 px-margin-mobile md:px-margin-desktop py-lg">
-        {packsExhausted ? (
-          waitingStrategy.renderWaiting()
-        ) : !player || !currentPack ? (
-          <p className="text-center text-on-surface-variant text-body-md py-xl">
-            Waiting for the next pack…
-          </p>
-        ) : (
-          <>
-            <FilterPanel {...filterPanelProps} />
-
-            <CardGrid
-              cards={visibleCards}
-              stagedCardID={stagedCardID}
-              onStage={stageCard}
-              onDraftDirect={draftDirect}
-              disabled={drafting}
-            />
-
-            {visibleCards.length === 0 && (
-              <p className="text-center text-on-surface-variant text-body-md py-xl">
-                No cards match these filters.
-              </p>
-            )}
-          </>
-        )}
-      </main>
-
-      {!packsExhausted && <ExtraPickFab armed={superPickArmed} disabled={!canDoublePick} onClick={toggleSuperPick} />}
-    </div>
+    <DraftBoardView
+      cardsDrafted={player?.cardsDrafted ?? []}
+      currentPack={currentPack}
+      isWaiting={packsExhausted}
+      waitingNode={waitingStrategy.renderWaiting()}
+      drafting={drafting}
+      onDraft={draftCard}
+      canDoublePick={canDoublePick}
+      statsBar={
+        <StatsBar
+          playerName={player?.playerName ?? playerName}
+          partnerName={partner?.playerName ?? null}
+          doublePicksRemaining={player?.doubleDraftPicksRemaining ?? 0}
+          packsLeft={Math.max(0, (player?.cardPacks.length ?? 0) - (player?.currentDraftPack ?? 0))}
+          packsTotal={player?.cardPacks.length ?? 0}
+          gameID={gameID}
+        />
+      }
+    />
   );
 }

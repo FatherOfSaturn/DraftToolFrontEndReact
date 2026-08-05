@@ -39,7 +39,7 @@ The account API has create/update deck methods, but no current component invokes
 
 ## Card Workspace
 
-Shared by `DraftPage` and `DeckBuilderPage`.
+Shared by `DraftPage`, `ClassicDraftPage`, and `DeckBuilderPage`.
 
 | Module | Responsibility |
 |---|---|
@@ -57,17 +57,27 @@ Shared by `DraftPage` and `DeckBuilderPage`.
 
 | Module | Responsibility |
 |---|---|
-| `features/draft/pages/DraftSelectionPage.tsx` | Visual format picker; all choices currently enter the same setup flow. |
+| `features/draft/pages/DraftSelectionPage.tsx` | Visual format picker; classic continues to Classic Draft setup, others to Pyramid setup. |
 | `features/draft/pages/DraftSetupPage.tsx` | Creates a game or validates an existing game/player before navigation. |
-| `features/draft/pages/DraftRouteWrapper.tsx` | Reads and validates draft route parameters. |
-| `features/draft/pages/DraftPage.tsx` | Live board composition, staged picks, extra picks, waiting strategy, and deck-builder navigation. |
+| `features/draft/pages/DraftRouteWrapper.tsx` | Reads and validates pyramid draft route parameters. |
+| `features/draft/pages/DraftPage.tsx` | Pyramid board composition: wires `useDraftGame` + merge poller into `DraftBoardView`. |
+| `features/draft/pages/ClassicDraftSetupPage.tsx` | Lobby-based classic setup (players, packs, cards-per-pack) and game join. |
+| `features/draft/pages/ClassicDraftRouteWrapper.tsx` | Reads and validates classic draft route parameters. |
+| `features/draft/pages/ClassicDraftPage.tsx` | Classic board composition: wires `useClassicDraftGame` + draftCheck poller into `DraftBoardView`, then navigates to the deck builder on completion. |
+| `features/draft/components/DraftBoardView.tsx` | Shared board layout for all draft types: header, stats bar, pool sidebar, filter bar, grid, staging/confirm, and extra-pick FAB. |
 | `features/draft/hooks/useDraftGame.ts` | Game fetch, derived player/pack state, pick submission, and local response updates. |
+| `features/draft/hooks/useClassicDraftGame.ts` | Classic `draftData` fetch, derived pack/cards-left state, pick submission, and post-pick refresh. |
 | `features/draft/hooks/usePackMergePoller.ts` | Non-overlapping merge polling with one-time completion notification. |
-| `features/draft/api/gameApi.ts` | Selects the real or mock implementation of the game endpoint contract. |
+| `features/draft/hooks/useClassicDraftPoller.ts` | Non-overlapping `draftCheck` polling for the next classic pack. |
+| `features/draft/api/gameApi.ts` | Selects the real or mock implementation of the pyramid game endpoint contract. |
 | `features/draft/api/mockGameApi.ts` | Memory-only generated games and picks; not a complete game engine. |
+| `features/draft/api/classicGameApi.ts` | Selects the real or mock implementation of the `/classic-game` endpoint contract. |
+| `features/draft/api/mockClassicGameApi.ts` | Memory-only classic lifecycle (passing, direction flips, auto-complete). |
 | `features/draft/model/gameTypes.ts` | Backend game, player, pack, creation, and status DTOs. |
-| `features/draft/components/StatsBar.tsx` | Player, opponent, pack, extra-pick, and game status. |
-| `features/draft/components/ExtraPickFab.tsx` | Arms or disarms the next double pick. |
+| `features/draft/model/classicGameTypes.ts` | Backend classic game, player, draftData/check, creation, and summary DTOs. |
+| `features/draft/model/classicStats.ts` | Pure cards-left-to-draft calculation for classic players. |
+| `features/draft/components/StatsBar.tsx` | Player, opponent, pack or cards-left, extra-pick, and game status; optional props support both draft types. |
+| `features/draft/components/ExtraPickFab.tsx` | Arms or disarms the next double pick (pyramid only). |
 
 ## Deck Builder
 

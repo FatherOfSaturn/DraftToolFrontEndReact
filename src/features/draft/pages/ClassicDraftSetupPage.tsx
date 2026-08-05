@@ -290,7 +290,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
               {/* Right Column: Find Game */}
               <div className="lg:col-span-5">
-                <FindGameSection onEnterDraft={onEnterDraft} />
+                <FindGameSection onEnterDraft={onEnterDraft} mode="classic" />
               </div>
             </div>
           )}
