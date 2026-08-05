@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
-import type { SupportRequest, SupportType } from '../../feature-requests/api/supportApi';
+import type { SupportRequest, SupportStatus, SupportType } from '../../feature-requests/api/supportApi';
 
 interface SupportTicketsTableProps {
   requests: SupportRequest[];
   onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: SupportStatus) => Promise<void> | void;
 }
 
 const TYPE_LABELS: Record<SupportType, string> = {
@@ -23,6 +24,7 @@ const STATUS_LABELS: Record<string, string> = {
   in_progress: 'In Progress',
   completed: 'Resolved',
   blocked: 'Blocked',
+  deleted: 'Deleted',
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -30,6 +32,7 @@ const STATUS_COLORS: Record<string, string> = {
   in_progress: 'text-primary',
   completed: 'text-secondary',
   blocked: 'text-error',
+  deleted: 'text-outline',
 };
 
 const PRIORITY_DOTS: Record<string, string> = {
@@ -39,12 +42,13 @@ const PRIORITY_DOTS: Record<string, string> = {
   low: 'bg-outline',
 };
 
-export function SupportTicketsTable({ requests, onDelete }: SupportTicketsTableProps) {
+export function SupportTicketsTable({ requests, onDelete, onStatusChange }: SupportTicketsTableProps) {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState('');
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return requests.filter((r) => {
@@ -119,6 +123,7 @@ export function SupportTicketsTable({ requests, onDelete }: SupportTicketsTableP
           <option value="in_progress">In Progress</option>
           <option value="completed">Resolved</option>
           <option value="blocked">Blocked</option>
+          <option value="deleted">Deleted</option>
         </select>
         <input
           className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-sm py-1.5 text-xs text-on-surface-variant focus:ring-1 focus:ring-primary outline-none"
@@ -162,9 +167,23 @@ export function SupportTicketsTable({ requests, onDelete }: SupportTicketsTableP
                   </div>
                 </td>
                 <td className="p-md border-b border-outline-variant/5">
-                  <span className={`text-xs ${STATUS_COLORS[req.status] ?? 'text-outline'}`}>
-                    {STATUS_LABELS[req.status] ?? req.status}
-                  </span>
+                  <select
+                    className={`bg-surface-container-lowest border border-outline-variant/30 rounded-lg px-sm py-1 text-xs focus:ring-1 focus:ring-primary outline-none disabled:opacity-50 disabled:cursor-wait ${STATUS_COLORS[req.status] ?? 'text-on-surface-variant'}`}
+                    value={req.status}
+                    disabled={updatingStatusId === req.id}
+                    title="Change status"
+                    onChange={(e) => {
+                      const next = e.target.value as SupportStatus;
+                      setUpdatingStatusId(req.id);
+                      Promise.resolve(onStatusChange(req.id, next)).finally(() => setUpdatingStatusId(null));
+                    }}
+                  >
+                    {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
                 </td>
                 <td className="p-md border-b border-outline-variant/5">
                   <span className="text-xs text-on-surface-variant">{req.contactEmail}</span>
@@ -176,13 +195,6 @@ export function SupportTicketsTable({ requests, onDelete }: SupportTicketsTableP
                     onClick={() => alert(`Ticket: ${req.title}\n\n${req.description}`)}
                   >
                     <span className="material-symbols-outlined text-outline text-sm">visibility</span>
-                  </button>
-                  <button
-                    className="p-1 hover:bg-surface-container rounded-md mr-xs"
-                    title="Mark as resolved"
-                    onClick={() => alert('Status update coming soon.')}
-                  >
-                    <span className="material-symbols-outlined text-primary text-sm">check_circle</span>
                   </button>
                   <button
                     className="p-1 hover:bg-error/10 rounded-md"

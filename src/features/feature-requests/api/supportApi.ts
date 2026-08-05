@@ -2,7 +2,7 @@ import { requestJson, requestVoid } from '../../../shared/api/httpClient';
 
 export type SupportType = 'new_feature' | 'bug_fix' | 'misc_support';
 
-export type SupportStatus = 'new' | 'in_progress' | 'blocked' | 'completed';
+export type SupportStatus = 'new' | 'in_progress' | 'blocked' | 'completed' | 'deleted';
 
 export interface CreateSupportRequest {
   title: string;
@@ -26,16 +26,37 @@ export interface SupportRequest {
   lastStatusChangeDate: string;
 }
 
+/**
+ * The backend serializes its support enums by name (e.g. "IN_PROGRESS",
+ * "NEW_FEATURE", "HIGH"), while this client uses the lowercase description
+ * values. Normalize every response so consumers always see lowercase values.
+ */
+export function normalizeSupportRequest(req: SupportRequest): SupportRequest {
+  return {
+    ...req,
+    status: req.status.toLowerCase() as SupportStatus,
+    type: req.type.toLowerCase() as SupportType,
+    priority: req.priority.toLowerCase(),
+  };
+}
+
 export const supportApi = {
   create(req: CreateSupportRequest): Promise<SupportRequest> {
     return requestJson<SupportRequest>('/support/', {
       method: 'POST',
       body: JSON.stringify(req),
-    });
+    }).then(normalizeSupportRequest);
   },
 
   getAll(): Promise<SupportRequest[]> {
-    return requestJson<SupportRequest[]>('/support/');
+    return requestJson<SupportRequest[]>('/support/').then((data) => data.map(normalizeSupportRequest));
+  },
+
+  updateStatus(id: string, status: SupportStatus): Promise<SupportRequest> {
+    return requestJson<SupportRequest>(`/support/${encodeURIComponent(id)}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    }).then(normalizeSupportRequest);
   },
 
   delete(id: string): Promise<void> {

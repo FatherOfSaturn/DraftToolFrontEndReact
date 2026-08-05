@@ -5,7 +5,7 @@ import { AdminGuard } from '../components/AdminGuard';
 import { StatsCards } from '../components/StatsCards';
 import { AccountSearch } from '../components/AccountSearch';
 import { SupportTicketsTable } from '../components/SupportTicketsTable';
-import { supportApi, type SupportRequest } from '../../feature-requests/api/supportApi';
+import { supportApi, type SupportRequest, type SupportStatus } from '../../feature-requests/api/supportApi';
 import { useAuth } from '../../auth/AuthContext';
 import { useToast } from '../../../shared/components/Toast';
 
@@ -23,6 +23,16 @@ export function AdminPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  async function handleStatusChange(id: string, status: SupportStatus) {
+    try {
+      const updated = await supportApi.updateStatus(id, status);
+      setSupportRequests((prev) => prev.map((r) => (r.id === id ? updated : r)));
+      showToast('Status updated.');
+    } catch {
+      showToast('Failed to update status.');
+    }
+  }
 
   async function handleDeleteRequest(id: string) {
     try {
@@ -70,6 +80,7 @@ export function AdminPage() {
               <SupportTicketsTable
                 requests={supportRequests}
                 onDelete={handleDeleteRequest}
+                onStatusChange={handleStatusChange}
               />
             )}
           </div>

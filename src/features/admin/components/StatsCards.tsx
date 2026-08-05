@@ -46,6 +46,7 @@ export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
     in_progress: supportRequests.filter((r) => r.status === 'in_progress').length,
     blocked: supportRequests.filter((r) => r.status === 'blocked').length,
     completed: supportRequests.filter((r) => r.status === 'completed').length,
+    deleted: supportRequests.filter((r) => r.status === 'deleted').length,
   };
 
   return (
@@ -78,11 +79,12 @@ export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
           <SupportMiniBar label="Bugs" fixed={bugFixed} total={bugTotal} color="error" />
           <SupportMiniBar label="Features" fixed={featFixed} total={featTotal} color="primary" />
         </div>
-        <div className="mt-sm pt-sm border-t border-outline-variant/10 grid grid-cols-4 gap-xs">
+        <div className="mt-sm pt-sm border-t border-outline-variant/10 grid grid-cols-5 gap-xs">
           <StatusCount label="Open" count={statusCounts.new} color="text-on-surface" />
           <StatusCount label="In Prog" count={statusCounts.in_progress} color="text-primary" />
           <StatusCount label="Blocked" count={statusCounts.blocked} color="text-error" />
           <StatusCount label="Resolved" count={statusCounts.completed} color="text-secondary" />
+          <StatusCount label="Deleted" count={statusCounts.deleted} color="text-outline" />
         </div>
       </div>
 
