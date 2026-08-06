@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { accountApi } from '../../account/api/accountApi';
 import { gameApi } from '../../draft/api/gameApi';
-import type { GameSummary, Deck } from '../../account/model/accountTypes';
+import type { GameHistoryEntry, Deck } from '../../account/model/accountTypes';
 
 export function AccountSearch() {
   const [accountId, setAccountId] = useState('');
   const [displayName, setDisplayName] = useState<string | null>(null);
-  const [games, setGames] = useState<GameSummary[]>([]);
+  const [games, setGames] = useState<GameHistoryEntry[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [filterText, setFilterText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -61,8 +61,9 @@ export function AccountSearch() {
 
   const filteredGames = games.filter((g) =>
     q
-      ? g.player1Name.toLowerCase().includes(q) ||
-        g.player2Name.toLowerCase().includes(q)
+      ? g.players
+          .map((p) => p.displayName ?? p.name ?? '')
+          .some((name) => name.toLowerCase().includes(q))
       : true,
   );
 
@@ -150,7 +151,9 @@ export function AccountSearch() {
                   <div key={game.gameID} className="flex items-center justify-between gap-md p-md bg-surface-container-high/50 rounded-xl border border-outline-variant/5 hover:border-primary/30 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-on-surface">{game.cubeID}</span>
-                      <span className="text-[10px] text-outline">{game.player1Name} vs {game.player2Name}</span>
+                      <span className="text-[10px] text-outline">
+                        {game.players.map((p) => p.displayName ?? p.name ?? '?').join(' vs ')} · {game.gameType}
+                      </span>
                     </div>
                     <button
                       className="p-1 hover:bg-error/10 rounded-md text-outline hover:text-error transition-colors"

@@ -44,7 +44,14 @@ export function AccountPage() {
         </header>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
-          <PastDraftsSection games={games} pagination={pagination} />
+          <PastDraftsSection
+            games={games}
+            pagination={pagination}
+            currentPlayerNames={[account?.displayName, account?.email].filter(
+              (name): name is string => typeof name === 'string' && name.length > 0
+            )}
+            currentAccountID={account?.accountID}
+          />
           <SavedDecksSection decks={decks} loading={isLoading} error={error} onDelete={deleteDeck} onUpdate={updateDeck} onCreateNew={() => navigate('/deckbuilder')} pagination={deckPagination} />
         </div>
       </main>
