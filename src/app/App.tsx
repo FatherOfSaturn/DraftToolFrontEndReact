@@ -18,6 +18,7 @@ import { HomePage } from '../features/home/pages/HomePage';
 import { MulliganSimulatorPage } from '../features/mulligan-simulator/pages/MulliganSimulatorPage';
 import { ScrollToTop } from '../shared/components/ScrollToTop';
 import { ToastProvider } from '../shared/components/Toast';
+import { ThemeProvider } from '../shared/theme/ThemeContext';
 
 /**
  * Route table:
@@ -41,9 +42,10 @@ import { ToastProvider } from '../shared/components/Toast';
 export function App() {
   return (
     <GoogleOAuthProvider clientId={env.googleClientId}>
-      <AuthProvider>
-        <BrowserRouter>
-          <ScrollToTop />
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <ScrollToTop />
           <ToastProvider>
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -85,6 +87,7 @@ export function App() {
           </ToastProvider>
         </BrowserRouter>
       </AuthProvider>
+      </ThemeProvider>
     </GoogleOAuthProvider>
   );
 }

@@ -101,7 +101,7 @@ export function StatsBar({
           </div>
           <div className="h-1.5 w-20 md:w-32 bg-surface-variant rounded-full overflow-hidden">
             <div
-              className="h-full bg-primary shadow-[0_0_8px_rgba(213,186,255,0.6)] transition-all duration-300"
+              className="h-full bg-primary shadow-[0_0_8px_var(--glow-primary-light)] transition-all duration-300"
               style={{ width: `${pct}%` }}
             />
           </div>

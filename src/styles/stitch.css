@@ -2,9 +2,327 @@
 @tailwind components;
 @tailwind utilities;
 
+/* --- Theme tokens (Material 3) ---
+   Each theme is one [data-theme] block overriding these variables.
+   Tokens are RGB triplets so Tailwind's rgb(var(...) / <alpha-value>)
+   opacity modifiers (e.g. /40) keep working. */
+:root,
+[data-theme="arcane"] {
+  --color-surface-container-low: 27 27 29;
+  --color-outline-variant: 75 68 84;
+  --color-surface-container-lowest: 14 14 16;
+  --color-on-secondary-fixed-variant: 0 74 119;
+  --color-primary-container: 169 116 255;
+  --color-inverse-on-surface: 48 48 50;
+  --color-surface-variant: 53 52 55;
+  --color-surface-container: 32 31 33;
+  --color-inverse-primary: 119 51 217;
+  --color-surface-container-highest: 53 52 55;
+  --color-tertiary-fixed-dim: 255 181 157;
+  --color-on-surface: 229 225 228;
+  --color-primary-fixed: 236 220 255;
+  --color-on-surface-variant: 205 195 215;
+  --color-tertiary-fixed: 255 219 208;
+  --color-on-error-container: 255 218 214;
+  --color-surface-tint: 213 186 255;
+  --color-on-tertiary-fixed: 57 12 0;
+  --color-on-background: 229 225 228;
+  --color-on-tertiary-fixed-variant: 131 38 0;
+  --color-error-container: 147 0 10;
+  --color-secondary-container: 0 162 253;
+  --color-tertiary: 255 181 157;
+  --color-primary-fixed-dim: 213 186 255;
+  --color-on-secondary-container: 0 53 88;
+  --color-on-primary-container: 57 0 122;
+  --color-secondary: 152 203 255;
+  --color-surface-bright: 57 57 59;
+  --color-on-primary-fixed: 39 0 87;
+  --color-on-tertiary: 93 25 0;
+  --color-on-primary: 66 0 138;
+  --color-background: 19 19 21;
+  --color-secondary-fixed: 207 229 255;
+  --color-outline: 150 141 160;
+  --color-tertiary-container: 243 99 45;
+  --color-surface-container-high: 42 42 44;
+  --color-primary: 213 186 255;
+  --color-on-tertiary-container: 81 21 0;
+  --color-surface-dim: 19 19 21;
+  --color-on-error: 105 0 5;
+  --color-inverse-surface: 229 225 228;
+  --color-surface: 19 19 21;
+  --color-on-secondary-fixed: 0 29 51;
+  --color-on-primary-fixed-variant: 94 2 192;
+  --color-secondary-fixed-dim: 152 203 255;
+  --color-error: 255 180 171;
+  --color-on-secondary: 0 51 84;
+
+  /* Semantic roles (non-Material) */
+  --color-accent: 0 184 212;
+  --color-on-accent: 0 45 50;
+  --color-success: 102 187 106;
+  --color-on-success: 13 39 16;
+
+  /* Fonts (themes may override; defaults keep the original look) */
+  --font-heading: 'Hanken Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-label: 'JetBrains Mono', monospace;
+
+  /* App-level helpers used by custom CSS below */
+  --app-background: #0b0b0c;
+  --glass-bg: rgba(26, 26, 30, 0.6);
+  --glass-border: rgba(45, 45, 51, 0.5);
+  --glass-shadow: 0 0 0 transparent;
+  --glass-hover-border: rgba(169, 116, 255, 0.4);
+  --glass-hover-shadow: 0 12px 24px -8px rgba(169, 116, 255, 0.2);
+  --nav-shadow: 0 4px 20px -2px rgba(119, 51, 217, 0.2);
+  --input-focus-border: var(--color-primary-container);
+  --glow-primary: rgba(169, 116, 255, 0.4);
+  --glow-primary-medium: rgba(169, 116, 255, 0.3);
+  --glow-primary-soft: rgba(169, 116, 255, 0.15);
+  --glow-primary-light: rgba(213, 186, 255, 0.6);
+  --glow-primary-light-soft: rgba(213, 186, 255, 0.4);
+  --glow-tertiary: rgba(255, 181, 157, 0.6);
+  --glow-tertiary-soft: rgba(255, 181, 157, 0.4);
+  --glow-error: rgba(255, 180, 171, 0.6);
+}
+
+[data-theme="celestial-aetheric"] {
+  --color-surface: 249 249 251;
+  --color-surface-dim: 217 218 220;
+  --color-surface-bright: 249 249 251;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 243 243 245;
+  --color-surface-container: 237 238 240;
+  --color-surface-container-high: 232 232 234;
+  --color-surface-container-highest: 226 226 228;
+  --color-on-surface: 26 28 29;
+  --color-on-surface-variant: 73 68 86;
+  --color-inverse-surface: 47 49 50;
+  --color-inverse-on-surface: 240 240 242;
+  --color-outline: 122 116 136;
+  --color-outline-variant: 203 195 217;
+  --color-surface-tint: 109 35 249;
+  --color-primary: 72 0 178;
+  --color-on-primary: 255 255 255;
+  --color-primary-container: 98 0 238;
+  --color-on-primary-container: 208 190 255;
+  --color-inverse-primary: 207 189 255;
+  --color-secondary: 91 63 214;
+  --color-on-secondary: 255 255 255;
+  --color-secondary-container: 117 91 240;
+  --color-on-secondary-container: 255 251 255;
+  --color-tertiary: 111 35 0;
+  --color-on-tertiary: 255 255 255;
+  --color-tertiary-container: 150 50 0;
+  --color-on-tertiary-container: 255 183 157;
+  --color-error: 186 26 26;
+  --color-on-error: 255 255 255;
+  --color-error-container: 255 218 214;
+  --color-on-error-container: 147 0 10;
+
+  /* Semantic roles (non-Material) */
+  --color-accent: 180 83 9;
+  --color-on-accent: 255 255 255;
+  --color-success: 46 125 50;
+  --color-on-success: 255 255 255;
+  --color-primary-fixed: 232 221 255;
+  --color-primary-fixed-dim: 207 189 255;
+  --color-on-primary-fixed: 34 0 93;
+  --color-on-primary-fixed-variant: 83 0 205;
+  --color-secondary-fixed: 229 222 255;
+  --color-secondary-fixed-dim: 201 191 255;
+  --color-on-secondary-fixed: 26 0 99;
+  --color-on-secondary-fixed-variant: 70 34 192;
+  --color-tertiary-fixed: 255 219 207;
+  --color-tertiary-fixed-dim: 255 181 154;
+  --color-on-tertiary-fixed: 56 13 0;
+  --color-on-tertiary-fixed-variant: 128 42 0;
+  --color-background: 249 249 251;
+  --color-on-background: 26 28 29;
+  --color-surface-variant: 226 226 228;
+
+  /* App-level helpers (per design doc: no glows, borders not fills, ambient shadow) */
+  --app-background: #f9f9fb;
+  --glass-bg: rgba(255, 255, 255, 0.92);
+  --glass-border: #c9c9d4;
+  --glass-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --glass-hover-border: var(--color-primary);
+  --glass-hover-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+  --nav-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --input-focus-border: var(--color-primary);
+  --glow-primary: rgba(72, 0, 178, 0.08);
+  --glow-primary-medium: rgba(72, 0, 178, 0.05);
+  --glow-primary-soft: rgba(72, 0, 178, 0.04);
+  --glow-primary-light: rgba(72, 0, 178, 0.08);
+  --glow-primary-light-soft: rgba(72, 0, 178, 0.05);
+  --glow-tertiary: rgba(0, 0, 0, 0.05);
+  --glow-tertiary-soft: rgba(0, 0, 0, 0.05);
+  --glow-error: rgba(186, 26, 26, 0.08);
+}
+
+/* --- Aetheric Grimoire Parchment (light) --- */
+[data-theme="grimoire-parchment"] {
+  --color-surface: 255 249 235;
+  --color-surface-dim: 223 218 204;
+  --color-surface-bright: 255 249 235;
+  --color-surface-container-lowest: 255 255 255;
+  --color-surface-container-low: 249 243 229;
+  --color-surface-container: 243 237 223;
+  --color-surface-container-high: 238 232 218;
+  --color-surface-container-highest: 232 226 212;
+  --color-on-surface: 29 28 19;
+  --color-on-surface-variant: 90 64 60;
+  --color-inverse-surface: 51 48 39;
+  --color-inverse-on-surface: 246 240 226;
+  --color-outline: 142 112 107;
+  --color-outline-variant: 227 190 184;
+  --color-surface-tint: 181 38 25;
+  --color-primary: 97 0 0;
+  --color-on-primary: 255 255 255;
+  --color-primary-container: 139 0 0;
+  --color-on-primary-container: 255 144 127;
+  --color-inverse-primary: 255 180 168;
+  --color-secondary: 178 44 1;
+  --color-on-secondary: 255 255 255;
+  --color-secondary-container: 255 99 56;
+  --color-on-secondary-container: 93 18 0;
+  --color-tertiary: 64 38 30;
+  --color-on-tertiary: 255 255 255;
+  --color-tertiary-container: 88 60 51;
+  --color-on-tertiary-container: 206 167 155;
+  --color-error: 186 26 26;
+  --color-on-error: 255 255 255;
+  --color-error-container: 255 218 214;
+  --color-on-error-container: 147 0 10;
+  --color-primary-fixed: 255 218 212;
+  --color-primary-fixed-dim: 255 180 168;
+  --color-on-primary-fixed: 65 0 0;
+  --color-on-primary-fixed-variant: 146 7 3;
+  --color-secondary-fixed: 255 219 209;
+  --color-secondary-fixed-dim: 255 181 161;
+  --color-on-secondary-fixed: 59 8 0;
+  --color-on-secondary-fixed-variant: 136 31 0;
+  --color-tertiary-fixed: 255 219 208;
+  --color-tertiary-fixed-dim: 231 189 177;
+  --color-on-tertiary-fixed: 44 22 14;
+  --color-on-tertiary-fixed-variant: 93 64 55;
+  --color-background: 255 249 235;
+  --color-on-background: 29 28 19;
+  --color-surface-variant: 232 226 212;
+
+  /* Semantic roles */
+  --color-accent: 178 44 1;
+  --color-on-accent: 255 255 255;
+  --color-success: 34 110 60;
+  --color-on-success: 255 255 255;
+
+  /* Fonts (per design doc: serif headlines, sans body) */
+  --font-heading: 'Source Serif 4', Georgia, serif;
+  --font-body: 'Hanken Grotesk', sans-serif;
+  --font-label: 'Hanken Grotesk', sans-serif;
+
+  /* App-level helpers (per design doc: tonal layers, thin tan borders, hard shadows) */
+  --app-background: #fff9eb;
+  --glass-bg: rgba(251, 248, 242, 0.92);
+  --glass-border: #d9c5b2;
+  --glass-shadow: 2px 2px 0 rgba(191, 54, 12, 0.1);
+  --glass-hover-border: #bf360c;
+  --glass-hover-shadow: 3px 3px 0 rgba(191, 54, 12, 0.18);
+  --nav-shadow: 0 1px 0 rgba(191, 54, 12, 0.15);
+  --input-focus-border: #bf360c;
+  --glow-primary: rgba(97, 0, 0, 0.15);
+  --glow-primary-medium: rgba(97, 0, 0, 0.1);
+  --glow-primary-soft: rgba(97, 0, 0, 0.06);
+  --glow-primary-light: rgba(181, 38, 25, 0.25);
+  --glow-primary-light-soft: rgba(181, 38, 25, 0.15);
+  --glow-tertiary: rgba(64, 38, 30, 0.2);
+  --glow-tertiary-soft: rgba(64, 38, 30, 0.1);
+  --glow-error: rgba(186, 26, 26, 0.2);
+}
+
+/* --- Aetheric Grimoire Parchment (dark / Night Study) --- */
+[data-theme="grimoire-night"] {
+  --color-surface: 21 19 11;
+  --color-surface-dim: 21 19 11;
+  --color-surface-bright: 60 57 48;
+  --color-surface-container-lowest: 16 14 7;
+  --color-surface-container-low: 29 28 19;
+  --color-surface-container: 34 32 23;
+  --color-surface-container-high: 44 42 33;
+  --color-surface-container-highest: 55 53 43;
+  --color-on-surface: 232 226 212;
+  --color-on-surface-variant: 227 190 184;
+  --color-inverse-surface: 232 226 212;
+  --color-inverse-on-surface: 51 48 39;
+  --color-outline: 170 137 132;
+  --color-outline-variant: 90 64 60;
+  --color-surface-tint: 255 180 168;
+  --color-primary: 255 180 168;
+  --color-on-primary: 105 0 0;
+  --color-primary-container: 139 0 0;
+  --color-on-primary-container: 255 144 127;
+  --color-inverse-primary: 181 38 25;
+  --color-secondary: 255 181 161;
+  --color-on-secondary: 96 19 0;
+  --color-secondary-container: 178 44 1;
+  --color-on-secondary-container: 255 205 193;
+  --color-tertiary: 231 189 177;
+  --color-on-tertiary: 68 42 34;
+  --color-tertiary-container: 88 60 51;
+  --color-on-tertiary-container: 206 167 155;
+  --color-error: 255 180 171;
+  --color-on-error: 105 0 5;
+  --color-error-container: 147 0 10;
+  --color-on-error-container: 255 218 214;
+  --color-primary-fixed: 255 218 212;
+  --color-primary-fixed-dim: 255 180 168;
+  --color-on-primary-fixed: 65 0 0;
+  --color-on-primary-fixed-variant: 146 7 3;
+  --color-secondary-fixed: 255 219 209;
+  --color-secondary-fixed-dim: 255 181 161;
+  --color-on-secondary-fixed: 59 8 0;
+  --color-on-secondary-fixed-variant: 136 31 0;
+  --color-tertiary-fixed: 255 219 208;
+  --color-tertiary-fixed-dim: 231 189 177;
+  --color-on-tertiary-fixed: 44 22 14;
+  --color-on-tertiary-fixed-variant: 93 64 55;
+  --color-background: 21 19 11;
+  --color-on-background: 232 226 212;
+  --color-surface-variant: 55 53 43;
+
+  /* Semantic roles */
+  --color-accent: 255 181 161;
+  --color-on-accent: 96 19 0;
+  --color-success: 129 199 132;
+  --color-on-success: 20 60 25;
+
+  /* Fonts (per design doc: serif headlines, sans body) */
+  --font-heading: 'Source Serif 4', Georgia, serif;
+  --font-body: 'Hanken Grotesk', sans-serif;
+  --font-label: 'Hanken Grotesk', sans-serif;
+
+  /* App-level helpers (per design doc: dark leather, muted brown borders, ember glow) */
+  --app-background: #15130b;
+  --glass-bg: rgba(29, 28, 19, 0.92);
+  --glass-border: #5a403c;
+  --glass-shadow: 0 0 12px rgba(191, 54, 12, 0.12);
+  --glass-hover-border: #ffb5a1;
+  --glass-hover-shadow: 0 0 18px rgba(191, 54, 12, 0.22);
+  --nav-shadow: 0 1px 0 rgba(255, 181, 161, 0.12);
+  --input-focus-border: #ffb5a1;
+  --glow-primary: rgba(255, 180, 168, 0.18);
+  --glow-primary-medium: rgba(255, 180, 168, 0.12);
+  --glow-primary-soft: rgba(255, 180, 168, 0.08);
+  --glow-primary-light: rgba(255, 180, 168, 0.3);
+  --glow-primary-light-soft: rgba(255, 180, 168, 0.2);
+  --glow-tertiary: rgba(231, 189, 177, 0.2);
+  --glow-tertiary-soft: rgba(231, 189, 177, 0.1);
+  --glow-error: rgba(255, 180, 171, 0.2);
+}
+
 body {
-  background-color: #0b0b0c;
-  color: #e5e1e4;
+  background-color: var(--app-background);
+  color: var(--color-on-surface);
   overflow-x: hidden;
 }
 
@@ -13,21 +331,22 @@ body {
 }
 
 .glass-panel {
-  background: rgba(26, 26, 30, 0.6);
+  background: var(--glass-bg);
   /* backdrop-filter: blur(20px); */
-  border: 1px solid rgba(45, 45, 51, 0.5);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-panel:hover {
-  border-color: rgba(169, 116, 255, 0.4);
-  box-shadow: 0 12px 24px -8px rgba(169, 116, 255, 0.2);
+  border-color: var(--glass-hover-border);
+  box-shadow: var(--glass-hover-shadow);
 }
 
 .input-glow:focus {
-  box-shadow: 0 0 15px rgba(169, 116, 255, 0.15);
-  border-color: #a974ff;
-  background-color: #0e0e10;
+  box-shadow: 0 0 15px var(--glow-primary-soft);
+  border-color: var(--input-focus-border);
+  background-color: var(--color-surface-container-lowest);
 }
 
 .mana-gradient {
@@ -37,7 +356,7 @@ body {
 /* --- Classes introduced by the Home page mockup --- */
 
 .glow-purple {
-  box-shadow: 0 0 20px rgba(119, 51, 217, 0.15);
+  box-shadow: 0 0 20px var(--glow-primary-soft);
 }
 
 .arcane-border {
@@ -83,11 +402,11 @@ body {
 /* --- Classes introduced by the Arcane Scrying mockup --- */
 
 .arcane-glow {
-  box-shadow: 0 0 20px rgba(169, 116, 255, 0.15);
+  box-shadow: 0 0 20px var(--glow-primary-soft);
 }
 
 .card-inner-shadow {
-  box-shadow: inset 0 0 10px rgba(169, 116, 255, 0.1);
+  box-shadow: inset 0 0 10px var(--glow-primary-soft);
 }
 
 @keyframes float {
@@ -111,16 +430,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #131315;
+  background: var(--color-background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #4b4454;
+  background: var(--color-outline-variant);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d5baff;
+  background: var(--color-primary);
 }
 
 /* --- Classes introduced by the Draft board mockup --- */
@@ -134,7 +453,7 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #a974ff;
+  background: var(--color-primary-container);
   border-radius: 10px;
 }
 
@@ -150,13 +469,13 @@ body {
 /* --- Classes introduced by the Login page mockup --- */
 
 .mystic-glow {
-  box-shadow: 0 0 20px rgba(169, 116, 255, 0.15);
+  box-shadow: 0 0 20px var(--glow-primary-soft);
 }
 
 .mana-input:focus {
   outline: none;
-  border-bottom: 2px solid #a974ff;
-  box-shadow: 0 4px 12px -4px rgba(169, 116, 255, 0.4);
+  border-bottom: 2px solid var(--input-focus-border);
+  box-shadow: 0 4px 12px -4px var(--glow-primary);
 }
 
 .primary-btn-gloss {
@@ -184,24 +503,25 @@ body {
 /* --- Classes introduced by the Draft Selection (Choose Your Ritual) mockup --- */
 
 .glass-card {
-  background: rgba(26, 26, 30, 0.6);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(45, 45, 51, 0.5);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  border-color: #d5baff;
-  box-shadow: 0 12px 24px -8px rgba(169, 116, 255, 0.3);
+  border-color: var(--color-primary);
+  box-shadow: 0 12px 24px -8px var(--glow-primary-medium);
   transform: translateY(-4px);
 }
 
 .mana-glow {
-  filter: drop-shadow(0 0 8px rgba(169, 116, 255, 0.4));
+  filter: drop-shadow(0 0 8px var(--glow-primary));
 }
 
 .ritual-gradient {
-  background: radial-gradient(circle at top right, rgba(169, 116, 255, 0.15), transparent 60%);
+  background: radial-gradient(circle at top right, var(--glow-primary-soft), transparent 60%);
 }
 
 /* --- Mana symbol buttons (Quick Add Land in the deck builder's Import tab) --- */
@@ -243,6 +563,20 @@ body {
 .mana-green {
   background: #3f7a4d;
   color: #d7ecd9;
+}
+
+/* --- Light-flavor overrides: these design docs avoid heavy gradients
+   and magical glows, so brand flourishes collapse to solid primary. --- */
+[data-theme="celestial-aetheric"] .mana-gradient,
+[data-theme="grimoire-parchment"] .mana-gradient,
+[data-theme="grimoire-night"] .mana-gradient {
+  background: var(--color-primary);
+}
+
+[data-theme="celestial-aetheric"] .primary-btn-gloss,
+[data-theme="grimoire-parchment"] .primary-btn-gloss,
+[data-theme="grimoire-night"] .primary-btn-gloss {
+  background: var(--color-primary);
 }
 
 @keyframes slideUp {

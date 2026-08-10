@@ -36,7 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_DOTS: Record<string, string> = {
-  critical: 'bg-error shadow-[0_0_8px_rgba(255,180,171,0.6)]',
+  critical: 'bg-error shadow-[0_0_8px_var(--glow-error)]',
   high: 'bg-tertiary-container',
   medium: 'bg-primary',
   low: 'bg-outline',

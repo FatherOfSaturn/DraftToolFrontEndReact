@@ -10,7 +10,7 @@ export function ExtraPickFab({ armed, disabled, onClick }: ExtraPickFabProps) {
   return (
     <button
       className={`fixed bottom-20 right-6 md:bottom-10 md:right-8 lg:right-[340px] w-14 h-14 rounded-full shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-90 z-40 group disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 ${
-        armed ? 'bg-tertiary text-on-tertiary shadow-[0_0_24px_rgba(255,181,157,0.6)]' : 'bg-primary text-on-primary'
+        armed ? 'bg-tertiary text-on-tertiary shadow-[0_0_24px_var(--glow-tertiary)]' : 'bg-primary text-on-primary'
       }`}
       onClick={onClick}
       disabled={disabled}

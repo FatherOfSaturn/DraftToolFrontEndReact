@@ -46,7 +46,7 @@ function HeroSection() {
             Feel the Power Of My Magic
           </span>
         </div>
-        <h2 className="font-display text-display text-white mb-md leading-tight">
+        <h2 className="font-display text-display text-on-surface mb-md leading-tight">
           Welcome to  <span className="text-primary italic">Pyramid Draft</span>
         </h2>
         <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-2xl mx-auto">
@@ -54,7 +54,7 @@ function HeroSection() {
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-md">
           <Link
-            className="group relative px-xl py-md bg-inverse-primary text-white font-headline-md rounded-xl overflow-hidden hover:scale-105 transition-all inline-block"
+            className="group relative px-xl py-md bg-primary text-on-primary font-headline-md rounded-xl overflow-hidden hover:scale-105 transition-all inline-block"
             to="/draft-selection"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -81,7 +81,7 @@ function ExperienceSection() {
   return (
     <section id="experience" className="py-xl px-margin-mobile md:px-margin-desktop bg-surface-dim">
       <div className="mb-xl text-center">
-        <h3 className="font-display text-headline-lg text-white mb-xs">A Few Useful Tools</h3>
+        <h3 className="font-display text-headline-lg text-on-surface mb-xs">A Few Useful Tools</h3>
         <div className="w-24 h-1 bg-primary mx-auto rounded-full opacity-50" />
       </div>
       <div className="grid grid-cols-12 gap-gutter max-w-7xl mx-auto">
@@ -96,7 +96,7 @@ function ExperienceSection() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-surface-dim via-surface-dim/40 to-transparent" />
           <div className="relative z-10">
-            <h4 className="font-headline-lg text-white mb-sm">The Unique Draft Experience</h4>
+            <h4 className="font-headline-lg text-on-surface mb-sm">The Unique Draft Experience</h4>
             <p className="font-body-md text-on-surface-variant max-w-md">
               The Namesake of the site, the Pyramid Draft is a unique drafting experience that is fun to experience in person, but a pain to set up. A small tool was set up to draft, and the rest of the features spiraled out of control.
             </p>
@@ -106,7 +106,7 @@ function ExperienceSection() {
         {/* Streamline */}
         <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
           <span className="material-symbols-outlined text-secondary text-4xl mb-md">auto_fix_high</span>
-          <h4 className="font-headline-md text-white mb-sm">Streamline Your Draft</h4>
+          <h4 className="font-headline-md text-on-surface mb-sm">Streamline Your Draft</h4>
           <p className="font-body-md text-on-surface-variant">
             Quick way to get started with deck building, and a few useful analytics tools to get started fast.
           </p>
@@ -115,7 +115,7 @@ function ExperienceSection() {
         {/* Save Prior Drafts */}
         <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
           <span className="material-symbols-outlined text-primary text-4xl mb-md">cloud_sync</span>
-          <h4 className="font-headline-md text-white mb-sm">Save Your Prior Drafts</h4>
+          <h4 className="font-headline-md text-on-surface mb-sm">Save Your Prior Drafts</h4>
           <p className="font-body-md text-on-surface-variant">
             Create an account to save your prior drafts. Drafts are already saved, however to find them you would need to remember your Draft ID and whatever name you registered as.
           </p>
@@ -124,7 +124,7 @@ function ExperienceSection() {
         {/* Deckbuilder */}
         <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
           <span className="material-symbols-outlined text-tertiary text-4xl mb-md">dashboard</span>
-          <h4 className="font-headline-md text-white mb-sm">Built-In Deckbuilder</h4>
+          <h4 className="font-headline-md text-on-surface mb-sm">Built-In Deckbuilder</h4>
           <p className="font-body-md text-on-surface-variant">
             After your draft, build your deck directly in the browser. Filter, search, and organize your pool with built-in analytics.
           </p>
@@ -133,7 +133,7 @@ function ExperienceSection() {
         {/* Mulligan Simulator */}
         <div className="col-span-12 md:col-span-4 glass-panel rounded-2xl p-md hover-lift border-primary/10 hover:border-primary/40 transition-all">
           <span className="material-symbols-outlined text-error text-4xl mb-md">casino</span>
-          <h4 className="font-headline-md text-white mb-sm">Mulligan Simulator</h4>
+          <h4 className="font-headline-md text-on-surface mb-sm">Mulligan Simulator</h4>
           <p className="font-body-md text-on-surface-variant">
             Test your deck's opening hand consistency with probability calculations and interactive mulligan practice.
           </p>
@@ -151,7 +151,7 @@ function FavoriteCubesSection() {
           <span className="inline-block px-4 py-1 rounded-full bg-primary-container/10 border border-primary/20 text-primary font-label-sm text-label-sm mb-md uppercase tracking-widest">
             Featured Cubes
           </span>
-          <h3 className="font-display text-headline-lg text-white mb-xs">Favorite Cubes</h3>
+          <h3 className="font-display text-headline-lg text-on-surface mb-xs">Favorite Cubes</h3>
           <p className="font-body-md text-on-surface-variant max-w-2xl mx-auto">
             Cubes that are personal favorites — friends of mine, or my own. I love playing all kinds of Magic but these I find particularly enjoyable to draft.
           </p>
@@ -167,7 +167,7 @@ function FavoriteCubesSection() {
               <div className="w-14 h-14 rounded-xl bg-primary-container/20 border border-primary/30 flex items-center justify-center mb-md group-hover:scale-110 transition-transform">
                 <span className="material-symbols-outlined text-primary text-3xl">{cube.icon}</span>
               </div>
-              <h4 className="font-headline-md text-white mb-sm">{cube.name}</h4>
+              <h4 className="font-headline-md text-on-surface mb-sm">{cube.name}</h4>
               <p className="font-body-md text-on-surface-variant flex-grow">{cube.description}</p>
               <div className="mt-md flex items-center gap-xs text-primary font-label-md">
                 Start Drafting
@@ -187,57 +187,57 @@ function DataPrivacySection() {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-xl">
           <span className="material-symbols-outlined text-primary text-4xl mb-sm block">security</span>
-          <h3 className="font-display text-headline-lg text-white mb-xs">Data & Privacy</h3>
+          <h3 className="font-display text-headline-lg text-on-surface mb-xs">Data & Privacy</h3>
           <div className="w-24 h-1 bg-primary mx-auto rounded-full opacity-50" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
           <div className="glass-panel rounded-2xl p-lg">
-            <h4 className="font-headline-md text-white mb-md flex items-center gap-sm">
+            <h4 className="font-headline-md text-on-surface mb-md flex items-center gap-sm">
               <span className="material-symbols-outlined text-primary">info</span>
               What We Gather
             </h4>
             <ul className="space-y-3 text-on-surface-variant font-body-md">
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
-                <span><strong className="text-white">Google account info</strong> (email, name, avatar) if you sign in via Google OAuth — we never see your password</span>
+                <span><strong className="text-on-surface">Google account info</strong> (email, name, avatar) if you sign in via Google OAuth — we never see your password</span>
               </li>
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
-                <span><strong className="text-white">Draft data</strong> — cube used, packs opened, picks made, and final deck lists</span>
+                <span><strong className="text-on-surface">Draft data</strong> — cube used, packs opened, picks made, and final deck lists</span>
               </li>
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
-                <span><strong className="text-white">Cube preferences</strong> and configuration choices</span>
+                <span><strong className="text-on-surface">Cube preferences</strong> and configuration choices</span>
               </li>
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-primary text-sm mt-0.5">check_circle</span>
-                <span><strong className="text-white">Basic analytics</strong> — page visits, draft types used, aggregate usage patterns</span>
+                <span><strong className="text-on-surface">Basic analytics</strong> — page visits, draft types used, aggregate usage patterns</span>
               </li>
             </ul>
           </div>
 
           <div className="glass-panel rounded-2xl p-lg">
-            <h4 className="font-headline-md text-white mb-md flex items-center gap-sm">
+            <h4 className="font-headline-md text-on-surface mb-md flex items-center gap-sm">
               <span className="material-symbols-outlined text-secondary">visibility</span>
               Why We Gather It
             </h4>
             <ul className="space-y-3 text-on-surface-variant font-body-md">
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
-                <span><strong className="text-white">Save drafts</strong> so you can revisit, build decks, and export later</span>
+                <span><strong className="text-on-surface">Save drafts</strong> so you can revisit, build decks, and export later</span>
               </li>
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
-                <span><strong className="text-white">Find past games</strong> by account instead of needing to remember a Draft ID</span>
+                <span><strong className="text-on-surface">Find past games</strong> by account instead of needing to remember a Draft ID</span>
               </li>
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
-                <span><strong className="text-white">Future development of draft bot</strong> I won't be sharing the fact that you are a filthy blue player</span>
+                <span><strong className="text-on-surface">Future development of draft bot</strong> I won't be sharing the fact that you are a filthy blue player</span>
               </li>
               <li className="flex items-start gap-sm">
                 <span className="material-symbols-outlined text-secondary text-sm mt-0.5">arrow_forward</span>
-                <span><strong className="text-white">Keep the page running</strong> to see what might break, where cracks are starting to show in the infrastructure</span>
+                <span><strong className="text-on-surface">Keep the page running</strong> to see what might break, where cracks are starting to show in the infrastructure</span>
               </li>
             </ul>
           </div>
@@ -268,7 +268,7 @@ function ArchitectSection() {
           </div>
         </div>
         <div className="w-full md:w-1/2">
-          <h3 className="font-display text-display text-white mb-md">Meet the Creator</h3>
+          <h3 className="font-display text-display text-on-surface mb-md">Meet the Creator</h3>
           <p className="font-body-lg text-on-surface-variant mb-md italic">
             "It is impossible for a man to learn what he thinks he already knows." - Epictetus
           </p>
@@ -280,7 +280,7 @@ function ArchitectSection() {
               <span className="font-label-sm text-label-sm text-primary uppercase">
                 Follow me on GitHub
               </span>
-              <span className="font-headline-md text-white">@FatherOfSaturn</span>
+              <span className="font-headline-md text-on-surface">@FatherOfSaturn</span>
             </a>
             <div className="h-10 w-[1px] bg-outline-variant" />
             <div className="flex gap-sm">
@@ -331,7 +331,7 @@ function DonationSection() {
       <div className="max-w-4xl mx-auto glass-panel rounded-[2rem] p-xl text-center relative overflow-hidden glow-purple">
         <div className="relative z-10">
           <span className="material-symbols-outlined text-tertiary text-5xl mb-md">auto_awesome</span>
-          <h3 className="font-display text-headline-lg text-white mb-md">Support the Craft</h3>
+          <h3 className="font-display text-headline-lg text-on-surface mb-md">Support the Craft</h3>
           <p className="font-body-md text-on-surface-variant mb-xl max-w-xl mx-auto">
             The site is a labor of love, kept alive through the generosity of the community. Your
             contributions directly fuel the development of new features, visualizations, and
@@ -355,14 +355,14 @@ function DonationSection() {
                 <span className={tier.labelClass}>
                   {tier.name}
                 </span>
-                <span className="font-display text-headline-md text-white">{tier.price}</span>
+                <span className="font-display text-headline-md text-on-surface">{tier.price}</span>
                 <div className="mt-sm h-1 w-full bg-surface-container-highest rounded-full overflow-hidden">
                   <div className={tier.barClass} />
                 </div>
               </button>
             ))}
           </div>
-          <button className="px-xl py-md bg-tertiary text-on-tertiary font-headline-md rounded-xl hover:shadow-[0_0_30px_rgba(255,181,157,0.4)] transition-all">
+          <button className="px-xl py-md bg-tertiary text-on-tertiary font-headline-md rounded-xl hover:shadow-[0_0_30px_var(--glow-tertiary-soft)] transition-all">
             Donate via Stripe
           </button>
         </div>

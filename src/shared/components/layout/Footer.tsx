@@ -12,8 +12,7 @@ export function Footer() {
             </h5>
           </div>
           <p className="font-body-md text-on-surface-variant mb-md">
-            The definitive mystical drafting companion for Magic: The Gathering players who seek
-            something beyond the ordinary.
+            A new way to draft cubes for MTG, with some extra features for persisting your data.
           </p>
           <div className="flex gap-md">
             <a
@@ -46,7 +45,7 @@ export function Footer() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-xl">
           <div>
-            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Support</h6>
+            <h6 className="font-label-md text-on-surface mb-md uppercase tracking-widest">Support</h6>
             <ul className="space-y-sm font-body-md text-on-surface-variant">
               <li>
                 <Link className="hover:text-primary transition-colors" to="/draft-selection">
@@ -61,7 +60,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Helpful Links</h6>
+            <h6 className="font-label-md text-on-surface mb-md uppercase tracking-widest">Helpful Links</h6>
             <ul className="space-y-sm font-body-md text-on-surface-variant">
               <li>
                 <a className="hover:text-primary transition-colors" href="https://cubecobra.com" target="_blank" rel="noopener noreferrer">
@@ -81,7 +80,7 @@ export function Footer() {
             </ul>
           </div>
           <div className="col-span-2 md:col-span-1">
-            <h6 className="font-label-md text-white mb-md uppercase tracking-widest">Newsletter</h6>
+            <h6 className="font-label-md text-on-surface mb-md uppercase tracking-widest">Newsletter</h6>
             <div className="relative">
               <input
                 className="w-full bg-surface-container-high border-outline-variant rounded-lg px-md py-sm focus:ring-primary focus:border-primary text-on-surface"

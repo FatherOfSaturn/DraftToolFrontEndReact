@@ -139,7 +139,7 @@ export function PoolSidebar({
               </p>
             )}
             <button
-              className="w-full bg-primary text-on-primary font-display text-headline-md py-4 rounded-xl shadow-[0_0_20px_rgba(213,186,255,0.4)] hover:shadow-[0_0_30px_rgba(213,186,255,0.6)] transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              className="w-full bg-primary text-on-primary font-display text-headline-md py-4 rounded-xl shadow-[0_0_20px_var(--glow-primary-light-soft)] hover:shadow-[0_0_30px_var(--glow-primary-light)] transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
               disabled={!confirmAction.stagedCard || confirmAction.confirming}
               onClick={confirmAction.onConfirmPick}
             >

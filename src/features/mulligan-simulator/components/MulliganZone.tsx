@@ -117,7 +117,7 @@ export function MulliganZone({ hand, deckSize, librarySize, loading, onMulligan,
               <div className="absolute top-1 left-1 w-full h-full bg-outline-variant rounded-lg border border-outline-variant/30 translate-x-1 translate-y-1 opacity-60" />
               <div className="relative w-full h-full rounded-lg border-2 border-primary/60 overflow-hidden shadow-2xl bg-gradient-to-br from-primary-container/40 to-surface-container flex items-end">
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-xs">
-                  <span className="font-label-md text-label-md text-primary text-center">
+                  <span className="font-label-md text-label-md text-white text-center">
                     Library ({librarySize})
                   </span>
                 </div>

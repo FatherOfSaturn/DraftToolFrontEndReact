@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../features/auth/AuthContext';
+import { ThemeSwitcher } from '../../theme/ThemeSwitcher';
 
 export interface HeaderProps {
   search?: {
@@ -67,7 +68,7 @@ export function Header({ search }: HeaderProps) {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 bg-surface-dim/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[0_4px_20px_-2px_rgba(119,51,217,0.2)]">
+      <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 bg-surface-dim/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[var(--nav-shadow)]">
         <div className="flex items-center gap-base">
           <span
             className="material-symbols-outlined text-primary text-3xl"
@@ -121,6 +122,7 @@ export function Header({ search }: HeaderProps) {
               />
             </div>
           )}
+          <ThemeSwitcher />
           <button
             className="px-md py-xs bg-primary text-on-primary font-label-md text-label-md rounded-lg active:scale-95 duration-200 hover:brightness-110 transition-all"
             onClick={() => navigate(account ? '/account' : '/login')}

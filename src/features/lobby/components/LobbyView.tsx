@@ -7,6 +7,7 @@ interface LobbyViewProps {
   isHost: boolean;
   onStart: () => void;
   onLeave: () => void;
+  onKickPlayer?: (playerToken: string) => void;
   isStarting: boolean;
   error?: string | null;
 }
@@ -22,6 +23,7 @@ export function LobbyView({
   isHost,
   onStart,
   onLeave,
+  onKickPlayer,
   isStarting,
   error,
 }: LobbyViewProps) {
@@ -132,15 +134,31 @@ export function LobbyView({
                 {isSlotEmpty ? (
                   <span className="font-body-md text-outline/50 italic">Waiting…</span>
                 ) : (
-                  <span className="font-body-md text-on-surface">
-                    {player.displayName}
-                    {isMe && (
-                      <span className="font-label-sm text-primary ml-1">(You)</span>
+                  <>
+                    <span className="font-body-md text-on-surface">
+                      {player.displayName}
+                      {isMe && (
+                        <span className="font-label-sm text-primary ml-1">(You)</span>
+                      )}
+                      {player.accountID === lobbyInfo.hostAccountID && (
+                        <span className="font-label-sm text-secondary ml-1">Host</span>
+                      )}
+                    </span>
+                    {isHost && !isMe && player.accountID !== lobbyInfo.hostAccountID && (
+                      <button
+                        className="ml-auto text-outline hover:text-error hover:bg-error/10 rounded-md p-1 transition-colors"
+                        onClick={() => {
+                          if (window.confirm(`Remove ${player.displayName} from the lobby?`)) {
+                            onKickPlayer?.(player.playerToken);
+                          }
+                        }}
+                        title={`Kick ${player.displayName}`}
+                        type="button"
+                      >
+                        <span className="material-symbols-outlined text-[18px]">close</span>
+                      </button>
                     )}
-                    {player.accountID === lobbyInfo.hostAccountID && (
-                      <span className="font-label-sm text-secondary ml-1">Host</span>
-                    )}
-                  </span>
+                  </>
                 )}
               </div>
             );

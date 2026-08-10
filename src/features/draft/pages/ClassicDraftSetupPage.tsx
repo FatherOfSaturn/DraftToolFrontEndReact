@@ -9,6 +9,8 @@ import { useLobbyPoller } from '../../lobby/hooks/useLobbyPoller';
 import { useLobbyLeaveGuard } from '../../lobby/hooks/useLobbyLeaveGuard';
 import { lobbyApi } from '../../lobby/api/lobbyApi';
 import { getErrorMessage } from '../../../shared/lib/errors';
+import { CUBE_ID_TOOLTIP } from '../../../shared/lib/cubeTooltip';
+import { useToast } from '../../../shared/components/Toast';
 import { useAuth } from '../../auth/AuthContext';
 
 interface ClassicDraftSetupPageProps {
@@ -17,6 +19,7 @@ interface ClassicDraftSetupPageProps {
 
 export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPageProps) {
   const { account } = useAuth();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
 
   // Setup form state
@@ -39,6 +42,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
   // Name prompt for anonymous joiners
   const [namePrompt, setNamePrompt] = useState<string | null>(null);
+  const [namePromptError, setNamePromptError] = useState<string | null>(null);
 
   // Polling
   const { lobby: polledLobby } = useLobbyPoller({
@@ -50,7 +54,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
   const currentLobby = polledLobby ?? null;
 
   // Leave guard
-  useLobbyLeaveGuard(
+  const { markLeft } = useLobbyLeaveGuard(
     lobbyCode,
     playerToken,
     currentLobby?.status ?? null
@@ -70,17 +74,42 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
     if (!code || playerToken) return;
 
     async function doJoin() {
+      setJoinError(null);
       try {
+        const accountID = account?.accountID ?? null;
         const displayName = account?.displayName || account?.email || '';
-        const result = await lobbyApi.joinLobby(
-          code!,
-          account?.accountID ?? null,
-          displayName
-        );
+
+        // Rejoin/resume: if the account is already in this lobby, adopt the
+        // existing entry instead of joining again. This stops the same person
+        // from appearing twice (and spuriously filling a 2-player lobby) when
+        // they open their own invite link.
+        if (accountID) {
+          try {
+            const existing = await lobbyApi.pollLobby(code!);
+            const myPlayer = existing.players.find((p) => p.accountID === accountID);
+            if (myPlayer) {
+              sessionStorage.setItem('lobby_player_token', myPlayer.playerToken);
+              if (myPlayer.accountID === existing.hostAccountID) {
+                sessionStorage.setItem('lobby_host_account_id', myPlayer.accountID);
+              }
+              setPlayerToken(myPlayer.playerToken);
+              setMySlotIndex(myPlayer.slotIndex);
+              setMyName(myPlayer.displayName);
+              setIsHost(myPlayer.accountID === existing.hostAccountID);
+              showToast('You are already in this lobby');
+              return;
+            }
+          } catch {
+            // Poll failed (e.g. tokenless poll unsupported) — fall through to
+            // a normal join and let its own error surface.
+          }
+        }
+
+        const result = await lobbyApi.joinLobby(code!, accountID, displayName);
         sessionStorage.setItem('lobby_player_token', result.playerToken);
         setPlayerToken(result.playerToken);
         const myPlayer = result.lobby.players.find(
-          (p) => account ? p.accountID === account.accountID : p.slotIndex === result.lobby.players.length - 1
+          (p) => accountID ? p.accountID === accountID : p.slotIndex === result.lobby.players.length - 1
         );
         if (myPlayer) {
           setMySlotIndex(myPlayer.slotIndex);
@@ -88,7 +117,9 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
           setIsHost(myPlayer.accountID === result.lobby.hostAccountID);
         }
       } catch (err) {
-        setJoinError(getErrorMessage(err));
+        const message = getErrorMessage(err);
+        setJoinError(message);
+        showToast(message);
         setLobbyCode(null);
       }
     }
@@ -97,8 +128,27 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
       doJoin();
     } else {
       setNamePrompt(lobbyCode);
+      setNamePromptError(null);
     }
-  }, [lobbyCode, playerToken, account]);
+  }, [lobbyCode, playerToken, account, showToast]);
+
+  // Auto-exit when the host removes us
+  useEffect(() => {
+    if (!lobbyCode || !playerToken || !currentLobby) return;
+    if (currentLobby.status !== 'waiting') return;
+    const stillThere = currentLobby.players.some((p) => p.playerToken === playerToken);
+    if (stillThere) return;
+
+    markLeft();
+    showToast('You were removed from the lobby');
+    sessionStorage.removeItem('lobby_player_token');
+    sessionStorage.removeItem('lobby_host_account_id');
+    setLobbyCode(null);
+    setPlayerToken(null);
+    setMySlotIndex(null);
+    setMyName('');
+    setIsHost(false);
+  }, [lobbyCode, playerToken, currentLobby, markLeft, showToast]);
 
   async function handleCreateLobby() {
     if (!cubeID.trim() || !yourName.trim()) {
@@ -161,6 +211,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
   async function handleLeaveLobby() {
     if (!lobbyCode) return;
+    markLeft();
     try {
       await lobbyApi.leaveLobby(lobbyCode, account?.accountID ?? null, playerToken);
     } catch {
@@ -175,8 +226,21 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
     setIsHost(false);
   }
 
+  async function handleKickPlayer(targetPlayerToken: string) {
+    if (!lobbyCode) return;
+    const hostAccountID =
+      sessionStorage.getItem('lobby_host_account_id') ?? account?.accountID ?? '';
+    try {
+      await lobbyApi.kickPlayer(lobbyCode, hostAccountID, targetPlayerToken);
+      showToast('Player removed from lobby');
+    } catch (err) {
+      showToast(getErrorMessage(err));
+    }
+  }
+
   async function handleNamePromptSubmit(name: string) {
     if (!namePrompt) return;
+    setNamePromptError(null);
     try {
       const result = await lobbyApi.joinLobby(namePrompt, null, name);
       sessionStorage.setItem('lobby_player_token', result.playerToken);
@@ -189,7 +253,10 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
       }
       setNamePrompt(null);
     } catch (err) {
-      setJoinError(getErrorMessage(err));
+      const message = getErrorMessage(err);
+      setJoinError(message);
+      setNamePromptError(message);
+      showToast(message);
     }
   }
 
@@ -217,6 +284,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
                 isHost={isHost}
                 onStart={handleStartGame}
                 onLeave={handleLeaveLobby}
+                onKickPlayer={handleKickPlayer}
                 isStarting={isStarting}
                 error={createError}
               />
@@ -242,6 +310,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
                       placeholder="e.g. arcane-legacy-77"
                       value={cubeID}
                       onChange={setCubeID}
+                      tooltip={CUBE_ID_TOOLTIP}
                     />
                     <LabeledTextField
                       label={account ? 'YOUR NAME (AUTO-POPULATED)' : 'YOUR NAME'}
@@ -298,6 +367,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
           {/* Name Prompt Modal */}
           {namePrompt && (
             <NamePromptModal
+              error={namePromptError}
               onSubmit={handleNamePromptSubmit}
               onCancel={() => {
                 setNamePrompt(null);
@@ -314,9 +384,11 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 }
 
 function NamePromptModal({
+  error,
   onSubmit,
   onCancel,
 }: {
+  error?: string | null;
   onSubmit: (name: string) => void;
   onCancel: () => void;
 }) {
@@ -347,6 +419,7 @@ function NamePromptModal({
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
+        {error && <p className="mb-md text-sm text-error">{error}</p>}
         <div className="flex gap-sm">
           <button
             className="flex-1 bg-primary hover:bg-primary-container text-on-primary py-md rounded-xl font-label-md transition-all active:scale-95"
