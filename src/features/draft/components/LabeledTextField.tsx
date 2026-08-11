@@ -6,6 +6,8 @@ interface LabeledTextFieldProps {
   accentClassName?: 'text-primary' | 'text-secondary';
   inputClassName?: string;
   tooltip?: string;
+  /** Rendered under the input (e.g. a join conflict on the name field). */
+  error?: string | null;
 }
 
 export function LabeledTextField({
@@ -16,6 +18,7 @@ export function LabeledTextField({
   accentClassName = 'text-primary',
   inputClassName = '',
   tooltip,
+  error,
 }: LabeledTextFieldProps) {
   return (
     <div>
@@ -37,6 +40,7 @@ export function LabeledTextField({
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+      {error && <p className="mt-2 text-sm text-error">{error}</p>}
     </div>
   );
 }

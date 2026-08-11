@@ -45,3 +45,8 @@ font is used, add it to the Google Fonts link in `index.html`.
 - Color filter pips in the card-workspace filter panel: fixed deep-vibrant
   palette (`blue-600`, `red-600`, `green-700`, ...) so they stay legible in
   both dark and light themes.
+- The create-lobby button (`.mana-gradient` in `DraftSetupPage`): the alternate
+  themes restore a restrained primary→container gradient (night uses
+  primary-container→on-primary because its `primary` is light) plus a
+  `var(--glass-border)` outline, deviating from the no-gradients-in-light-themes
+  rule so the button stays visible on every theme.
