@@ -146,7 +146,7 @@ function RitualCard({ ritual, onSelect }: RitualCardProps) {
       <p className="font-body-md text-body-md text-on-surface-variant mb-xl flex-grow">{ritual.description}</p>
       <button
         type="button"
-        className="w-full py-md bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_4px_12px_rgba(169,116,255,0.4)]"
+        className="w-full py-md bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_4px_12px_var(--glow-primary)]"
         onClick={onSelect}
       >
         START DRAFT

@@ -60,21 +60,21 @@ export function filterCards(cards: Card[], { search, activeColors, activeCmc, ac
 }
 
 export const COLOR_PIP_STYLES: Record<ManaColor, string> = {
-  W: 'bg-[#F0F2C0]/20 hover:bg-[#F0F2C0]/40 text-[#F0F2C0] border-[#F0F2C0]/30',
-  U: 'bg-secondary-container/30 hover:bg-secondary-container/50 text-secondary border-secondary/30',
-  B: 'bg-surface-variant hover:bg-on-surface-variant/20 text-white border-outline-variant/30',
-  R: 'bg-error-container/30 hover:bg-error-container/50 text-error border-error/30',
-  G: 'bg-green-700/20 hover:bg-green-700/40 text-green-400 border-green-700/30',
-  C: 'bg-gray-600/20 hover:bg-gray-600/40 text-gray-400 border-gray-600/30',
+  W: 'bg-amber-400 text-amber-950 border-amber-600/40 hover:bg-amber-300',
+  U: 'bg-blue-600 text-white border-blue-500/60 hover:bg-blue-500',
+  B: 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700',
+  R: 'bg-red-600 text-white border-red-500/60 hover:bg-red-500',
+  G: 'bg-green-700 text-white border-green-600/60 hover:bg-green-600',
+  C: 'bg-gray-600 text-white border-gray-500/60 hover:bg-gray-500',
 };
 
 export const COLOR_PIP_ACTIVE: Record<ManaColor, string> = {
-  W: 'bg-[#F0F2C0]/50 border-[#F0F2C0]',
-  U: 'bg-secondary-container/60 border-secondary',
-  B: 'bg-on-surface-variant/30 border-white',
-  R: 'bg-error-container/60 border-error',
-  G: 'bg-green-700/60 border-green-400',
-  C: 'bg-gray-600/60 border-gray-400',
+  W: 'bg-amber-300 text-amber-950 border-2 border-amber-800 ring-2 ring-amber-500',
+  U: 'bg-blue-400 text-blue-950 border-2 border-blue-800 ring-2 ring-blue-400',
+  B: 'bg-gray-500 text-white border-2 border-gray-950 ring-2 ring-gray-300',
+  R: 'bg-red-400 text-red-950 border-2 border-red-800 ring-2 ring-red-400',
+  G: 'bg-green-500 text-green-950 border-2 border-green-800 ring-2 ring-green-500',
+  C: 'bg-gray-400 text-gray-900 border-2 border-gray-700 ring-2 ring-gray-400',
 };
 
 export const CARD_COLOR_BADGE: Record<string, string> = {

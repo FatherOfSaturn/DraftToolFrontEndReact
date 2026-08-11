@@ -53,7 +53,7 @@ export function ImportDecklistTab({ onImportCards }: ImportDecklistTabProps) {
           </p>
         )}
         {importedCount !== null && importedCount > 0 && (
-          <p className="text-[11px] text-green-400/80 leading-snug">
+          <p className="text-[11px] text-success/80 leading-snug">
             Imported {importedCount} card{importedCount === 1 ? '' : 's'} successfully.
           </p>
         )}

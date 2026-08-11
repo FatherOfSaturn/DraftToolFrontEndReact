@@ -7,6 +7,7 @@ import { RequireAuth } from '../features/auth/RequireAuth';
 import { LoginPage } from '../features/auth/pages/LoginPage';
 import { DeckBuilderPage } from '../features/deck-builder/pages/DeckBuilderPage';
 import { DraftRouteWrapper } from '../features/draft/pages/DraftRouteWrapper';
+import { ClassicDraftRouteWrapper } from '../features/draft/pages/ClassicDraftRouteWrapper';
 import { DraftSelectionPage } from '../features/draft/pages/DraftSelectionPage';
 import { DraftSetupPage } from '../features/draft/pages/DraftSetupPage';
 import { ClassicDraftSetupPage } from '../features/draft/pages/ClassicDraftSetupPage';
@@ -17,6 +18,7 @@ import { HomePage } from '../features/home/pages/HomePage';
 import { MulliganSimulatorPage } from '../features/mulligan-simulator/pages/MulliganSimulatorPage';
 import { ScrollToTop } from '../shared/components/ScrollToTop';
 import { ToastProvider } from '../shared/components/Toast';
+import { ThemeProvider } from '../shared/theme/ThemeContext';
 
 /**
  * Route table:
@@ -25,6 +27,7 @@ import { ToastProvider } from '../shared/components/Toast';
  *   /draft-setup                   DraftSetupPage (create or join pyramid draft)
  *   /draft-setup/classic           ClassicDraftSetupPage (create or join classic draft)
  *   /draft/:gameID/:playerName     DraftPage (the live draft board), via DraftRouteWrapper
+ *   /classic-draft/:gameID/:playerName   ClassicDraftPage (the classic draft board), via ClassicDraftRouteWrapper
  *   /deckbuilder/:gameID?/:playerName?   DeckBuilderPage (params optional — see its own docs)
  *   /account                       AccountPage
  *   /mulligan-simulator            MulliganSimulatorPage
@@ -39,9 +42,10 @@ import { ToastProvider } from '../shared/components/Toast';
 export function App() {
   return (
     <GoogleOAuthProvider clientId={env.googleClientId}>
-      <AuthProvider>
-        <BrowserRouter>
-          <ScrollToTop />
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <ScrollToTop />
           <ToastProvider>
             <Routes>
               <Route path="/" element={<HomePage />} />
@@ -49,6 +53,7 @@ export function App() {
               <Route path="/draft-setup" element={<DraftSetupRoute />} />
               <Route path="/draft-setup/classic" element={<ClassicDraftSetupRoute />} />
               <Route path="/draft/:gameID/:playerName" element={<DraftRouteWrapper />} />
+              <Route path="/classic-draft/:gameID/:playerName" element={<ClassicDraftRouteWrapper />} />
               <Route path="/deckbuilder/:gameID?/:playerName?" element={<DeckBuilderPage />} />
               <Route
                 path="/account"
@@ -82,6 +87,7 @@ export function App() {
           </ToastProvider>
         </BrowserRouter>
       </AuthProvider>
+      </ThemeProvider>
     </GoogleOAuthProvider>
   );
 }
@@ -121,7 +127,7 @@ function ClassicDraftSetupRoute() {
   return (
     <ClassicDraftSetupPage
       onEnterDraft={(gameID, playerName) =>
-        navigate(`/draft/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`)
+        navigate(`/classic-draft/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`)
       }
     />
   );

@@ -46,3 +46,8 @@ export interface LeaveLobbyRequest {
   accountID: string | null;
   playerToken: string | null;
 }
+
+export interface KickPlayerRequest {
+  hostAccountID: string;
+  playerToken: string;
+}

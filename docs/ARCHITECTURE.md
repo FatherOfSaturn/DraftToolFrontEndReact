@@ -45,23 +45,28 @@ The account feature uses the real API for account retrieval, display-name update
 
 ## Game API Boundary
 
-`src/features/draft/api/gameApi.ts` exposes create/fetch/pick/merge/end/admin-delete operations. The real implementation uses the shared HTTP client. With `VITE_USE_MOCK_API=true`, only this object is replaced by `mockGameApi`; account traffic is unaffected.
+`src/features/draft/api/gameApi.ts` exposes create/fetch/pick/merge/end/admin-delete operations for **Pyramid Draft** (prefix `/game`). `src/features/draft/api/classicGameApi.ts` exposes the separate **Classic Draft** backend (prefix `/classic-game`): create, pick, draftCheck, draftData, fetchGameData (409 until complete), end, and history. The real implementations use the shared HTTP client. With `VITE_USE_MOCK_API=true`, only these objects are replaced by `mockGameApi` / `mockClassicGameApi`; account traffic is unaffected.
 
-The in-memory game mock adds 350 ms latency, creates generated 15-pack games, permits picks and double picks, and uses shared SVG placeholder art. It is intentionally not backend-equivalent:
+The in-memory game mocks add 350 ms latency, create generated games, permit picks (and, for pyramid, double picks), and use shared SVG placeholder art. They are intentionally not backend-equivalent:
 
 - State disappears on reload and is local to one browser runtime.
 - Packs come from a small hardcoded card pool, not the requested cube.
 - It does not model draft balance, remote opponent activity, or persistence.
-- `triggerPackMergeAndSwap` reports the current state but never transitions an in-progress game to `GAME_MERGED`; the normal two-player completion flow therefore stalls after local packs are exhausted.
+- Pyramid: `triggerPackMergeAndSwap` reports the current state but never transitions an in-progress game to `GAME_MERGED`; the normal two-player completion flow therefore stalls after local packs are exhausted.
+- Classic: `mockClassicGameApi` does implement the full seat-to-seat pass, direction flip, and auto-completion lifecycle, so a single-browser solo playthrough (a few tabs) exercises the whole flow.
 - It does not provide mock Google login, accounts, or saved decks.
 
 Use it for draft setup, card-picking, filtering, and loading-state work, not end-to-end backend validation.
 
 ## Draft Flow
 
-`useDraftGame` fetches `GameInfo`, locates players and packs, derives board state, submits picks, and updates local state after a successful response. `usePackMergePoller` immediately checks the merge endpoint and then polls every 10 seconds without overlapping requests. It announces `GAME_MERGED` once.
+`useDraftGame` fetches pyramid `GameInfo`, locates players and packs, derives board state, submits picks, and updates local state after a successful response. `usePackMergePoller` immediately checks the merge endpoint and then polls every 10 seconds without overlapping requests. It announces `GAME_MERGED` once.
 
-`DraftPage` composes these hooks with the card workspace. Its exported `WaitingStrategy` controls whether to poll, what to do after a merge, and what waiting UI to render. The default strategy refreshes game data; terminal games with exhausted packs navigate to the deck builder.
+`useClassicDraftGame` drives the classic board from `draftData` (the live, per-player view) rather than full game data: it derives the pickable pack from `activeCardPacks[0]`, computes cards-left-to-draft from `dealtCardPacks`, and re-fetches `draftData` after every pick. `useClassicDraftPoller` polls `draftCheck` every 3 seconds (immediately on start, no overlapping requests) while the player is waiting for a pack — `canDraft` triggers a `draftData` refresh and `GAME_COMPLETE` sends the player to the deck builder.
+
+Both boards render through the shared `DraftBoardView` (header, stats bar, pool sidebar, filter panel, grid, staging/confirm/double-click interaction). `DraftPage` composes it with the pyramid hook, merge poller, partner/extra-picks stats, and the extra-pick FAB; its exported `WaitingStrategy` controls whether to poll, what to do after a merge, and what waiting UI to render. `ClassicDraftPage` composes the same view with the classic hook, the draftCheck poller, and cards-left-to-draft stats (no partner, no FAB).
+
+The classic board lives at `/classic-draft/:gameID/:playerName`. Classic is routed separately (rather than detected at runtime) because `draftData`/`draftCheck` do not carry a game type. On completion, `ClassicDraftPage` navigates to the deck builder with `location.state.gameType = 'classic'`, which makes `DeckBuilderPage` fetch via `classicGameApi.fetchGameData` (only valid once the game is complete). `FindGameSection` in classic mode probes `draftData` first and falls back to the pyramid lookup on a 404.
 
 The format picker is currently cosmetic: every option navigates to the same `/draft-setup` flow, and the selected format is not passed forward.
 

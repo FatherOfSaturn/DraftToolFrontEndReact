@@ -87,6 +87,11 @@ function randomPack(size = 10): Card[] {
   return picks.map(mkCard);
 }
 
+/** Shared mock pack generator — used by both the pyramid and classic mock backends. */
+export function createRandomPack(size = 10): Card[] {
+  return randomPack(size);
+}
+
 function buildPlayer(name: string, accountID: string, packCount: number, packSize: number, doublePicks: number): Player {
   const cardPacks: CardPack[] = Array.from({ length: packCount }, (_, i) => ({
     packNumber: i,
@@ -205,6 +210,11 @@ export const mockGameApi = {
     if (!game) return delay(null);
     game.gameState = 'GAME_COMPLETE';
     return delay({ gameID, gameState: game.gameState });
+  },
+
+  async deleteGame(gameID: string): Promise<void> {
+    mockGames.delete(gameID);
+    return delay(undefined);
   },
 
   async deleteGamesWithStatus(_gameState: string): Promise<void> {

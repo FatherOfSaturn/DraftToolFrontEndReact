@@ -41,6 +41,14 @@ export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
   const featTotal = supportRequests.filter((r) => r.type === 'new_feature').length;
   const featFixed = supportRequests.filter((r) => r.type === 'new_feature' && r.status === 'completed').length;
 
+  const statusCounts = {
+    new: supportRequests.filter((r) => r.status === 'new').length,
+    in_progress: supportRequests.filter((r) => r.status === 'in_progress').length,
+    blocked: supportRequests.filter((r) => r.status === 'blocked').length,
+    completed: supportRequests.filter((r) => r.status === 'completed').length,
+    deleted: supportRequests.filter((r) => r.status === 'deleted').length,
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
       {/* Donation Overview */}
@@ -70,6 +78,13 @@ export function StatsCards({ supportRequests, accountID }: StatsCardsProps) {
         <div className="grid grid-cols-2 gap-md mt-xs">
           <SupportMiniBar label="Bugs" fixed={bugFixed} total={bugTotal} color="error" />
           <SupportMiniBar label="Features" fixed={featFixed} total={featTotal} color="primary" />
+        </div>
+        <div className="mt-sm pt-sm border-t border-outline-variant/10 grid grid-cols-5 gap-xs">
+          <StatusCount label="Open" count={statusCounts.new} color="text-on-surface" />
+          <StatusCount label="In Prog" count={statusCounts.in_progress} color="text-primary" />
+          <StatusCount label="Blocked" count={statusCounts.blocked} color="text-error" />
+          <StatusCount label="Resolved" count={statusCounts.completed} color="text-secondary" />
+          <StatusCount label="Deleted" count={statusCounts.deleted} color="text-outline" />
         </div>
       </div>
 
@@ -114,9 +129,18 @@ function SupportMiniBar({ label, fixed, total, color }: { label: string; fixed: 
       </div>
       <div className="h-2 w-full bg-outline-variant/20 rounded-full overflow-hidden relative">
         <div className={`absolute inset-0 bg-${color}/20 blur-sm`} />
-        <div className={`h-full bg-${color} rounded-full relative z-10 shadow-[0_0_8px_rgba(213,186,255,0.6)]`} style={{ width: `${pct}%` }} />
+        <div className={`h-full bg-${color} rounded-full relative z-10 shadow-[0_0_8px_var(--glow-primary-light)]`} style={{ width: `${pct}%` }} />
       </div>
       <span className="font-label-sm text-outline mt-xs">Fixed/Total</span>
+    </div>
+  );
+}
+
+function StatusCount({ label, count, color }: { label: string; count: number; color: string }) {
+  return (
+    <div className="flex flex-col items-center gap-xs">
+      <span className={`font-headline-md ${color}`}>{count}</span>
+      <span className="font-label-sm text-outline uppercase tracking-tighter text-center">{label}</span>
     </div>
   );
 }
@@ -136,7 +160,7 @@ function DonutChart({ counts }: { counts: DraftCounts | null }) {
   if (!counts) {
     return (
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-        <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#353437" strokeWidth="4" />
+        <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="var(--color-surface-container-highest)" strokeWidth="4" />
       </svg>
     );
   }
@@ -144,19 +168,19 @@ function DonutChart({ counts }: { counts: DraftCounts | null }) {
   if (total === 0) {
     return (
       <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-        <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#353437" strokeWidth="4" />
+        <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="var(--color-surface-container-highest)" strokeWidth="4" />
       </svg>
     );
   }
   const segments = [
-    { pct: (counts.pyramid / total) * 100, color: '#d5baff' },
-    { pct: (counts.chaos / total) * 100, color: '#98cbff' },
-    { pct: (counts.winston / total) * 100, color: '#ffb59d' },
+    { pct: (counts.pyramid / total) * 100, color: 'var(--color-primary)' },
+    { pct: (counts.chaos / total) * 100, color: 'var(--color-secondary)' },
+    { pct: (counts.winston / total) * 100, color: 'var(--color-tertiary)' },
   ];
   let offset = 0;
   return (
     <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-      <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="#353437" strokeWidth="4" />
+      <circle cx="18" cy="18" fill="transparent" r="15.915" stroke="var(--color-surface-container-highest)" strokeWidth="4" />
       {segments.map((seg, i) => {
         const dash = `${seg.pct} ${100 - seg.pct}`;
         const o = -offset;

@@ -9,14 +9,23 @@ import { useLobbyPoller } from '../../lobby/hooks/useLobbyPoller';
 import { useLobbyLeaveGuard } from '../../lobby/hooks/useLobbyLeaveGuard';
 import { lobbyApi } from '../../lobby/api/lobbyApi';
 import { getErrorMessage } from '../../../shared/lib/errors';
+import { CUBE_ID_TOOLTIP } from '../../../shared/lib/cubeTooltip';
+import { useToast } from '../../../shared/components/Toast';
 import { useAuth } from '../../auth/AuthContext';
+import {
+  ALREADY_IN_LOBBY_MESSAGE,
+  accountIsSeatedInLobby,
+  hasDuplicateAccount,
+  isAlreadyInLobbyError,
+} from '../../lobby/lib/lobbyJoinGuard';
 
 interface ClassicDraftSetupPageProps {
   onEnterDraft: (gameID: string, playerName: string) => void;
 }
 
 export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPageProps) {
-  const { account } = useAuth();
+  const { account, isLoading } = useAuth();
+  const { showToast } = useToast();
   const [searchParams] = useSearchParams();
 
   // Setup form state
@@ -30,15 +39,23 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
   // Lobby state
   const [lobbyCode, setLobbyCode] = useState<string | null>(() => searchParams.get('lobby') ?? null);
-  const [playerToken, setPlayerToken] = useState<string | null>(null);
+  // Resume the same session on a page reload (sessionStorage survives reloads but
+  // a fresh tab/device starts empty, so a fresh join still gets a hard error).
+  const [playerToken, setPlayerToken] = useState<string | null>(() =>
+    searchParams.get('lobby') ? sessionStorage.getItem('lobby_player_token') : null
+  );
   const [mySlotIndex, setMySlotIndex] = useState<number | null>(null);
   const [myName, setMyName] = useState('');
   const [isHost, setIsHost] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [joinError, setJoinError] = useState<string | null>(null);
+  // Set when the account is already seated in this lobby: the join controls
+  // (e.g. the name-prompt Join button) must not be usable.
+  const [joinConflict, setJoinConflict] = useState(false);
 
   // Name prompt for anonymous joiners
   const [namePrompt, setNamePrompt] = useState<string | null>(null);
+  const [namePromptError, setNamePromptError] = useState<string | null>(null);
 
   // Polling
   const { lobby: polledLobby } = useLobbyPoller({
@@ -47,14 +64,38 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
     enabled: !!lobbyCode && !!playerToken,
   });
 
-  const currentLobby = polledLobby ?? null;
+  // Only treat a polled lobby as current if its code matches — the previous
+  // lobby lingers in the poller for a beat after creating/joining a new one,
+  // and must not trigger "removed from lobby" or render stale players.
+  const currentLobby = polledLobby && polledLobby.lobbyCode === lobbyCode ? polledLobby : null;
 
   // Leave guard
-  useLobbyLeaveGuard(
+  const { markLeft } = useLobbyLeaveGuard(
     lobbyCode,
     playerToken,
     currentLobby?.status ?? null
   );
+
+  // Tear down any joined/joined-into lobby state, in or out of a lobby.
+  function resetLobbyState() {
+    sessionStorage.removeItem('lobby_player_token');
+    sessionStorage.removeItem('lobby_host_account_id');
+    setLobbyCode(null);
+    setPlayerToken(null);
+    setMySlotIndex(null);
+    setMyName('');
+    setIsHost(false);
+  }
+
+  // A logged-in account already seated in this lobby: refuse the join, show
+  // the message under the name field, and leave the join controls unusable.
+  function failAlreadyInLobby() {
+    const message = ALREADY_IN_LOBBY_MESSAGE;
+    setJoinError(message);
+    setJoinConflict(true);
+    showToast(message);
+    resetLobbyState();
+  }
 
   // Navigate when game starts
   useEffect(() => {
@@ -64,23 +105,65 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
     }
   }, [currentLobby?.status, currentLobby?.gameID, myName, onEnterDraft]);
 
+  // Recover slot/host/name from the polled lobby. Normally the join/create
+  // response supplies these; only the reload-resume path (no join response)
+  // needs this fallback.
+  useEffect(() => {
+    if (!currentLobby || mySlotIndex !== null || !playerToken) return;
+    const me = currentLobby.players.find((p) => p.playerToken === playerToken);
+    if (me) {
+      setMySlotIndex(me.slotIndex);
+      setMyName(me.displayName);
+      setIsHost(me.accountID === currentLobby.hostAccountID);
+    }
+  }, [currentLobby, mySlotIndex, playerToken]);
+
   // Auto-join when lobby param is present
   useEffect(() => {
     const code = lobbyCode;
     if (!code || playerToken) return;
+    // Wait for the account to settle first: auto-joining as an anonymous
+    // name-prompt before the account loads lets a logged-in user slip through
+    // the join with accountID null (bypassing the backend's account dedup).
+    if (isLoading) return;
 
     async function doJoin() {
+      setJoinError(null);
+      setJoinConflict(false);
       try {
+        const accountID = account?.accountID ?? null;
         const displayName = account?.displayName || account?.email || '';
-        const result = await lobbyApi.joinLobby(
-          code!,
-          account?.accountID ?? null,
-          displayName
-        );
+
+        // Fail loudly if this account is already in the lobby instead of
+        // adopting the existing entry. Adopting used to share the host's
+        // playerToken with a second session, which let that session's leave
+        // guard later remove the real host. A fresh join must not happen at
+        // all — otherwise a non-deduping backend could add a duplicate row.
+        if (accountID) {
+          if (await accountIsSeatedInLobby(code!, accountID)) {
+            failAlreadyInLobby();
+            return;
+          }
+        }
+
+        const result = await lobbyApi.joinLobby(code!, accountID, displayName);
+
+        // Safety net: if the backend allowed a duplicate join, undo it and
+        // surface the conflict instead of leaving two seats for one account.
+        if (hasDuplicateAccount(result.lobby, accountID)) {
+          try {
+            await lobbyApi.leaveLobby(code!, accountID, result.playerToken);
+          } catch {
+            // best-effort cleanup
+          }
+          failAlreadyInLobby();
+          return;
+        }
+
         sessionStorage.setItem('lobby_player_token', result.playerToken);
         setPlayerToken(result.playerToken);
         const myPlayer = result.lobby.players.find(
-          (p) => account ? p.accountID === account.accountID : p.slotIndex === result.lobby.players.length - 1
+          (p) => accountID ? p.accountID === accountID : p.slotIndex === result.lobby.players.length - 1
         );
         if (myPlayer) {
           setMySlotIndex(myPlayer.slotIndex);
@@ -88,17 +171,38 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
           setIsHost(myPlayer.accountID === result.lobby.hostAccountID);
         }
       } catch (err) {
-        setJoinError(getErrorMessage(err));
-        setLobbyCode(null);
+        const raw = getErrorMessage(err);
+        const isConflict = isAlreadyInLobbyError(raw);
+        const message = isConflict ? ALREADY_IN_LOBBY_MESSAGE : raw;
+        setJoinError(message);
+        setJoinConflict(isConflict);
+        showToast(message);
+        resetLobbyState();
       }
     }
 
     if (account) {
+      // A logged-in user joins with their account; never leave the anonymous
+      // name-prompt open on top of that join.
+      setNamePrompt(null);
       doJoin();
     } else {
       setNamePrompt(lobbyCode);
+      setNamePromptError(null);
     }
-  }, [lobbyCode, playerToken, account]);
+  }, [lobbyCode, playerToken, account, isLoading, showToast]);
+
+  // Auto-exit when the host removes us
+  useEffect(() => {
+    if (!lobbyCode || !playerToken || !currentLobby) return;
+    if (currentLobby.status !== 'waiting') return;
+    const stillThere = currentLobby.players.some((p) => p.playerToken === playerToken);
+    if (stillThere) return;
+
+    markLeft();
+    showToast('You were removed from the lobby');
+    resetLobbyState();
+  }, [lobbyCode, playerToken, currentLobby, markLeft, showToast]);
 
   async function handleCreateLobby() {
     if (!cubeID.trim() || !yourName.trim()) {
@@ -108,6 +212,8 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
     setCreating(true);
     setCreateError(null);
+    setJoinError(null);
+    setJoinConflict(false);
     try {
       const config: Record<string, unknown> = {
         cubeID: cubeID.trim(),
@@ -161,27 +267,72 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
   async function handleLeaveLobby() {
     if (!lobbyCode) return;
+    markLeft();
     try {
       await lobbyApi.leaveLobby(lobbyCode, account?.accountID ?? null, playerToken);
     } catch {
       // lobby may already be gone
     }
-    sessionStorage.removeItem('lobby_player_token');
-    sessionStorage.removeItem('lobby_host_account_id');
-    setLobbyCode(null);
-    setPlayerToken(null);
-    setMySlotIndex(null);
-    setMyName('');
-    setIsHost(false);
+    resetLobbyState();
+  }
+
+  async function handleKickPlayer(targetPlayerToken: string) {
+    if (!lobbyCode) return;
+    const hostAccountID =
+      sessionStorage.getItem('lobby_host_account_id') ?? account?.accountID ?? '';
+    try {
+      await lobbyApi.kickPlayer(lobbyCode, hostAccountID, targetPlayerToken);
+      showToast('Player removed from lobby');
+    } catch (err) {
+      showToast(getErrorMessage(err));
+    }
   }
 
   async function handleNamePromptSubmit(name: string) {
     if (!namePrompt) return;
+    setNamePromptError(null);
+    setJoinConflict(false);
+
+    const accountID = account?.accountID ?? null;
+
+    // A logged-in account must never slip through the anonymous name-prompt
+    // path: joining with accountID null bypasses the backend's account dedup
+    // and would seat the same account twice under different names.
+    if (accountID) {
+      if (await accountIsSeatedInLobby(namePrompt, accountID)) {
+        const message = ALREADY_IN_LOBBY_MESSAGE;
+        setJoinError(message);
+        setNamePromptError(message);
+        setJoinConflict(true);
+        showToast(message);
+        return;
+      }
+    }
+
     try {
-      const result = await lobbyApi.joinLobby(namePrompt, null, name);
+      const result = await lobbyApi.joinLobby(namePrompt, accountID, name);
+
+      // Safety net for backends that allow the duplicate join instead of
+      // rejecting — undo it and surface the conflict.
+      if (hasDuplicateAccount(result.lobby, accountID)) {
+        try {
+          await lobbyApi.leaveLobby(namePrompt, accountID, result.playerToken);
+        } catch {
+          // best-effort cleanup
+        }
+        const message = ALREADY_IN_LOBBY_MESSAGE;
+        setJoinError(message);
+        setNamePromptError(message);
+        setJoinConflict(true);
+        showToast(message);
+        return;
+      }
+
       sessionStorage.setItem('lobby_player_token', result.playerToken);
       setPlayerToken(result.playerToken);
-      const myPlayer = result.lobby.players.find((p) => p.displayName === name);
+      const myPlayer = result.lobby.players.find(
+        (p) => accountID ? p.accountID === accountID : p.displayName === name
+      );
       if (myPlayer) {
         setMySlotIndex(myPlayer.slotIndex);
         setMyName(myPlayer.displayName);
@@ -189,7 +340,13 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
       }
       setNamePrompt(null);
     } catch (err) {
-      setJoinError(getErrorMessage(err));
+      const raw = getErrorMessage(err);
+      const isConflict = isAlreadyInLobbyError(raw);
+      const message = isConflict ? ALREADY_IN_LOBBY_MESSAGE : raw;
+      setJoinError(message);
+      setNamePromptError(message);
+      setJoinConflict(isConflict);
+      showToast(message);
     }
   }
 
@@ -217,6 +374,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
                 isHost={isHost}
                 onStart={handleStartGame}
                 onLeave={handleLeaveLobby}
+                onKickPlayer={handleKickPlayer}
                 isStarting={isStarting}
                 error={createError}
               />
@@ -242,12 +400,14 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
                       placeholder="e.g. arcane-legacy-77"
                       value={cubeID}
                       onChange={setCubeID}
+                      tooltip={CUBE_ID_TOOLTIP}
                     />
                     <LabeledTextField
                       label={account ? 'YOUR NAME (AUTO-POPULATED)' : 'YOUR NAME'}
                       placeholder="Chandra Nalaar"
                       value={yourName}
                       onChange={setYourName}
+                      error={joinError}
                     />
                     <div className="grid grid-cols-3 gap-4">
                       <StepperInput
@@ -275,10 +435,9 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
                   </div>
 
                   {createError && <p className="mt-4 text-sm text-error">{createError}</p>}
-                  {joinError && <p className="mt-4 text-sm text-error">{joinError}</p>}
 
                   <button
-                    className="w-full mt-lg bg-primary hover:bg-primary-container text-on-primary font-bold py-4 rounded-xl shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full mt-lg bg-primary hover:bg-primary-container text-on-primary font-bold py-4 rounded-xl border border-[color:var(--glass-border)] shadow-lg hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={handleCreateLobby}
                     disabled={creating}
                   >
@@ -290,7 +449,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
               {/* Right Column: Find Game */}
               <div className="lg:col-span-5">
-                <FindGameSection onEnterDraft={onEnterDraft} />
+                <FindGameSection onEnterDraft={onEnterDraft} mode="classic" />
               </div>
             </div>
           )}
@@ -298,6 +457,8 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
           {/* Name Prompt Modal */}
           {namePrompt && (
             <NamePromptModal
+              error={namePromptError}
+              disabled={joinConflict}
               onSubmit={handleNamePromptSubmit}
               onCancel={() => {
                 setNamePrompt(null);
@@ -314,9 +475,14 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 }
 
 function NamePromptModal({
+  error,
+  disabled = false,
   onSubmit,
   onCancel,
 }: {
+  error?: string | null;
+  /** When true the join is refused (e.g. account already in lobby). */
+  disabled?: boolean;
   onSubmit: (name: string) => void;
   onCancel: () => void;
 }) {
@@ -347,11 +513,12 @@ function NamePromptModal({
           onChange={(e) => setName(e.target.value)}
           autoFocus
         />
+        {error && <p className="mb-md text-sm text-error">{error}</p>}
         <div className="flex gap-sm">
           <button
-            className="flex-1 bg-primary hover:bg-primary-container text-on-primary py-md rounded-xl font-label-md transition-all active:scale-95"
+            className="flex-1 bg-primary hover:bg-primary-container text-on-primary py-md rounded-xl font-label-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
             type="submit"
-            disabled={!name.trim()}
+            disabled={!name.trim() || disabled}
           >
             Join
           </button>

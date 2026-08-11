@@ -1,4 +1,4 @@
-import type { LobbyInfo, CreateLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, JoinLobbyRequest } from '../model/lobbyTypes';
+import type { LobbyInfo, CreateLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, JoinLobbyRequest, KickPlayerRequest } from '../model/lobbyTypes';
 import { env } from '../../../config/env';
 import { requestJson } from '../../../shared/api/httpClient';
 import { mockLobbyApi } from './mockLobbyApi';
@@ -43,6 +43,17 @@ const realLobbyApi = {
     return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}/leave`, {
       method: 'POST',
       body: JSON.stringify({ accountID, playerToken } satisfies LeaveLobbyRequest),
+    }).then(normalizeLobbyInfo);
+  },
+
+  kickPlayer(
+    lobbyCode: string,
+    hostAccountID: string,
+    playerToken: string
+  ): Promise<LobbyInfo> {
+    return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}/kick`, {
+      method: 'POST',
+      body: JSON.stringify({ hostAccountID, playerToken } satisfies KickPlayerRequest),
     }).then(normalizeLobbyInfo);
   },
 

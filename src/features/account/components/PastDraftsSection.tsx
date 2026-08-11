@@ -1,116 +1,162 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
 import { useToast } from '../../../shared/components/Toast';
 import type { Pagination as PaginationState } from '../hooks/useGameHistory';
-import type { GameSummary } from '../model/accountTypes';
+import type { GameHistoryEntry } from '../model/accountTypes';
+import { buildDraftCardItem, type DraftPlayerRow } from './pastDraftsModel';
+
+const GAME_TYPE_LABELS: Record<GameHistoryEntry['gameType'], string> = {
+  pyramid: 'Pyramid',
+  classic: 'Classic',
+};
 
 interface PastDraftsSectionProps {
-  games: GameSummary[];
+  games: GameHistoryEntry[];
   pagination: PaginationState;
+  currentPlayerNames?: string[];
+  currentAccountID?: string;
 }
 
-function formatDate(iso: string): string {
-  return new Date(iso)
-    .toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-    .toUpperCase()
-    .replace(',', '');
-}
-
-function getGameBadge(game: GameSummary): { label: string; icon: string; color: string } {
-  if (game.gameState === 'game_complete') {
-    return { label: 'Complete', icon: 'check_circle', color: 'text-on-surface-variant' };
-  }
-  if (game.gameState === 'game_merged') {
-    return { label: 'Round 2', icon: 'swap_horiz', color: 'text-secondary' };
-  }
-  if (game.player1DoneDrafting && game.player2DoneDrafting) {
-    return { label: 'Both done', icon: 'merge', color: 'text-tertiary' };
-  }
-  return { label: 'In Progress', icon: 'edit', color: 'text-primary' };
-}
-
-function playerProgressLabel(current: number, total: number, done: boolean): string {
-  if (done) return 'Done';
-  if (total === 0) return '—';
-  return `Pack ${current} of ${total}`;
-}
-
-function playerProgressColor(done: boolean, opponentDone: boolean): string {
-  if (done) return 'text-on-surface-variant';
-  if (opponentDone) return 'text-secondary';
-  return 'text-primary';
-}
-
-function playerAction(
-  gameState: GameSummary['gameState'],
-  done: boolean,
-  opponentDone: boolean,
-): { label: string; target: 'draft' | 'deckbuilder' } | null {
-  if (gameState === 'game_complete') {
-    return { label: 'Draftboard', target: 'deckbuilder' };
-  }
-  if (gameState === 'game_merged') {
-    return { label: 'Draftboard', target: 'deckbuilder' };
-  }
-  if (!done) {
-    return { label: 'Continue Drafting', target: 'draft' };
-  }
-  if (done && opponentDone) {
-    return { label: 'Draftboard', target: 'deckbuilder' };
-  }
-  return null;
-}
-
-function PlayerRow({
-  game,
-  name,
-  currentPack,
-  totalPacks,
-  done,
-  opponentDone,
-}: {
-  game: GameSummary;
-  name: string;
-  currentPack: number;
-  totalPacks: number;
-  done: boolean;
-  opponentDone: boolean;
-}) {
+function PlayerRow({ row, gameID }: { row: DraftPlayerRow; gameID: string }) {
   const navigate = useNavigate();
-  const action = playerAction(game.gameState, done, opponentDone);
-  const progress = playerProgressLabel(currentPack, totalPacks, done);
-  const color = playerProgressColor(done, opponentDone);
+
+  const isCurrent = row.isCurrentPlayer;
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+    <div
+      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 rounded-lg border-l-4 px-3 py-2 ${
+        isCurrent ? 'border-primary bg-primary/15' : 'border-transparent'
+      }`}
+    >
       <div className="flex flex-col">
-        <span className="text-on-surface-variant text-[10px] uppercase tracking-wider">Player</span>
-        <p className="text-on-surface font-semibold text-sm">{name}</p>
-        <span className={`text-[11px] font-label-sm ${color}`}>{progress}</span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`text-sm ${isCurrent ? 'text-primary font-bold' : 'text-on-surface font-semibold'}`}
+          >
+            {row.name}
+          </span>
+          {isCurrent && (
+            <span className="text-[10px] uppercase tracking-wider font-label-sm font-bold text-primary bg-primary/30 border border-primary/60 px-1.5 py-0.5 rounded-full">
+              You
+            </span>
+          )}
+        </div>
+        <span className={`text-[11px] font-label-sm ${row.progressColor}`}>{row.progressLabel}</span>
       </div>
-      {action && (
+      {row.action && (
         <button
           className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all self-start"
           onClick={() =>
             navigate(
-              `/${action.target}/${encodeURIComponent(game.gameID)}/${encodeURIComponent(name)}`,
+              `/${row.action!.target}/${encodeURIComponent(gameID)}/${encodeURIComponent(row.routeName)}`,
             )
           }
         >
-          {action.label}
+          {row.action.label}
         </button>
       )}
     </div>
   );
 }
 
-export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps) {
+function DraftCard({
+  game,
+  currentPlayerNames,
+  currentAccountID,
+}: {
+  game: GameHistoryEntry;
+  currentPlayerNames?: string[];
+  currentAccountID?: string;
+}) {
+  const [open, setOpen] = useState(false);
   const { showToast } = useToast();
+  const card = buildDraftCardItem(game, {
+    playerNames: currentPlayerNames,
+    accountID: currentAccountID,
+  });
 
   function copyToClipboard(text: string) {
     navigator.clipboard.writeText(text).then(() => showToast('Copied Game ID')).catch(() => {});
   }
 
+  return (
+    <div className="glass-panel rounded-xl">
+      <div className="flex items-start justify-between gap-3 px-4 py-3">
+        <button
+          type="button"
+          className="flex-1 text-left flex items-start justify-between gap-3 min-w-0"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+        >
+          <div className="flex flex-col gap-2 min-w-0">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span className="font-label-sm text-secondary flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">grid_view</span>
+                {GAME_TYPE_LABELS[card.gameType] ?? card.gameType}
+              </span>
+              <span className={`font-label-sm ${card.statusColor} flex items-center gap-1`}>
+                <span className="material-symbols-outlined text-[14px]">{card.statusIcon}</span>
+                {card.statusLabel}
+              </span>
+              <span className="text-label-sm text-on-surface-variant flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+                {card.dateLabel}
+              </span>
+              <span className="text-label-sm text-on-surface-variant flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">groups</span>
+                {card.playerCount} Player{card.playerCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+            <div className="text-sm">
+              <span className="text-on-surface-variant">Cube: </span>
+              <a
+                href={`https://cubecobra.com/cube/list/${card.cubeID}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+                title="Click to visit cube on CubeCobra"
+                onClick={(event) => event.stopPropagation()}
+              >
+                {card.cubeID}
+              </a>
+            </div>
+          </div>
+          <span
+            className={`material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200 flex-shrink-0 ${
+              open ? 'rotate-180' : ''
+            }`}
+          >
+            expand_more
+          </span>
+        </button>
+        <button
+          className="flex-shrink-0 text-label-sm text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition-all"
+          title={`${card.gameID} — Click to copy`}
+          onClick={() => copyToClipboard(card.gameID)}
+        >
+          <span className="material-symbols-outlined text-[14px]">content_copy</span>
+          Copy Game ID
+        </button>
+      </div>
+
+      {open && (
+        <div className="border-t border-outline-variant/30 px-4 py-3 space-y-3">
+          {card.players.map((row) => (
+            <PlayerRow key={row.routeName} row={row} gameID={card.gameID} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function PastDraftsSection({
+  games,
+  pagination,
+  currentPlayerNames,
+  currentAccountID,
+}: PastDraftsSectionProps) {
   return (
     <section className="xl:col-span-7 space-y-6">
       <div className="flex items-center justify-between">
@@ -132,64 +178,14 @@ export function PastDraftsSection({ games, pagination }: PastDraftsSectionProps)
         )}
         {games.length > 0 && (
           <div className="p-4 grid grid-cols-1 gap-4">
-            {games.map((game) => {
-              const badge = getGameBadge(game);
-
-              return (
-                <div key={game.gameID} className="glass-panel rounded-xl p-4 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <button
-                      className="font-label-sm text-primary underline decoration-dotted underline-offset-2"
-                      title={`${game.gameID} — Click to copy`}
-                      onClick={() => copyToClipboard(game.gameID)}
-                    >
-                      Click to copy Game ID
-                    </button>
-                    <div className="flex items-center gap-2">
-                      <span className={`font-label-sm ${badge.color} flex items-center gap-1`}>
-                        <span className="material-symbols-outlined text-[14px]">{badge.icon}</span>
-                        {badge.label}
-                      </span>
-                      <span className="text-label-sm text-on-surface-variant shrink-0">{formatDate(game.createdAt)}</span>
-                    </div>
-                  </div>
-
-                  <div className="text-sm">
-                    <span className="text-on-surface-variant">Cube: </span>
-                    <a
-                      href={`https://cubecobra.com/cube/list/${game.cubeID}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                      title="Click to visit cube on CubeCobra"
-                    >
-                      {game.cubeID}
-                    </a>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="flex items-start gap-6">
-                      <PlayerRow
-                        game={game}
-                        name={game.player1Name}
-                        currentPack={game.player1CurrentPack}
-                        totalPacks={game.player1TotalPacks}
-                        done={game.player1DoneDrafting}
-                        opponentDone={game.player2DoneDrafting}
-                      />
-                      <PlayerRow
-                        game={game}
-                        name={game.player2Name}
-                        currentPack={game.player2CurrentPack}
-                        totalPacks={game.player2TotalPacks}
-                        done={game.player2DoneDrafting}
-                        opponentDone={game.player1DoneDrafting}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {games.map((game) => (
+              <DraftCard
+                key={game.gameID}
+                game={game}
+                currentPlayerNames={currentPlayerNames}
+                currentAccountID={currentAccountID}
+              />
+            ))}
           </div>
         )}
 

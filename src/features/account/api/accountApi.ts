@@ -1,12 +1,12 @@
-import type { Account, Deck, GameSummary } from '../model/accountTypes';
+import type { Account, Deck, GameHistoryEntry } from '../model/accountTypes';
 import { requestJson, requestVoid } from '../../../shared/api/httpClient';
 
 const segment = encodeURIComponent;
 
-function normalizeGameSummary(game: GameSummary): GameSummary {
+function normalizeGameHistoryEntry(game: GameHistoryEntry): GameHistoryEntry {
   return {
     ...game,
-    gameState: game.gameState.toLowerCase() as GameSummary['gameState'],
+    gameState: game.gameState.toLowerCase() as GameHistoryEntry['gameState'],
   };
 }
 
@@ -64,9 +64,9 @@ export const accountApi = {
     });
   },
 
-  getGameHistory(accountID: string): Promise<GameSummary[]> {
-    return requestJson<GameSummary[]>(`/game/history/${segment(accountID)}`).then((games) =>
-      games.map(normalizeGameSummary)
+  getGameHistory(accountID: string): Promise<GameHistoryEntry[]> {
+    return requestJson<GameHistoryEntry[]>(`/account/game/history/${segment(accountID)}`).then(
+      (games) => games.map(normalizeGameHistoryEntry)
     );
   },
 };

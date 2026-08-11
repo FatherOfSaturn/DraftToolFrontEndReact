@@ -27,7 +27,7 @@ export function AccountPage() {
         <header className="mb-12">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-2">
-              <h1 className="font-display text-display text-primary drop-shadow-[0_0_15px_rgba(213,186,255,0.4)]">Saved Account Data</h1>
+              <h1 className="font-display text-display text-primary drop-shadow-[0_0_15px_var(--glow-primary-light-soft)]">Saved Account Data</h1>
               <AccountProfile />
             </div>
             <PastDraftFilters
@@ -44,7 +44,14 @@ export function AccountPage() {
         </header>
 
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
-          <PastDraftsSection games={games} pagination={pagination} />
+          <PastDraftsSection
+            games={games}
+            pagination={pagination}
+            currentPlayerNames={[account?.displayName, account?.email].filter(
+              (name): name is string => typeof name === 'string' && name.length > 0
+            )}
+            currentAccountID={account?.accountID}
+          />
           <SavedDecksSection decks={decks} loading={isLoading} error={error} onDelete={deleteDeck} onUpdate={updateDeck} onCreateNew={() => navigate('/deckbuilder')} pagination={deckPagination} />
         </div>
       </main>

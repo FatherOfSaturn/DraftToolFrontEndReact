@@ -5,11 +5,13 @@ import { AdminGuard } from '../components/AdminGuard';
 import { StatsCards } from '../components/StatsCards';
 import { AccountSearch } from '../components/AccountSearch';
 import { SupportTicketsTable } from '../components/SupportTicketsTable';
-import { supportApi, type SupportRequest } from '../../feature-requests/api/supportApi';
+import { supportApi, type SupportRequest, type SupportStatus } from '../../feature-requests/api/supportApi';
 import { useAuth } from '../../auth/AuthContext';
+import { useToast } from '../../../shared/components/Toast';
 
 export function AdminPage() {
   const { account } = useAuth();
+  const { showToast } = useToast();
   const [supportRequests, setSupportRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -21,6 +23,26 @@ export function AdminPage() {
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
+
+  async function handleStatusChange(id: string, status: SupportStatus) {
+    try {
+      const updated = await supportApi.updateStatus(id, status);
+      setSupportRequests((prev) => prev.map((r) => (r.id === id ? updated : r)));
+      showToast('Status updated.');
+    } catch {
+      showToast('Failed to update status.');
+    }
+  }
+
+  async function handleDeleteRequest(id: string) {
+    try {
+      await supportApi.delete(id);
+      setSupportRequests((prev) => prev.filter((r) => r.id !== id));
+      showToast('Ticket deleted.');
+    } catch {
+      showToast('Failed to delete ticket.');
+    }
+  }
 
   return (
     <AdminGuard>
@@ -55,7 +77,11 @@ export function AdminPage() {
                 <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
               </div>
             ) : (
-              <SupportTicketsTable requests={supportRequests} />
+              <SupportTicketsTable
+                requests={supportRequests}
+                onDelete={handleDeleteRequest}
+                onStatusChange={handleStatusChange}
+              />
             )}
           </div>
         </main>

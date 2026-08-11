@@ -20,17 +20,33 @@ export interface Deck {
 
 export type GameState = 'game_created' | 'game_in_progress' | 'game_merged' | 'game_complete';
 
-export interface GameSummary {
+/**
+ * One player's summary within a history entry. Mirrors the unified
+ * `/account/game/history/{accountID}` DTO: every draft type returns the same
+ * shape, so the Saved Drafts UI is type-agnostic. Fields that only some draft
+ * types populate (cardsLeftToDraft, draftOrderNumber) are null for the others.
+ */
+export interface GameHistoryPlayer {
+  name: string | null;
+  displayName: string | null;
+  accountID: string | null;
+  currentPack: number;
+  totalPacks: number;
+  doneDrafting: boolean;
+  cardsLeftToDraft: number | null;
+  draftOrderNumber: number | null;
+}
+
+/**
+ * A single draft across all game types, as returned by the centralized
+ * history endpoint. gameState is already normalized to the shared GameState
+ * enum by the backend. One entry per game (all players included), newest first.
+ */
+export interface GameHistoryEntry {
   gameID: string;
   cubeID: string;
+  gameType: 'pyramid' | 'classic';
   gameState: GameState;
-  player1Name: string;
-  player2Name: string;
-  player1CurrentPack: number;
-  player1TotalPacks: number;
-  player1DoneDrafting: boolean;
-  player2CurrentPack: number;
-  player2TotalPacks: number;
-  player2DoneDrafting: boolean;
+  players: GameHistoryPlayer[];
   createdAt: string;
 }

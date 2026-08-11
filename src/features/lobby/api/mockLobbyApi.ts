@@ -93,6 +93,12 @@ export const mockLobbyApi = {
       if (existing) throw new Error('Already in lobby');
     }
 
+    const normalizedName = displayName.trim().toLowerCase();
+    const nameTaken = stored.info.players.some(
+      (p) => p.displayName.trim().toLowerCase() === normalizedName
+    );
+    if (nameTaken) throw new Error('That name is already taken in this lobby');
+
     if (stored.info.players.length >= stored.info.maxPlayers) {
       throw new Error('Lobby is full');
     }
@@ -153,6 +159,36 @@ export const mockLobbyApi = {
     }
 
     // Set hostAloneSince if only host remains
+    if (stored.info.players.length === 1) {
+      stored.info.hostAloneSince = nowISO();
+    }
+
+    return delay(cloneInfo(stored.info));
+  },
+
+  async kickPlayer(
+    lobbyCode: string,
+    hostAccountID: string,
+    playerToken: string
+  ): Promise<LobbyInfo> {
+    const stored = store.get(lobbyCode);
+    if (!stored) throw new Error('Lobby not found');
+    if (stored.info.status !== 'waiting') throw new Error('Lobby already started');
+    if (stored.info.hostAccountID !== hostAccountID) {
+      throw new Error('Only the host can kick players');
+    }
+
+    const playerIndex = stored.info.players.findIndex((p) => p.playerToken === playerToken);
+    if (playerIndex === -1) throw new Error('Player not found');
+
+    const target = stored.info.players[playerIndex];
+    if (target.accountID === stored.info.hostAccountID) {
+      throw new Error('Cannot kick the host');
+    }
+
+    stored.info.players.splice(playerIndex, 1);
+
+    // Set hostAloneSince if only the host remains
     if (stored.info.players.length === 1) {
       stored.info.hostAloneSince = nowISO();
     }

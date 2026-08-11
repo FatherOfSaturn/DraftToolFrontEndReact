@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { accountApi } from '../../account/api/accountApi';
-import type { GameSummary, Deck } from '../../account/model/accountTypes';
+import { gameApi } from '../../draft/api/gameApi';
+import type { GameHistoryEntry, Deck } from '../../account/model/accountTypes';
 
 export function AccountSearch() {
   const [accountId, setAccountId] = useState('');
   const [displayName, setDisplayName] = useState<string | null>(null);
-  const [games, setGames] = useState<GameSummary[]>([]);
+  const [games, setGames] = useState<GameHistoryEntry[]>([]);
   const [decks, setDecks] = useState<Deck[]>([]);
   const [filterText, setFilterText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,10 +39,31 @@ export function AccountSearch() {
 
   const q = filterText.toLowerCase();
 
+  async function handleDeleteGame(gameID: string) {
+    if (!window.confirm('Delete this game?')) return;
+    try {
+      await gameApi.deleteGame(gameID);
+      setGames((current) => current.filter((g) => g.gameID !== gameID));
+    } catch {
+      setError('Failed to delete game.');
+    }
+  }
+
+  async function handleDeleteDeck(deckID: string) {
+    if (!window.confirm('Delete this deck?')) return;
+    try {
+      await accountApi.deleteDeck(accountId.trim(), deckID);
+      setDecks((current) => current.filter((d) => d.deckID !== deckID));
+    } catch {
+      setError('Failed to delete deck.');
+    }
+  }
+
   const filteredGames = games.filter((g) =>
     q
-      ? g.player1Name.toLowerCase().includes(q) ||
-        g.player2Name.toLowerCase().includes(q)
+      ? g.players
+          .map((p) => p.displayName ?? p.name ?? '')
+          .some((name) => name.toLowerCase().includes(q))
       : true,
   );
 
@@ -129,8 +151,17 @@ export function AccountSearch() {
                   <div key={game.gameID} className="flex items-center justify-between gap-md p-md bg-surface-container-high/50 rounded-xl border border-outline-variant/5 hover:border-primary/30 transition-colors">
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-on-surface">{game.cubeID}</span>
-                      <span className="text-[10px] text-outline">{game.player1Name} vs {game.player2Name}</span>
+                      <span className="text-[10px] text-outline">
+                        {game.players.map((p) => p.displayName ?? p.name ?? '?').join(' vs ')} · {game.gameType}
+                      </span>
                     </div>
+                    <button
+                      className="p-1 hover:bg-error/10 rounded-md text-outline hover:text-error transition-colors"
+                      title="Delete game"
+                      onClick={() => handleDeleteGame(game.gameID)}
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
                   </div>
                 ))}
                 {filteredGames.length === 0 && (
@@ -155,6 +186,13 @@ export function AccountSearch() {
                       <span className="text-sm font-bold text-on-surface">{deck.name}</span>
                       <span className="text-[10px] text-outline">{deck.cardIds.length} cards</span>
                     </div>
+                    <button
+                      className="p-1 hover:bg-error/10 rounded-md text-outline hover:text-error transition-colors"
+                      title="Delete deck"
+                      onClick={() => handleDeleteDeck(deck.deckID)}
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
                   </div>
                 ))}
                 {filteredDecks.length === 0 && (

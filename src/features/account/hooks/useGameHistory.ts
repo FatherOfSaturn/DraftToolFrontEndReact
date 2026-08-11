@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { accountApi } from '../api/accountApi';
-import type { GameSummary } from '../model/accountTypes';
+import type { GameHistoryEntry } from '../model/accountTypes';
 
 const PAGE_SIZE = 10;
 
@@ -28,7 +28,7 @@ export interface Filters {
 }
 
 export function useGameHistory(accountID?: string) {
-  const [games, setGames] = useState<GameSummary[]>([]);
+  const [games, setGames] = useState<GameHistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,18 +80,21 @@ export function useGameHistory(accountID?: string) {
 
     return games.filter((game) => {
       if (searchLower) {
+        const names = game.players
+          .map((p) => p.displayName ?? p.name ?? '')
+          .join(' ')
+          .toLowerCase();
         const matchesSearch =
           game.gameID.toLowerCase().includes(searchLower) ||
           game.cubeID.toLowerCase().includes(searchLower) ||
-          game.player1Name.toLowerCase().includes(searchLower) ||
-          game.player2Name.toLowerCase().includes(searchLower);
+          names.includes(searchLower);
         if (!matchesSearch) return false;
       }
 
       if (playerNameLower) {
-        const matchesPlayer =
-          game.player1Name.toLowerCase().includes(playerNameLower) ||
-          game.player2Name.toLowerCase().includes(playerNameLower);
+        const matchesPlayer = game.players.some((p) =>
+          (p.displayName ?? p.name ?? '').toLowerCase().includes(playerNameLower)
+        );
         if (!matchesPlayer) return false;
       }
 

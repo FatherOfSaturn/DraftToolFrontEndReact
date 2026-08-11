@@ -1,6 +1,6 @@
 # Pyramid Draft
 
-React and TypeScript frontend for a two-player Magic: The Gathering cube draft. It supports game setup and drafting, deck construction, Google-backed accounts, saved-deck management, and a standalone opening-hand simulator.
+React and TypeScript frontend for a Magic: The Gathering cube draft. It supports game setup and drafting (two-player Pyramid Draft and 4–12 player Classic Draft), deck construction, Google-backed accounts, saved-deck management, and a standalone opening-hand simulator.
 
 ## Quick Start
 
@@ -53,9 +53,11 @@ Feature folders own their pages, components, hooks, API adapters, and models. `s
 | Path | Behavior |
 |---|---|
 | `/` | Home |
-| `/draft-selection` | Format picker; every option currently continues to the same Pyramid Draft setup |
-| `/draft-setup` | Create or find a game |
-| `/draft/:gameID/:playerName` | Live draft board |
+| `/draft-selection` | Format picker; classic format continues to Classic Draft setup |
+| `/draft-setup` | Create or find a Pyramid Draft game |
+| `/draft-setup/classic` | Create or find a Classic Draft game (lobby-based) |
+| `/draft/:gameID/:playerName` | Live Pyramid Draft board |
+| `/classic-draft/:gameID/:playerName` | Live Classic Draft board |
 | `/deckbuilder/:gameID?/:playerName?` | Imported deck or drafted-card workspace |
 | `/account` | Protected account profile, saved decks, and mock past drafts |
 | `/mulligan-simulator` | Standalone opening-hand simulator |
@@ -69,10 +71,10 @@ Only `/account` is auth-guarded. Other routes can still call game endpoints with
 |---|---|---|
 | `VITE_API_BASE_URL` | `http://localhost:8080` | Base URL used by the shared HTTP client for game and account requests. |
 | `VITE_GOOGLE_CLIENT_ID` | empty | Google OAuth web client ID. Without it, the login page reports that Google Sign-In is unavailable. |
-| `VITE_USE_MOCK_API` | `false` | Replaces only the draft `gameApi` with an in-memory implementation. Account APIs remain real. |
+| `VITE_USE_MOCK_API` | `false` | Replaces the draft `gameApi` and `classicGameApi` with in-memory implementations. Account APIs remain real. |
 | `VITE_SKIP_AUTH` | `false` | In development only, bypasses the `/account` route guard. It does not create an account or mock account data and has no effect in production builds. |
 
-The game mock supports generated games, picks, and loading states without the game backend. It is memory-only, uses placeholder cards, does not model real cube contents or balance, and does not complete the merge-and-swap lifecycle. It is not a replacement for the account backend.
+The game mocks support generated games, picks, and loading states without the game backend. They are memory-only, use placeholder cards, and do not model real cube contents or balance. The classic mock implements the full seat-to-seat pass and completion lifecycle; the pyramid mock does not complete the merge-and-swap lifecycle. They are not a replacement for the account backend.
 
 ## Current Data Boundaries
 
@@ -83,7 +85,10 @@ The game mock supports generated games, picks, and loading states without the ga
 
 ## Tests
 
-Vitest runs in `jsdom` with Testing Library and `jest-dom`. Current tests cover decklist parsing, hypergeometric helpers, card filtering, mulligan utilities, merge-poller concurrency, and account-deck loading/deletion.
+Vitest runs in `jsdom` with Testing Library and `jest-dom`. Current tests cover decklist parsing, hypergeometric helpers, card filtering, mulligan utilities, classic stats, merge- and draftCheck-poller concurrency, and account-deck loading/deletion.
+
+---
+*Last updated: 2026-08-05*
 
 # Roadmap
 
@@ -114,7 +119,7 @@ Vitest runs in `jsdom` with Testing Library and `jest-dom`. Current tests cover 
 - [ ] Donation page or integration
 
 ## More Draft Formats
-- [ ] Classic Cube
+- [x] Classic Cube (board + setup, classic `/classic-game` backend required)
 - [ ] Winston Draft
 
 ## Mobile Support
