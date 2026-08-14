@@ -70,6 +70,16 @@ describe('supportApi', () => {
     expect(result.map((r) => r.type)).toEqual(['bug_fix', 'new_feature']);
   });
 
+  it('fetches the public backlog from /support/public', async () => {
+    requestJsonMock.mockResolvedValue([
+      rawRequest({ id: '7', status: 'COMPLETED', type: 'NEW_FEATURE' }),
+    ]);
+    const result = await supportApi.getPublic();
+    expect(requestJsonMock).toHaveBeenCalledWith('/support/public');
+    expect(result.map((r) => r.id)).toEqual(['7']);
+    expect(result[0].status).toBe('completed');
+  });
+
   it('PATCHes the status to the update endpoint and normalizes the response', async () => {
     requestJsonMock.mockResolvedValue(rawRequest({ status: 'COMPLETED' }));
     const result = await supportApi.updateStatus('1', 'completed');

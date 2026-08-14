@@ -27,6 +27,13 @@ export interface SupportRequest {
 }
 
 /**
+ * PII-free view returned by the public endpoints (`/support/public`,
+ * `GET /support/{id}`). The backend deliberately omits `contactEmail` and
+ * `accountID`.
+ */
+export type PublicSupportRequest = Omit<SupportRequest, 'contactEmail' | 'accountID'>;
+
+/**
  * The backend serializes its support enums by name (e.g. "IN_PROGRESS",
  * "NEW_FEATURE", "HIGH"), while this client uses the lowercase description
  * values. Normalize every response so consumers always see lowercase values.
@@ -50,6 +57,13 @@ export const supportApi = {
 
   getAll(): Promise<SupportRequest[]> {
     return requestJson<SupportRequest[]>('/support/').then((data) => data.map(normalizeSupportRequest));
+  },
+
+  /** Public backlog — anonymous-safe, no PII. See backend /support/public. */
+  getPublic(): Promise<PublicSupportRequest[]> {
+    return requestJson<PublicSupportRequest[]>('/support/public').then((data) =>
+      data.map((req) => normalizeSupportRequest(req as SupportRequest))
+    );
   },
 
   updateStatus(id: string, status: SupportStatus): Promise<SupportRequest> {

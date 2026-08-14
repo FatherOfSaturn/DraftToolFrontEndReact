@@ -45,7 +45,7 @@ describe('useAccountDecks', () => {
     await waitFor(() => expect(result.current.decks).toEqual([deck]));
 
     await act(() => result.current.deleteDeck('deck-1'));
-    expect(deleteDeck).toHaveBeenCalledWith('account-1', 'deck-1');
+    expect(deleteDeck).toHaveBeenCalledWith('deck-1');
     expect(result.current.decks).toEqual([]);
   });
 });

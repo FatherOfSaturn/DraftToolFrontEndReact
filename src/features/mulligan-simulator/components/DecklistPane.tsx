@@ -48,6 +48,7 @@ export function DecklistPane({
               placeholder={'4 Counterspell\n4 Brainstorm\n20 Island...'}
               value={decklistText}
               onChange={(event) => onDecklistTextChange(event.target.value)}
+              maxLength={100000}
             />
             {unknownNames.length > 0 && (
               <p className="text-[11px] text-on-surface-variant/80 leading-snug">

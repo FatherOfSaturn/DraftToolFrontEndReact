@@ -1,5 +1,5 @@
 # Stage 1: Build the React application
-FROM node:alpine AS build
+FROM node:22-alpine AS build
 WORKDIR /usr/src/app
 
 COPY package*.json ./
@@ -19,7 +19,7 @@ ENV VITE_SKIP_AUTH=$VITE_SKIP_AUTH
 RUN npm run build
 
 # Stage 2: Serve the app with Nginx
-FROM nginx:alpine
+FROM nginx:1.27-alpine
 
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 

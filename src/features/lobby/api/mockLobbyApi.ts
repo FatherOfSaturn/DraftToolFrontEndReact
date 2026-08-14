@@ -1,4 +1,4 @@
-import type { LobbyInfo, LobbyPlayer } from '../model/lobbyTypes';
+import type { LobbyInfo, LobbyPlayer, JoinLobbyResponse } from '../model/lobbyTypes';
 import type { GameCreationInfo } from '../../draft/model/gameTypes';
 import { mockGameApi } from '../../draft/api/mockGameApi';
 
@@ -44,7 +44,7 @@ export const mockLobbyApi = {
     hostDisplayName: string;
     minPlayers?: number;
     maxPlayers?: number;
-  }): Promise<LobbyInfo> {
+  }): Promise<JoinLobbyResponse> {
     const lobbyCode = generateCode();
     const now = nowISO();
     const playerToken = crypto.randomUUID();
@@ -76,7 +76,7 @@ export const mockLobbyApi = {
 
     store.set(lobbyCode, { info, createdAt: Date.now() });
 
-    return delay(cloneInfo(info));
+    return delay({ lobby: cloneInfo(info), playerToken });
   },
 
   async joinLobby(
@@ -126,20 +126,12 @@ export const mockLobbyApi = {
     return delay({ lobby: cloneInfo(stored.info), playerToken });
   },
 
-  async leaveLobby(
-    lobbyCode: string,
-    accountID: string | null,
-    playerToken: string | null
-  ): Promise<LobbyInfo> {
+  async leaveLobby(lobbyCode: string, playerToken: string): Promise<LobbyInfo> {
     const stored = store.get(lobbyCode);
     if (!stored) throw new Error('Lobby not found');
     if (stored.info.status !== 'waiting') throw new Error('Lobby already started');
 
-    const playerIndex = stored.info.players.findIndex((p) => {
-      if (accountID && p.accountID === accountID) return true;
-      if (playerToken && p.playerToken === playerToken) return true;
-      return false;
-    });
+    const playerIndex = stored.info.players.findIndex((p) => p.playerToken === playerToken);
 
     if (playerIndex === -1) throw new Error('Player not found');
 
@@ -168,17 +160,19 @@ export const mockLobbyApi = {
 
   async kickPlayer(
     lobbyCode: string,
-    hostAccountID: string,
-    playerToken: string
+    playerToken: string,
+    targetSlotIndex: number
   ): Promise<LobbyInfo> {
     const stored = store.get(lobbyCode);
     if (!stored) throw new Error('Lobby not found');
     if (stored.info.status !== 'waiting') throw new Error('Lobby already started');
-    if (stored.info.hostAccountID !== hostAccountID) {
+
+    const caller = stored.info.players.find((p) => p.playerToken === playerToken);
+    if (!caller || caller.accountID !== stored.info.hostAccountID) {
       throw new Error('Only the host can kick players');
     }
 
-    const playerIndex = stored.info.players.findIndex((p) => p.playerToken === playerToken);
+    const playerIndex = stored.info.players.findIndex((p) => p.slotIndex === targetSlotIndex);
     if (playerIndex === -1) throw new Error('Player not found');
 
     const target = stored.info.players[playerIndex];
@@ -212,12 +206,14 @@ export const mockLobbyApi = {
 
   async startLobby(
     lobbyCode: string,
-    hostAccountID: string
+    playerToken: string
   ): Promise<LobbyInfo> {
     const stored = store.get(lobbyCode);
     if (!stored) throw new Error('Lobby not found');
     if (stored.info.status !== 'waiting') throw new Error('Lobby already starting or started');
-    if (stored.info.hostAccountID !== hostAccountID) throw new Error('Only the host can start');
+
+    const caller = stored.info.players.find((p) => p.playerToken === playerToken);
+    if (!caller || caller.accountID !== stored.info.hostAccountID) throw new Error('Only the host can start');
     if (stored.info.players.length < stored.info.minPlayers) throw new Error('Not enough players');
 
     stored.info.status = 'starting';
@@ -242,6 +238,7 @@ export const mockLobbyApi = {
       players: stored.info.players.map((p) => ({
         accountID: p.accountID ?? crypto.randomUUID(),
         name: p.displayName,
+        playerToken: p.playerToken,
       })),
     };
 

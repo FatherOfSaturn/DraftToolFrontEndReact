@@ -1,4 +1,4 @@
-import type { LobbyInfo, CreateLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, JoinLobbyRequest, KickPlayerRequest } from '../model/lobbyTypes';
+import type { LobbyInfo, CreateLobbyRequest, JoinLobbyResponse, LeaveLobbyRequest, JoinLobbyRequest, KickPlayerRequest, StartGameRequest } from '../model/lobbyTypes';
 import { env } from '../../../config/env';
 import { requestJson } from '../../../shared/api/httpClient';
 import { mockLobbyApi } from './mockLobbyApi';
@@ -16,11 +16,12 @@ function normalizeLobbyInfo(lobby: LobbyInfo): LobbyInfo {
 }
 
 const realLobbyApi = {
-  createLobby(req: CreateLobbyRequest): Promise<LobbyInfo> {
-    return requestJson<LobbyInfo>('/lobby', {
+  /** POST /lobby — returns the lobby plus the host's own playerToken (201). */
+  createLobby(req: CreateLobbyRequest): Promise<JoinLobbyResponse> {
+    return requestJson<JoinLobbyResponse>('/lobby', {
       method: 'POST',
       body: JSON.stringify(req),
-    }).then(normalizeLobbyInfo);
+    }).then((res) => ({ ...res, lobby: normalizeLobbyInfo(res.lobby) }));
   },
 
   joinLobby(
@@ -35,37 +36,34 @@ const realLobbyApi = {
     }).then((res) => ({ ...res, lobby: normalizeLobbyInfo(res.lobby) }));
   },
 
-  leaveLobby(
-    lobbyCode: string,
-    accountID: string | null,
-    playerToken: string | null
-  ): Promise<LobbyInfo> {
+  leaveLobby(lobbyCode: string, playerToken: string): Promise<LobbyInfo> {
     return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}/leave`, {
       method: 'POST',
-      body: JSON.stringify({ accountID, playerToken } satisfies LeaveLobbyRequest),
+      body: JSON.stringify({ playerToken } satisfies LeaveLobbyRequest),
     }).then(normalizeLobbyInfo);
   },
 
   kickPlayer(
     lobbyCode: string,
-    hostAccountID: string,
-    playerToken: string
+    playerToken: string,
+    targetSlotIndex: number
   ): Promise<LobbyInfo> {
     return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}/kick`, {
       method: 'POST',
-      body: JSON.stringify({ hostAccountID, playerToken } satisfies KickPlayerRequest),
+      body: JSON.stringify({ playerToken, targetSlotIndex } satisfies KickPlayerRequest),
     }).then(normalizeLobbyInfo);
   },
 
   pollLobby(lobbyCode: string, playerToken?: string): Promise<LobbyInfo> {
-    const query = playerToken ? `?playerToken=${encodeURIComponent(playerToken)}` : '';
-    return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}${query}`).then(normalizeLobbyInfo);
+    return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}`, {
+      headers: playerToken ? { 'X-Player-Token': playerToken } : undefined,
+    }).then(normalizeLobbyInfo);
   },
 
-  startLobby(lobbyCode: string, hostAccountID: string): Promise<LobbyInfo> {
+  startLobby(lobbyCode: string, playerToken: string): Promise<LobbyInfo> {
     return requestJson<LobbyInfo>(`/lobby/${segment(lobbyCode)}/start`, {
       method: 'POST',
-      body: JSON.stringify({ hostAccountID }),
+      body: JSON.stringify({ playerToken } satisfies StartGameRequest),
     }).then(normalizeLobbyInfo);
   },
 };

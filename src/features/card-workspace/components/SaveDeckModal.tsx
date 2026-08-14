@@ -65,6 +65,7 @@ export function SaveDeckModal({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              maxLength={100}
               autoFocus
             />
           </div>
@@ -76,6 +77,7 @@ export function SaveDeckModal({
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              maxLength={1000}
             />
           </div>
         </div>

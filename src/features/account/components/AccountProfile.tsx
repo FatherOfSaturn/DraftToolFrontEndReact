@@ -26,7 +26,7 @@ export function AccountProfile() {
     setIsSaving(true);
     setProfileError(null);
     try {
-      await accountApi.updateDisplayName(account.accountID, draftName.trim());
+      await accountApi.updateDisplayName(draftName.trim());
       await refreshAccount();
       setIsEditing(false);
     } catch (err) {
@@ -54,6 +54,7 @@ export function AccountProfile() {
               className="bg-surface-container-low border border-outline-variant/30 rounded-lg px-3 py-1.5 text-on-surface font-body-md"
               value={draftName}
               onChange={(event) => setDraftName(event.target.value)}
+              maxLength={50}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') void saveDisplayName();
                 if (event.key === 'Escape') setIsEditing(false);
@@ -79,7 +80,7 @@ export function AccountProfile() {
       </div>
       <div className="flex items-center gap-6">
         <span className="font-label-sm text-outline uppercase tracking-widest w-36 shrink-0">Email</span>
-        <span className="font-body-md text-on-surface">{account.email}</span>
+        <span className="font-body-md text-on-surface">{account.email ?? '—'}</span>
       </div>
       <div className="flex items-center gap-6">
         <span className="font-label-sm text-outline uppercase tracking-widest w-36 shrink-0">Account ID</span>

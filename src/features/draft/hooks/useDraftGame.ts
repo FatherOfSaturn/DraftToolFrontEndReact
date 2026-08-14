@@ -126,7 +126,6 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
       try {
         const drafted = await gameApi.draftCard(
           gameInfo.gameID,
-          player.accountID,
           currentPack.packNumber,
           card.cardID,
           doublePick

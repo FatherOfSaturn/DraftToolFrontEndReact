@@ -43,6 +43,7 @@ export function ImportDecklistTab({ onImportCards }: ImportDecklistTabProps) {
           placeholder={'4 Counterspell\n4 Brainstorm\n20 Island...'}
           value={text}
           onChange={(e) => setText(e.target.value)}
+          maxLength={100000}
         />
         {unknownNames.length > 0 && (
           <p className="text-[11px] text-on-surface-variant/80 leading-snug">

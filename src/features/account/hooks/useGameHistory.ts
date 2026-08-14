@@ -59,7 +59,7 @@ export function useGameHistory(accountID?: string) {
     const version = ++requestVersion.current;
     setIsLoading(true);
     accountApi
-      .getGameHistory(accountID)
+      .getGameHistory()
       .then((nextGames) => {
         if (requestVersion.current !== version) return;
         setGames(nextGames);

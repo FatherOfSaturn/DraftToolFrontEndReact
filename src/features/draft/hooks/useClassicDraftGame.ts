@@ -39,21 +39,21 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
 
   const load = useCallback(async () => {
     try {
-      const next = await classicGameApi.draftData(gameID, playerName);
+      const next = await classicGameApi.draftData(gameID);
       setData(next);
       setError(null);
     } catch (err) {
       setError(getErrorMessage(err));
       throw err;
     }
-  }, [gameID, playerName]);
+  }, [gameID]);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
     classicGameApi
-      .draftData(gameID, playerName)
+      .draftData(gameID)
       .then((next) => {
         if (!cancelled) setData(next);
       })
@@ -66,7 +66,7 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
     return () => {
       cancelled = true;
     };
-  }, [gameID, playerName]);
+  }, [gameID]);
 
   const player = data?.player ?? null;
   const gameState = data?.gameState ?? null;
@@ -94,7 +94,7 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
       setDrafting(true);
       setError(null);
       try {
-        const drafted = await classicGameApi.draftCard(gameID, playerName, card.cardID);
+        const drafted = await classicGameApi.draftCard(gameID, card.cardID);
         if (drafted.cardID !== card.cardID) {
           throw new Error('Card drafted on backend did not match the card requested.');
         }
@@ -108,7 +108,7 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
         setDrafting(false);
       }
     },
-    [gameID, playerName, player, currentPack, load]
+    [gameID, player, currentPack, load]
   );
 
   return {

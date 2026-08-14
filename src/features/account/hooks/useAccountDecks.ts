@@ -35,7 +35,7 @@ export function useAccountDecks(accountID?: string) {
     let ignore = false;
     setIsLoading(true);
     accountApi
-      .getDecks(accountID)
+      .getDecks()
       .then((nextDecks) => {
         if (!ignore) setDecks(nextDecks);
       })
@@ -74,7 +74,7 @@ export function useAccountDecks(accountID?: string) {
     const requestedAccountID = accountID;
     setError(null);
     try {
-      await accountApi.deleteDeck(requestedAccountID, deckID);
+      await accountApi.deleteDeck(deckID);
       if (currentAccountID.current === requestedAccountID) {
         setDecks((current) => current.filter((deck) => deck.deckID !== deckID));
       }
@@ -89,7 +89,7 @@ export function useAccountDecks(accountID?: string) {
     const requestedAccountID = accountID;
     setError(null);
     try {
-      await accountApi.updateDeck(requestedAccountID, deckID, name, description, cardIds);
+      await accountApi.updateDeck(deckID, name, description, cardIds);
       if (currentAccountID.current === requestedAccountID) {
         setDecks((current) =>
           current.map((d) =>

@@ -71,6 +71,7 @@ export function FeatureRequestForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
+          maxLength={200}
           placeholder="A short name for your request"
           className="w-full px-md py-sm rounded-lg bg-surface-container-highest/50 border border-outline-variant/30 text-body-md text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 transition-colors"
         />
@@ -84,6 +85,7 @@ export function FeatureRequestForm() {
           onChange={(e) => setDescription(e.target.value)}
           required
           rows={5}
+          maxLength={5000}
           placeholder="Describe your request in detail..."
           className="w-full px-md py-sm rounded-lg bg-surface-container-highest/50 border border-outline-variant/30 text-body-md text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 transition-colors resize-none"
         />
@@ -97,6 +99,7 @@ export function FeatureRequestForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          maxLength={254}
           placeholder="your@email.com"
           className="w-full px-md py-sm rounded-lg bg-surface-container-highest/50 border border-outline-variant/30 text-body-md text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/50 transition-colors"
         />

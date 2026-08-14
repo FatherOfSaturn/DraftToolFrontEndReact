@@ -14,11 +14,14 @@ export function useLobbyLeaveGuard(
   useEffect(() => {
     const code = lobbyCode;
     const token = playerToken;
-    if (!code || status !== 'waiting') return;
+    if (!code || !token || status !== 'waiting') return;
+
+    const settledCode = code;
+    const settledToken = token;
 
     function onBeforeUnload() {
       // Best-effort — browser may or may not complete the request
-      lobbyApi.leaveLobby(code!, null, token);
+      lobbyApi.leaveLobby(settledCode, settledToken);
     }
 
     window.addEventListener('beforeunload', onBeforeUnload);
@@ -30,7 +33,7 @@ export function useLobbyLeaveGuard(
       // starting/started the game has begun — the cleanup fires on the way
       // into the draft board and must not "leave" the started lobby.
       if (!leftRef.current && statusRef.current === 'waiting') {
-        lobbyApi.leaveLobby(code!, null, token);
+        lobbyApi.leaveLobby(settledCode, settledToken);
       }
     };
   }, [lobbyCode, playerToken, status]);

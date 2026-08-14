@@ -1,5 +1,6 @@
 import type { Card } from '../../../shared/model/cardTypes';
 import { ApiError } from '../../../shared/api/httpClient';
+import { getLobbyPlayerToken } from '../../../shared/api/sessionToken';
 import type {
   ClassicCreateGameRequest,
   ClassicDraftCheckResponse,
@@ -37,6 +38,28 @@ interface StoredGame {
 }
 
 const games = new Map<string, StoredGame>();
+
+// Mirrors the real backend: player identity on draft calls comes from the
+// caller's X-Player-Token. Maps gameID -> token -> playerName. In this mock
+// (a single-client dev aid) the token at create time maps to the first seat.
+const mockClassicTokens = new Map<string, Map<string, string>>();
+
+function registerToken(gameID: string, playerName: string): void {
+  const token = getLobbyPlayerToken();
+  if (!token) return;
+  const map = mockClassicTokens.get(gameID) ?? new Map<string, string>();
+  map.set(token, playerName);
+  mockClassicTokens.set(gameID, map);
+}
+
+function currentPlayerName(gameID: string): string {
+  const token = getLobbyPlayerToken();
+  const playerName = token ? mockClassicTokens.get(gameID)?.get(token) : undefined;
+  if (!playerName) {
+    throw new ApiError(401, 'GET', '/classic-game', 'Missing or unknown X-Player-Token');
+  }
+  return playerName;
+}
 
 let gameCounter = 0;
 
@@ -150,15 +173,16 @@ export const mockClassicGameApi = {
     };
 
     games.set(info.gameID, { info });
+    registerToken(info.gameID, info.players[0]?.playerName ?? '');
     return delay(info);
   },
 
-  async draftCard(gameID: string, playerName: string, cardID: string): Promise<Card> {
+  async draftCard(gameID: string, cardID: string): Promise<Card> {
     const info = findGame(gameID, 'POST');
-    const player = findPlayer(info, playerName);
+    const player = findPlayer(info, currentPlayerName(gameID));
 
     if (player.activeCardPacks.length === 0) {
-      throw new ApiError(400, 'POST', '/classic-game', `Player ${playerName} has no pack to draft from`);
+      throw new ApiError(400, 'POST', '/classic-game', `Player has no pack to draft from`);
     }
 
     const pack = player.activeCardPacks[0];
@@ -189,15 +213,15 @@ export const mockClassicGameApi = {
     return delay(drafted);
   },
 
-  async draftCheck(gameID: string, playerName: string): Promise<ClassicDraftCheckResponse> {
+  async draftCheck(gameID: string): Promise<ClassicDraftCheckResponse> {
     const info = findGame(gameID, 'GET');
-    const player = findPlayer(info, playerName);
+    const player = findPlayer(info, currentPlayerName(gameID));
     return delay({ canDraft: player.activeCardPacks.length > 0, gameState: info.gameState });
   },
 
-  async draftData(gameID: string, playerName: string): Promise<ClassicDraftDataResponse> {
+  async draftData(gameID: string): Promise<ClassicDraftDataResponse> {
     const info = findGame(gameID, 'GET');
-    const player = findPlayer(info, playerName);
+    const player = findPlayer(info, currentPlayerName(gameID));
     return delay({
       gameID,
       gameState: info.gameState,

@@ -59,7 +59,6 @@ export function ClassicDraftPage({ gameID, playerName }: ClassicDraftPageProps) 
   // waitingForPack goes false and the poller stops itself.
   useClassicDraftPoller({
     gameID,
-    playerName,
     active: waitingForPack,
     onCanDraft: handleCanDraft,
     onComplete: handleComplete,

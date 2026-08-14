@@ -6,11 +6,9 @@ import { StatsCards } from '../components/StatsCards';
 import { AccountSearch } from '../components/AccountSearch';
 import { SupportTicketsTable } from '../components/SupportTicketsTable';
 import { supportApi, type SupportRequest, type SupportStatus } from '../../feature-requests/api/supportApi';
-import { useAuth } from '../../auth/AuthContext';
 import { useToast } from '../../../shared/components/Toast';
 
 export function AdminPage() {
-  const { account } = useAuth();
   const { showToast } = useToast();
   const [supportRequests, setSupportRequests] = useState<SupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,7 +64,7 @@ export function AdminPage() {
 
           <div className="px-margin-mobile md:px-margin-desktop flex flex-col gap-xl">
             {/* Stats Cards */}
-            <StatsCards supportRequests={supportRequests} accountID={account?.accountID!} />
+            <StatsCards supportRequests={supportRequests} />
 
             {/* Account Search */}
             <AccountSearch />

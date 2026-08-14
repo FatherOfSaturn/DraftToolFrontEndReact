@@ -24,6 +24,8 @@ export interface Player {
 export interface PlayerStart {
   accountID: string;
   name: string;
+  /** The player's draft token (assigned on lobby join); the backend requires it on draft calls. */
+  playerToken?: string;
 }
 
 export type GameState =

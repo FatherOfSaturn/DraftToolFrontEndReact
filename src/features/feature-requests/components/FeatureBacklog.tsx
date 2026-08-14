@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { supportApi, type SupportRequest, type SupportType } from '../api/supportApi';
+import { supportApi, type PublicSupportRequest, type SupportType } from '../api/supportApi';
 
 const TYPE_ICONS: Record<SupportType, string> = {
   new_feature: 'lightbulb',
@@ -24,13 +24,13 @@ function formatDate(iso: string): string {
 }
 
 export function FeatureBacklog() {
-  const [requests, setRequests] = useState<SupportRequest[]>([]);
+  const [requests, setRequests] = useState<PublicSupportRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    supportApi.getAll()
+    supportApi.getPublic()
       .then((data) => { if (!cancelled) setRequests(data); })
       .catch(() => { if (!cancelled) setError('Could not load backlog.'); })
       .finally(() => { if (!cancelled) setLoading(false); });
