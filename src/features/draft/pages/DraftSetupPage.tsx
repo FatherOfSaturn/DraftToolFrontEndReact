@@ -15,6 +15,7 @@ import { useAuth } from '../../auth/AuthContext';
 import {
   ALREADY_IN_LOBBY_MESSAGE,
   accountIsSeatedInLobby,
+  findMyPlayer,
   hasDuplicateAccount,
   isAlreadyInLobbyError,
 } from '../../lobby/lib/lobbyJoinGuard';
@@ -121,15 +122,18 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   // mode.
   useEffect(() => {
     if (!currentLobby || mySlotIndex !== null || !playerToken) return;
-    const me = currentLobby.players.find(
-      (p) => (account?.accountID ? p.accountID === account.accountID : p.playerToken === playerToken)
-    );
+    const me = findMyPlayer(currentLobby, {
+      accountID: account?.accountID ?? null,
+      playerToken,
+      slotIndex: mySlotIndex,
+      displayName: myName,
+    });
     if (me) {
       setMySlotIndex(me.slotIndex);
       setMyName(me.displayName);
       setIsHost(me.accountID === currentLobby.hostAccountID);
     }
-  }, [currentLobby, mySlotIndex, playerToken, account?.accountID]);
+  }, [currentLobby, mySlotIndex, playerToken, account?.accountID, myName]);
 
   // Auto-join when lobby param is present
   useEffect(() => {
@@ -209,17 +213,20 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   useEffect(() => {
     if (!lobbyCode || !playerToken || !currentLobby) return;
     if (currentLobby.status !== 'waiting') return;
-    // The backend never serializes player tokens, so logged-in users must be
-    // matched by accountID; token matching only works in mock mode.
-    const stillThere = currentLobby.players.some((p) =>
-      account?.accountID ? p.accountID === account.accountID : p.playerToken === playerToken
-    );
+    // The backend never serializes player tokens, so match "me" by accountID
+    // (logged in), then by slotIndex/displayName (anonymous, once seated).
+    const stillThere = findMyPlayer(currentLobby, {
+      accountID: account?.accountID ?? null,
+      playerToken,
+      slotIndex: mySlotIndex,
+      displayName: myName,
+    });
     if (stillThere) return;
 
     markLeft();
     showToast('You were removed from the lobby');
     resetLobbyState();
-  }, [lobbyCode, playerToken, currentLobby, markLeft, showToast]);
+  }, [lobbyCode, playerToken, currentLobby, mySlotIndex, myName, account?.accountID, markLeft, showToast]);
 
   async function handleCreateLobby() {
     if (!cubeID.trim() || !yourName.trim()) {

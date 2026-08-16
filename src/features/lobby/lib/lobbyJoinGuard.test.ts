@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   ALREADY_IN_LOBBY_MESSAGE,
+  findMyPlayer,
   hasDuplicateAccount,
   isAccountInLobby,
   isAlreadyInLobbyError,
@@ -60,6 +61,73 @@ describe('isAccountInLobby', () => {
   it('never matches a null accountID', () => {
     const lobby = makeLobby([{ accountID: null, displayName: 'Anon' }]);
     expect(isAccountInLobby(lobby, null)).toBe(false);
+  });
+});
+
+describe('findMyPlayer', () => {
+  it('matches a logged-in user by accountID even when tokens are absent', () => {
+    const lobby = makeLobby([
+      { accountID: 'acc-1', displayName: 'Host' },
+      { accountID: null, displayName: 'Anon' },
+    ]);
+    const me = findMyPlayer(lobby, {
+      accountID: 'acc-1',
+      playerToken: 'any-token',
+      slotIndex: null,
+      displayName: 'Anything',
+    });
+    expect(me?.slotIndex).toBe(0);
+    expect(me?.displayName).toBe('Host');
+  });
+
+  it('matches an anonymous user by slotIndex once seated (no token serialized)', () => {
+    const lobby = makeLobby([
+      { accountID: 'acc-1', displayName: 'Host' },
+      { accountID: null, displayName: 'Anon' },
+    ]);
+    const me = findMyPlayer(lobby, {
+      accountID: null,
+      playerToken: 'my-token', // not serialized by the real backend
+      slotIndex: 1,
+      displayName: 'Anon',
+    });
+    expect(me?.displayName).toBe('Anon');
+  });
+
+  it('matches an anonymous host by slotIndex 0', () => {
+    const lobby = makeLobby([{ accountID: null, displayName: 'Host' }]);
+    const me = findMyPlayer(lobby, {
+      accountID: null,
+      playerToken: 'host-token',
+      slotIndex: 0,
+      displayName: 'Host',
+    });
+    expect(me).toBeTruthy();
+  });
+
+  it('matches an anonymous user by displayName as a fallback', () => {
+    const lobby = makeLobby([
+      { accountID: null, displayName: 'Ace' },
+      { accountID: null, displayName: 'Bob' },
+    ]);
+    const me = findMyPlayer(lobby, {
+      accountID: null,
+      playerToken: null,
+      slotIndex: null,
+      displayName: 'Bob',
+    });
+    expect(me?.slotIndex).toBe(1);
+  });
+
+  it('returns undefined when the caller is not seated', () => {
+    const lobby = makeLobby([{ accountID: 'acc-1', displayName: 'Host' }]);
+    const me = findMyPlayer(lobby, {
+      accountID: null,
+      playerToken: 'ghost-token',
+      slotIndex: 5,
+      displayName: 'Ghost',
+    });
+    expect(me).toBeUndefined();
   });
 });
 
