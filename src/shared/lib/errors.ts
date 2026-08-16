@@ -13,3 +13,29 @@
 export function getErrorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
+
+/**
+ * Maps a draft failure to a short, human-readable message suitable for a
+ * toast. Backend messages are often raw REST dumps, so we never surface them
+ * verbatim — instead we sniff for common causes and fall back to a generic,
+ * friendly line.
+ */
+export function describeDraftError(err: unknown): string {
+  const raw = getErrorMessage(err);
+  const lower = raw.toLowerCase();
+
+  if (lower.includes('401') || lower.includes('unauthor')) {
+    return 'Your draft session has expired. Refresh the page to continue.';
+  }
+  if (
+    lower.includes('token') ||
+    lower.includes('not your') ||
+    lower.includes('draft for') ||
+    lower.includes('another player') ||
+    lower.includes('other player') ||
+    lower.includes('drafted by')
+  ) {
+    return 'You cannot draft for other players while you are logged in.';
+  }
+  return 'That pick could not be completed. Please try again.';
+}

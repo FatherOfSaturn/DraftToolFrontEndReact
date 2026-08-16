@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { gameApi } from '../api/gameApi';
-import { getErrorMessage } from '../../../shared/lib/errors';
+import { describeDraftError } from '../../../shared/lib/errors';
+import { useToast } from '../../../shared/components/Toast';
+import { useAuth } from '../../auth/AuthContext';
 import type { Card } from '../../../shared/model/cardTypes';
 import type { CardPack, GameInfo, Player } from '../model/gameTypes';
 
@@ -39,6 +41,8 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
   const [loading, setLoading] = useState(true);
   const [drafting, setDrafting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
+  const { account } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -51,7 +55,12 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
         if (!cancelled) setGameInfo(info);
       })
       .catch((err) => {
-        if (!cancelled) setError(getErrorMessage(err));
+        if (!cancelled) {
+          // Keep the error so the page can offer a friendly retry, but never
+          // let a raw REST failure blank the board — toast instead.
+          setError(describeDraftError(err));
+          showToast("Couldn't load this draft. Please try again.");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -59,7 +68,7 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
     return () => {
       cancelled = true;
     };
-  }, [gameID]);
+  }, [gameID, showToast]);
 
   const player = useMemo(
     () => gameInfo?.players.find((p) => p.playerName === playerName) ?? null,
@@ -104,10 +113,11 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
       setGameInfo(info);
       setError(null);
     } catch (err) {
-      setError(getErrorMessage(err));
+      setError(describeDraftError(err));
+      showToast("Couldn't refresh the draft. The board may be out of date.");
       throw err;
     }
-  }, [gameID]);
+  }, [gameID, showToast]);
 
   // Mirrors evaluateCheckbox(): a double pick is only available if this
   // specific pack hasn't already been double-drafted, and the player has
@@ -181,13 +191,18 @@ export function useDraftGame(gameID: string, playerName: string): UseDraftGameRe
           });
         }
       } catch (err) {
-        setError(getErrorMessage(err));
-        throw err;
+        // Draft failures must not blank the board or rethrow into the click
+        // handler — surface a friendly toast and carry on.
+        if (account && player && player.accountID && player.accountID !== account.accountID) {
+          showToast('You cannot draft for other players while you are logged in.');
+        } else {
+          showToast(describeDraftError(err));
+        }
       } finally {
         setDrafting(false);
       }
     },
-    [gameInfo, player, currentPack, refreshGameInfo]
+    [gameInfo, player, currentPack, refreshGameInfo, showToast, account]
   );
 
   return {

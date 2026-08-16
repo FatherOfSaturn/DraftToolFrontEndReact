@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { classicGameApi } from '../api/classicGameApi';
-import { getErrorMessage } from '../../../shared/lib/errors';
+import { describeDraftError } from '../../../shared/lib/errors';
+import { useToast } from '../../../shared/components/Toast';
 import type { Card } from '../../../shared/model/cardTypes';
 import type { CardPack } from '../model/gameTypes';
 import type { ClassicDraftDataResponse, DraftDirection } from '../model/classicGameTypes';
@@ -36,6 +37,7 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
   const [loading, setLoading] = useState(true);
   const [drafting, setDrafting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { showToast } = useToast();
 
   const load = useCallback(async () => {
     try {
@@ -43,10 +45,11 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
       setData(next);
       setError(null);
     } catch (err) {
-      setError(getErrorMessage(err));
+      setError(describeDraftError(err));
+      showToast("Couldn't load this draft. Please try again.");
       throw err;
     }
-  }, [gameID]);
+  }, [gameID, showToast]);
 
   useEffect(() => {
     let cancelled = false;
@@ -58,7 +61,10 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
         if (!cancelled) setData(next);
       })
       .catch((err) => {
-        if (!cancelled) setError(getErrorMessage(err));
+        if (!cancelled) {
+          setError(describeDraftError(err));
+          showToast("Couldn't load this draft. Please try again.");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -66,7 +72,7 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
     return () => {
       cancelled = true;
     };
-  }, [gameID]);
+  }, [gameID, showToast]);
 
   const player = data?.player ?? null;
   const gameState = data?.gameState ?? null;
@@ -102,13 +108,14 @@ export function useClassicDraftGame(gameID: string, playerName: string): UseClas
         // authoritative draftData so our active queue reflects reality.
         await load();
       } catch (err) {
-        setError(getErrorMessage(err));
-        throw err;
+        // Draft failures must not blank the board or rethrow into the click
+        // handler — surface a friendly toast and carry on.
+        showToast(describeDraftError(err));
       } finally {
         setDrafting(false);
       }
     },
-    [gameID, player, currentPack, load]
+    [gameID, player, currentPack, load, showToast]
   );
 
   return {

@@ -4,9 +4,27 @@ import { accountApi } from '../account/api/accountApi';
 import { adminApi } from '../admin/api/adminApi';
 import { env } from '../../config/env';
 import { getSessionToken, setSessionToken } from '../../shared/api/sessionToken';
+import { emailFromJwt } from '../../shared/lib/jwt';
 import type { Account } from '../account/model/accountTypes';
 
 const ACCOUNT_ID_KEY = 'drafttool_account_id';
+const ACCOUNT_EMAIL_KEY = 'drafttool_account_email';
+
+// The backend intentionally never serializes the account email (@JsonIgnore,
+// PII hardening). The user's own email IS present in the login JWT (minted
+// from their Google ID token), so we extract it once on login and keep it in
+// sessionStorage so it survives an in-session reload. `withEmail` merges it
+// back onto the account for the Account page / name autofill.
+
+function readStoredEmail(): string | undefined {
+  const email = sessionStorage.getItem(ACCOUNT_EMAIL_KEY);
+  return email && email.length > 0 ? email : undefined;
+}
+
+function withStoredEmail(account: Account): Account {
+  const email = readStoredEmail();
+  return email ? { ...account, email } : account;
+}
 
 // Stored in sessionStorage (not localStorage) so the account id is not
 // persisted across browser sessions or readable by other tabs once the
@@ -42,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .getAccount()
       .then((savedAccount) => {
         if (requestVersion.current !== version) return;
-        setAccount(savedAccount);
+        setAccount(withStoredEmail(savedAccount));
         if (env.skipAuth) {
           setIsAdmin(true);
         } else {
@@ -71,7 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { account: nextAccount, jwt } = await accountApi.login(idToken);
       if (requestVersion.current !== version) return;
-      setAccount(nextAccount);
+      const email = emailFromJwt(jwt) ?? nextAccount.email;
+      if (email) sessionStorage.setItem(ACCOUNT_EMAIL_KEY, email);
+      setAccount(email ? { ...nextAccount, email } : nextAccount);
       setSessionToken(jwt);
       sessionStorage.setItem(ACCOUNT_ID_KEY, nextAccount.accountID);
       if (env.skipAuth) {
@@ -92,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAdmin(false);
     setIsLoading(false);
     sessionStorage.removeItem(ACCOUNT_ID_KEY);
+    sessionStorage.removeItem(ACCOUNT_EMAIL_KEY);
     setSessionToken(null);
     googleLogout();
     accountApi.logout().catch(() => {
@@ -103,7 +124,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!account) return;
     const version = ++requestVersion.current;
     const refreshedAccount = await accountApi.getAccount();
-    if (requestVersion.current === version) setAccount(refreshedAccount);
+    if (requestVersion.current === version) setAccount(withStoredEmail(refreshedAccount));
   }
 
   return (
