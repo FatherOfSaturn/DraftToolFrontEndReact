@@ -30,8 +30,18 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
 
   // Setup form state
   const [cubeID, setCubeID] = useState(() => searchParams.get('cubeID') ?? '');
-  const [yourName, setYourName] = useState(account?.email ?? '');
+  const [yourName, setYourName] = useState('');
   const [numberOfPlayers, setNumberOfPlayers] = useState(4);
+
+  // Autofill your name from the account once it loads (async). Uses the
+  // display name with email as a fallback, and skips if the user already typed.
+  useEffect(() => {
+    if (!account) return;
+    const displayName = account.displayName || account.email || '';
+    if (displayName && !yourName) {
+      setYourName(displayName);
+    }
+  }, [account, yourName]);
   const [packsPerPlayer, setPacksPerPlayer] = useState(3);
   const [cardsPerPack, setCardsPerPack] = useState(15);
   const [creating, setCreating] = useState(false);
@@ -199,7 +209,11 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
   useEffect(() => {
     if (!lobbyCode || !playerToken || !currentLobby) return;
     if (currentLobby.status !== 'waiting') return;
-    const stillThere = currentLobby.players.some((p) => p.playerToken === playerToken);
+    // The backend never serializes player tokens, so logged-in users must be
+    // matched by accountID; token matching only works in mock mode.
+    const stillThere = currentLobby.players.some((p) =>
+      account?.accountID ? p.accountID === account.accountID : p.playerToken === playerToken
+    );
     if (stillThere) return;
 
     markLeft();
