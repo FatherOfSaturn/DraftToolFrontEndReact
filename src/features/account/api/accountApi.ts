@@ -1,4 +1,4 @@
-import type { Account, Deck, GameHistoryEntry } from '../model/accountTypes';
+import type { Account, Deck, GameHistoryEntry, LoginResponse } from '../model/accountTypes';
 import { requestJson, requestVoid } from '../../../shared/api/httpClient';
 
 const segment = encodeURIComponent;
@@ -11,61 +11,66 @@ function normalizeGameHistoryEntry(game: GameHistoryEntry): GameHistoryEntry {
 }
 
 export const accountApi = {
-  login(idToken: string): Promise<Account> {
-    return requestJson<Account>('/account/login', {
+  login(idToken: string): Promise<LoginResponse> {
+    return requestJson<LoginResponse>('/account/login', {
       method: 'POST',
       body: JSON.stringify({ idToken }),
     });
   },
 
-  getAccount(accountID: string): Promise<Account> {
-    return requestJson<Account>(`/account/${segment(accountID)}`);
+  logout(): Promise<void> {
+    return requestVoid('/account/logout', { method: 'POST' });
   },
 
-  updateDisplayName(accountID: string, displayName: string): Promise<void> {
-    return requestVoid(`/account/${segment(accountID)}`, {
+  // The backend derives the caller's identity from the JWT (never from the
+  // URL), so account-scoped endpoints carry no accountID in the path.
+
+  getAccount(): Promise<Account> {
+    return requestJson<Account>('/account/');
+  },
+
+  updateDisplayName(displayName: string): Promise<void> {
+    return requestVoid('/account/', {
       method: 'PATCH',
       body: JSON.stringify({ displayName }),
     });
   },
 
-  getDecks(accountID: string): Promise<Deck[]> {
-    return requestJson<Deck[]>(`/account/${segment(accountID)}/decks`);
+  getDecks(): Promise<Deck[]> {
+    return requestJson<Deck[]>('/account/decks');
   },
 
   createDeck(
-    accountID: string,
     name: string,
     description: string,
     cardIds: string[]
   ): Promise<void> {
-    return requestVoid(`/account/${segment(accountID)}/decks`, {
+    return requestVoid('/account/decks', {
       method: 'POST',
       body: JSON.stringify({ name, description, cardIds }),
     });
   },
 
   updateDeck(
-    accountID: string,
     deckID: string,
     name: string,
     description: string,
     cardIds: string[]
   ): Promise<void> {
-    return requestVoid(`/account/${segment(accountID)}/decks/${segment(deckID)}`, {
+    return requestVoid(`/account/decks/${segment(deckID)}`, {
       method: 'PUT',
       body: JSON.stringify({ name, description, cardIds }),
     });
   },
 
-  deleteDeck(accountID: string, deckID: string): Promise<void> {
-    return requestVoid(`/account/${segment(accountID)}/decks/${segment(deckID)}`, {
+  deleteDeck(deckID: string): Promise<void> {
+    return requestVoid(`/account/decks/${segment(deckID)}`, {
       method: 'DELETE',
     });
   },
 
-  getGameHistory(accountID: string): Promise<GameHistoryEntry[]> {
-    return requestJson<GameHistoryEntry[]>(`/account/game/history/${segment(accountID)}`).then(
+  getGameHistory(): Promise<GameHistoryEntry[]> {
+    return requestJson<GameHistoryEntry[]>('/account/game/history').then(
       (games) => games.map(normalizeGameHistoryEntry)
     );
   },

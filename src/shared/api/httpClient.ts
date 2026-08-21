@@ -1,4 +1,5 @@
 import { env } from '../../config/env';
+import { getSessionToken } from './sessionToken';
 
 export class ApiError extends Error {
   constructor(
@@ -20,6 +21,11 @@ export async function request(path: string, init: RequestInit = {}): Promise<Res
   const headers = new Headers(init.headers);
   if (init.body != null && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
+  }
+
+  const token = getSessionToken();
+  if (token && !headers.has('Authorization')) {
+    headers.set('Authorization', `Bearer ${token}`);
   }
 
   const response = await fetch(apiUrl(path), { ...init, headers });

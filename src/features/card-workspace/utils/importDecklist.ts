@@ -34,6 +34,10 @@ export interface ImportDecklistResult {
   unknownNames: string[];
 }
 
+/** Maximum unique card names resolved in a single batch lookup, so a
+ * pasted decklist can't turn into an unbounded backend Scryfall call. */
+export const MAX_UNIQUE_NAMES_TO_FETCH = 200;
+
 /**
  * Resolves a pasted decklist into real Card objects by looking up each
  * unique card name via the backend Scryfall batch API. Basic lands are
@@ -75,8 +79,14 @@ export async function importDecklist(text: string): Promise<ImportDecklistResult
     }
   }
 
-  // Fetch non-land cards via the batch endpoint (single HTTP call)
-  const toFetch = uniqueNames.filter((n) => !cardCache.has(n));
+  // Fetch non-land cards via the batch endpoint (single HTTP call), capped
+  // so a huge paste can't hammer the backend. Names past the cap are
+  // reported as unresolved rather than silently dropped.
+  const nonLandNames = uniqueNames.filter((n) => !cardCache.has(n));
+  const toFetch = nonLandNames.slice(0, MAX_UNIQUE_NAMES_TO_FETCH);
+  if (toFetch.length < nonLandNames.length) {
+    unknownNames.push(`${nonLandNames.length - toFetch.length} card names were skipped (too many unique names).`);
+  }
   if (toFetch.length > 0) {
     const result = await scryfallApi.getCardsByNames(toFetch);
     for (const card of result.cards) {

@@ -26,11 +26,16 @@ export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSect
   }
 
   async function joinClassicGame(gameID: string, name: string) {
-    const data = await classicGameApi.draftData(gameID, name);
-    if (data.player.playerName !== name) {
+    // Classic draft data requires the caller's X-Player-Token (only issued on
+    // lobby join), so an in-progress game can't be validated by name here.
+    // The public fetchGameData endpoint returns the game only once it's
+    // complete — use it to confirm the player existed.
+    const info = await classicGameApi.fetchGameData(gameID);
+    const matchesPlayer = info.players.some((p) => p.playerName === name);
+    if (!matchesPlayer) {
       throw new Error(`No player named "${name}" found in game ${gameID}.`);
     }
-    onEnterDraft(data.gameID, name);
+    onEnterDraft(info.gameID, name);
   }
 
   async function handleEnterGrimoire() {
@@ -86,6 +91,7 @@ export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSect
             type="text"
             value={joinGameID}
             onChange={(e) => setJoinGameID(e.target.value)}
+            maxLength={64}
           />
         </div>
         <div>
@@ -96,6 +102,7 @@ export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSect
             type="text"
             value={joinName}
             onChange={(e) => setJoinName(e.target.value)}
+            maxLength={50}
           />
         </div>
 

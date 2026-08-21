@@ -172,14 +172,14 @@ export function DeckBuilderPage() {
   async function handleUpdateDeck(name: string, description: string) {
     if (!account || !editingDeckID) return;
     const cardIds = decklist.map((c) => c.cardID);
-    await accountApi.updateDeck(account.accountID, editingDeckID, name, description, cardIds);
+    await accountApi.updateDeck(editingDeckID, name, description, cardIds);
     showToast('Successfully Updated Deck');
   }
 
   async function handleSaveNewDeck(name: string, description: string) {
     if (!account) return;
     const cardIds = decklist.map((c) => c.cardID);
-    await accountApi.createDeck(account.accountID, name, description, cardIds);
+    await accountApi.createDeck(name, description, cardIds);
     showToast('Successfully Saved Deck');
   }
 

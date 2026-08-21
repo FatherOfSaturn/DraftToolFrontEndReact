@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { accountApi } from '../../account/api/accountApi';
+import { adminApi } from '../api/adminApi';
 import { gameApi } from '../../draft/api/gameApi';
 import type { GameHistoryEntry, Deck } from '../../account/model/accountTypes';
 
@@ -22,9 +22,9 @@ export function AccountSearch() {
     setDisplayName(null);
     try {
       const [account, g, d] = await Promise.all([
-        accountApi.getAccount(id),
-        accountApi.getGameHistory(id),
-        accountApi.getDecks(id),
+        adminApi.getAccountByID(id),
+        adminApi.getGameHistoryByID(id),
+        adminApi.getDecksByID(id),
       ]);
       setDisplayName(account.displayName);
       setGames(g);
@@ -52,7 +52,7 @@ export function AccountSearch() {
   async function handleDeleteDeck(deckID: string) {
     if (!window.confirm('Delete this deck?')) return;
     try {
-      await accountApi.deleteDeck(accountId.trim(), deckID);
+      await adminApi.deleteDeckByID(accountId.trim(), deckID);
       setDecks((current) => current.filter((d) => d.deckID !== deckID));
     } catch {
       setError('Failed to delete deck.');

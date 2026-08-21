@@ -32,7 +32,7 @@ describe('useClassicDraftPoller', () => {
     draftCheck.mockReturnValueOnce(first.promise).mockResolvedValue({ canDraft: false, gameState: 'GAME_STARTED' });
 
     renderHook(() =>
-      useClassicDraftPoller({ gameID: 'game-1', playerName: 'Alice', active: true, intervalMs: 1000, onCanDraft: vi.fn(), onComplete: vi.fn() })
+      useClassicDraftPoller({ gameID: 'game-1', active: true, intervalMs: 1000, onCanDraft: vi.fn(), onComplete: vi.fn() })
     );
     expect(draftCheck).toHaveBeenCalledTimes(1);
 
@@ -49,7 +49,7 @@ describe('useClassicDraftPoller', () => {
     draftCheck.mockResolvedValue({ canDraft: false, gameState: 'GAME_COMPLETE' });
 
     renderHook(() =>
-      useClassicDraftPoller({ gameID: 'game-1', playerName: 'Alice', active: true, intervalMs: 1000, onCanDraft: vi.fn(), onComplete })
+      useClassicDraftPoller({ gameID: 'game-1', active: true, intervalMs: 1000, onCanDraft: vi.fn(), onComplete })
     );
     await act(() => vi.advanceTimersByTimeAsync(3000));
 
@@ -62,7 +62,7 @@ describe('useClassicDraftPoller', () => {
     draftCheck.mockResolvedValue({ canDraft: true, gameState: 'GAME_STARTED' });
 
     renderHook(() =>
-      useClassicDraftPoller({ gameID: 'game-1', playerName: 'Alice', active: true, intervalMs: 1000, onCanDraft, onComplete: vi.fn() })
+      useClassicDraftPoller({ gameID: 'game-1', active: true, intervalMs: 1000, onCanDraft, onComplete: vi.fn() })
     );
     await act(() => vi.advanceTimersByTimeAsync(2000));
 
@@ -71,7 +71,7 @@ describe('useClassicDraftPoller', () => {
 
   it('does not poll while inactive', async () => {
     renderHook(() =>
-      useClassicDraftPoller({ gameID: 'game-1', playerName: 'Alice', active: false, intervalMs: 1000, onCanDraft: vi.fn(), onComplete: vi.fn() })
+      useClassicDraftPoller({ gameID: 'game-1', active: false, intervalMs: 1000, onCanDraft: vi.fn(), onComplete: vi.fn() })
     );
     await act(() => vi.advanceTimersByTimeAsync(3000));
 

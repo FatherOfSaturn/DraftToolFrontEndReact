@@ -39,6 +39,7 @@ export function LabeledTextField({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        maxLength={100}
       />
       {error && <p className="mt-2 text-sm text-error">{error}</p>}
     </div>

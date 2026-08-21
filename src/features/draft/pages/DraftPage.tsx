@@ -105,6 +105,7 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
   const {
     loading,
     error,
+    gameInfo,
     player,
     partner,
     currentPack,
@@ -140,8 +141,20 @@ export function DraftPage({ gameID, playerName, waitingStrategy = pyramidMergeSt
     return <StatusScreen>Loading draft…</StatusScreen>;
   }
 
-  if (error) {
-    return <StatusScreen tone="error">Something went wrong: {error}</StatusScreen>;
+  if (error && !gameInfo) {
+    return (
+      <StatusScreen tone="error">
+        <div className="flex flex-col items-center gap-md px-lg text-center">
+          <p className="font-body-lg">Couldn't load this draft.</p>
+          <button
+            className="text-primary font-label-md hover:underline"
+            onClick={() => void refreshGameInfo()}
+          >
+            Try again
+          </button>
+        </div>
+      </StatusScreen>
+    );
   }
 
   return (

@@ -7,7 +7,7 @@ interface LobbyViewProps {
   isHost: boolean;
   onStart: () => void;
   onLeave: () => void;
-  onKickPlayer?: (playerToken: string) => void;
+  onKickPlayer?: (slotIndex: number) => void;
   isStarting: boolean;
   error?: string | null;
 }
@@ -149,7 +149,7 @@ export function LobbyView({
                         className="ml-auto text-outline hover:text-error hover:bg-error/10 rounded-md p-1 transition-colors"
                         onClick={() => {
                           if (window.confirm(`Remove ${player.displayName} from the lobby?`)) {
-                            onKickPlayer?.(player.playerToken);
+                            onKickPlayer?.(player.slotIndex);
                           }
                         }}
                         title={`Kick ${player.displayName}`}

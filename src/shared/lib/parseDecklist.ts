@@ -3,6 +3,12 @@ export interface DecklistEntry {
   name: string;
 }
 
+/** Hard caps so a pasted/malformed decklist can't balloon into a memory
+ * or network DoS (e.g. "9999999999 Island" or a multi-MB paste). */
+export const MAX_DECKLIST_CHARS = 100_000;
+export const MAX_DECKLIST_LINES = 1_000;
+export const MAX_QUANTITY_PER_LINE = 999;
+
 /**
  * Parses standard MTG decklist text format:
  *   4 Counterspell
@@ -18,7 +24,10 @@ export interface DecklistEntry {
 export function parseDecklist(text: string): DecklistEntry[] {
   const entries: DecklistEntry[] = [];
 
-  for (const rawLine of text.split('\n')) {
+  const source = text.length > MAX_DECKLIST_CHARS ? text.slice(0, MAX_DECKLIST_CHARS) : text;
+
+  for (const rawLine of source.split('\n')) {
+    if (entries.length >= MAX_DECKLIST_LINES) break;
     const line = rawLine.trim();
     if (!line) continue;
     if (line.startsWith('//') || line.startsWith('#')) continue;
@@ -26,7 +35,7 @@ export function parseDecklist(text: string): DecklistEntry[] {
     const match = line.match(/^(\d+)x?\s+(.+)$/i);
     if (!match) continue; // lines without a leading quantity (e.g. "Deck", "Sideboard") are skipped
 
-    const quantity = parseInt(match[1], 10);
+    const quantity = Math.min(parseInt(match[1], 10) || 0, MAX_QUANTITY_PER_LINE);
     let name = match[2].trim();
 
     // Strip a trailing set-code/collector-number suffix like "(STA) 123"

@@ -4,8 +4,6 @@ import { classicGameApi } from '../api/classicGameApi';
 interface UseClassicDraftPollerOptions {
   /** The classic game to poll. */
   gameID: string;
-  /** The local player's name (identity for draftCheck). */
-  playerName: string;
   /**
    * Whether polling should be active right now. Set this true while the
    * player has no pickable pack and the game is not complete, false the
@@ -26,16 +24,16 @@ interface UseClassicDraftPollerOptions {
 }
 
 /**
- * Polls `GET /classic-game/{gameID}/player/{playerName}/draftCheck` while
+ * Polls `GET /classic-game/{gameID}/draftCheck` while
  * `active` is true. Mirrors usePackMergePoller: fires immediately on start,
  * never overlaps requests, and stops when the game completes.
  *
  * draftCheck is intentionally a cheap "can I draft yet?" probe. The caller
- * pulls the actual pack via draftData when `onCanDraft` fires.
+ * pulls the actual pack via draftData when `onCanDraft` fires. The player's
+ * identity comes from the `X-Player-Token` header (see classicGameApi).
  */
 export function useClassicDraftPoller({
   gameID,
-  playerName,
   active,
   intervalMs = 3_000,
   onCanDraft,
@@ -56,7 +54,7 @@ export function useClassicDraftPoller({
     if (inFlightRef.current || completedRef.current) return;
     inFlightRef.current = true;
     try {
-      const status = await classicGameApi.draftCheck(gameID, playerName);
+      const status = await classicGameApi.draftCheck(gameID);
       if (generation !== generationRef.current) return;
       if (status.gameState === 'GAME_COMPLETE' && !completedRef.current) {
         completedRef.current = true;
@@ -69,7 +67,7 @@ export function useClassicDraftPoller({
     } finally {
       inFlightRef.current = false;
     }
-  }, [gameID, playerName]);
+  }, [gameID]);
 
   useEffect(() => {
     const generation = ++generationRef.current;

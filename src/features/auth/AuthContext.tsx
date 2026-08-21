@@ -3,9 +3,32 @@ import { googleLogout } from '@react-oauth/google';
 import { accountApi } from '../account/api/accountApi';
 import { adminApi } from '../admin/api/adminApi';
 import { env } from '../../config/env';
+import { getSessionToken, setSessionToken } from '../../shared/api/sessionToken';
+import { emailFromJwt } from '../../shared/lib/jwt';
 import type { Account } from '../account/model/accountTypes';
 
 const ACCOUNT_ID_KEY = 'drafttool_account_id';
+const ACCOUNT_EMAIL_KEY = 'drafttool_account_email';
+
+// The backend intentionally never serializes the account email (@JsonIgnore,
+// PII hardening). The user's own email IS present in the login JWT (minted
+// from their Google ID token), so we extract it once on login and keep it in
+// sessionStorage so it survives an in-session reload. `withEmail` merges it
+// back onto the account for the Account page / name autofill.
+
+function readStoredEmail(): string | undefined {
+  const email = sessionStorage.getItem(ACCOUNT_EMAIL_KEY);
+  return email && email.length > 0 ? email : undefined;
+}
+
+function withStoredEmail(account: Account): Account {
+  const email = readStoredEmail();
+  return email ? { ...account, email } : account;
+}
+
+// Stored in sessionStorage (not localStorage) so the account id is not
+// persisted across browser sessions or readable by other tabs once the
+// session ends. The backend is still the source of truth on mount.
 
 interface AuthContextType {
   account: Account | null;
@@ -25,28 +48,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const requestVersion = useRef(0);
 
   useEffect(() => {
-    const savedID = localStorage.getItem(ACCOUNT_ID_KEY);
-    if (!savedID) {
+    const savedID = sessionStorage.getItem(ACCOUNT_ID_KEY);
+    const savedToken = getSessionToken();
+    if (!savedID || !savedToken) {
       setIsLoading(false);
       return;
     }
 
     const version = ++requestVersion.current;
     accountApi
-      .getAccount(savedID)
+      .getAccount()
       .then((savedAccount) => {
         if (requestVersion.current !== version) return;
-        setAccount(savedAccount);
+        setAccount(withStoredEmail(savedAccount));
         if (env.skipAuth) {
           setIsAdmin(true);
         } else {
-          adminApi.checkAdmin(savedAccount.accountID)
+          adminApi.checkAdmin()
             .then((res) => { if (requestVersion.current === version) setIsAdmin(res.isAdmin); })
             .catch(() => { if (requestVersion.current === version) setIsAdmin(false); });
         }
       })
       .catch(() => {
-        if (requestVersion.current === version) localStorage.removeItem(ACCOUNT_ID_KEY);
+        if (requestVersion.current === version) {
+          sessionStorage.removeItem(ACCOUNT_ID_KEY);
+          setSessionToken(null);
+        }
       })
       .finally(() => {
         if (requestVersion.current === version) setIsLoading(false);
@@ -60,14 +87,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function login(idToken: string) {
     const version = ++requestVersion.current;
     try {
-      const nextAccount = await accountApi.login(idToken);
+      const { account: nextAccount, jwt } = await accountApi.login(idToken);
       if (requestVersion.current !== version) return;
-      setAccount(nextAccount);
-      localStorage.setItem(ACCOUNT_ID_KEY, nextAccount.accountID);
+      const email = emailFromJwt(jwt) ?? nextAccount.email;
+      if (email) sessionStorage.setItem(ACCOUNT_EMAIL_KEY, email);
+      setAccount(email ? { ...nextAccount, email } : nextAccount);
+      setSessionToken(jwt);
+      sessionStorage.setItem(ACCOUNT_ID_KEY, nextAccount.accountID);
       if (env.skipAuth) {
         setIsAdmin(true);
       } else {
-        adminApi.checkAdmin(nextAccount.accountID)
+        adminApi.checkAdmin()
           .then((res) => { if (requestVersion.current === version) setIsAdmin(res.isAdmin); })
           .catch(() => { if (requestVersion.current === version) setIsAdmin(false); });
       }
@@ -81,16 +111,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccount(null);
     setIsAdmin(false);
     setIsLoading(false);
-    localStorage.removeItem(ACCOUNT_ID_KEY);
+    sessionStorage.removeItem(ACCOUNT_ID_KEY);
+    sessionStorage.removeItem(ACCOUNT_EMAIL_KEY);
+    setSessionToken(null);
     googleLogout();
+    accountApi.logout().catch(() => {
+      // Best-effort server-side invalidation; local state is already cleared.
+    });
   }
 
   async function refreshAccount() {
     if (!account) return;
-    const accountID = account.accountID;
     const version = ++requestVersion.current;
-    const refreshedAccount = await accountApi.getAccount(accountID);
-    if (requestVersion.current === version) setAccount(refreshedAccount);
+    const refreshedAccount = await accountApi.getAccount();
+    if (requestVersion.current === version) setAccount(withStoredEmail(refreshedAccount));
   }
 
   return (

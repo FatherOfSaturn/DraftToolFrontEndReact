@@ -15,6 +15,7 @@ import { useAuth } from '../../auth/AuthContext';
 import {
   ALREADY_IN_LOBBY_MESSAGE,
   accountIsSeatedInLobby,
+  findMyPlayer,
   hasDuplicateAccount,
   isAlreadyInLobbyError,
 } from '../../lobby/lib/lobbyJoinGuard';
@@ -32,8 +33,18 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
 
   // Setup form state
   const [cubeID, setCubeID] = useState(() => searchParams.get('cubeID') ?? '');
-  const [yourName, setYourName] = useState(account?.email ?? '');
+  const [yourName, setYourName] = useState('');
   const [extraPicks, setExtraPicks] = useState(2);
+
+  // Autofill your name from the account once it loads (async). Uses the
+  // display name with email as a fallback, and skips if the user already typed.
+  useEffect(() => {
+    if (!account) return;
+    const displayName = account.displayName || account.email || '';
+    if (displayName && !yourName) {
+      setYourName(displayName);
+    }
+  }, [account, yourName]);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -79,7 +90,6 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   // Tear down any joined/joined-into lobby state, in or out of a lobby.
   function resetLobbyState() {
     sessionStorage.removeItem('lobby_player_token');
-    sessionStorage.removeItem('lobby_host_account_id');
     setLobbyCode(null);
     setPlayerToken(null);
     setMySlotIndex(null);
@@ -107,16 +117,23 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
 
   // Recover slot/host/name from the polled lobby. Normally the join/create
   // response supplies these; only the reload-resume path (no join response)
-  // needs this fallback.
+  // needs this fallback. The backend never serializes player tokens, so a
+  // logged-in user is matched by accountID; token matching only works in mock
+  // mode.
   useEffect(() => {
     if (!currentLobby || mySlotIndex !== null || !playerToken) return;
-    const me = currentLobby.players.find((p) => p.playerToken === playerToken);
+    const me = findMyPlayer(currentLobby, {
+      accountID: account?.accountID ?? null,
+      playerToken,
+      slotIndex: mySlotIndex,
+      displayName: myName,
+    });
     if (me) {
       setMySlotIndex(me.slotIndex);
       setMyName(me.displayName);
       setIsHost(me.accountID === currentLobby.hostAccountID);
     }
-  }, [currentLobby, mySlotIndex, playerToken]);
+  }, [currentLobby, mySlotIndex, playerToken, account?.accountID, myName]);
 
   // Auto-join when lobby param is present
   useEffect(() => {
@@ -152,7 +169,7 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
         // surface the conflict instead of leaving two seats for one account.
         if (hasDuplicateAccount(result.lobby, accountID)) {
           try {
-            await lobbyApi.leaveLobby(code!, accountID, result.playerToken);
+            await lobbyApi.leaveLobby(code!, result.playerToken);
           } catch {
             // best-effort cleanup
           }
@@ -196,13 +213,20 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   useEffect(() => {
     if (!lobbyCode || !playerToken || !currentLobby) return;
     if (currentLobby.status !== 'waiting') return;
-    const stillThere = currentLobby.players.some((p) => p.playerToken === playerToken);
+    // The backend never serializes player tokens, so match "me" by accountID
+    // (logged in), then by slotIndex/displayName (anonymous, once seated).
+    const stillThere = findMyPlayer(currentLobby, {
+      accountID: account?.accountID ?? null,
+      playerToken,
+      slotIndex: mySlotIndex,
+      displayName: myName,
+    });
     if (stillThere) return;
 
     markLeft();
     showToast('You were removed from the lobby');
     resetLobbyState();
-  }, [lobbyCode, playerToken, currentLobby, markLeft, showToast]);
+  }, [lobbyCode, playerToken, currentLobby, mySlotIndex, myName, account?.accountID, markLeft, showToast]);
 
   async function handleCreateLobby() {
     if (!cubeID.trim() || !yourName.trim()) {
@@ -220,18 +244,19 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
         numberOfDoubleDraftPicksPerPlayer: extraPicks,
       };
       const hostAccountID = account?.accountID ?? crypto.randomUUID();
-      sessionStorage.setItem('lobby_host_account_id', hostAccountID);
 
-      const lobby = await lobbyApi.createLobby({
+      const result = await lobbyApi.createLobby({
         draftType: 'pyramid',
         config,
         hostAccountID,
         hostDisplayName: yourName.trim(),
       });
 
-      const hostToken = lobby.players[0].playerToken;
+      // The create response carries the host's own playerToken — the lobby
+      // player list never serializes tokens.
+      const hostToken = result.playerToken;
       sessionStorage.setItem('lobby_player_token', hostToken);
-      setLobbyCode(lobby.lobbyCode);
+      setLobbyCode(result.lobby.lobbyCode);
       setPlayerToken(hostToken);
       setMySlotIndex(0);
       setMyName(yourName.trim());
@@ -244,12 +269,10 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   }
 
   async function handleStartGame() {
-    if (!lobbyCode) return;
-    const hostAccountID =
-      sessionStorage.getItem('lobby_host_account_id') ?? account?.accountID ?? '';
+    if (!lobbyCode || !playerToken) return;
     setIsStarting(true);
     try {
-      const result = await lobbyApi.startLobby(lobbyCode, hostAccountID);
+      const result = await lobbyApi.startLobby(lobbyCode, playerToken);
       setIsStarting(false);
       if (result.status === 'started' && result.gameID && myName) {
         onEnterDraft(result.gameID, myName);
@@ -263,20 +286,20 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
   async function handleLeaveLobby() {
     if (!lobbyCode) return;
     markLeft();
-    try {
-      await lobbyApi.leaveLobby(lobbyCode, account?.accountID ?? null, playerToken);
-    } catch {
-      // lobby may already be gone
+    if (playerToken) {
+      try {
+        await lobbyApi.leaveLobby(lobbyCode, playerToken);
+      } catch {
+        // lobby may already be gone
+      }
     }
     resetLobbyState();
   }
 
-  async function handleKickPlayer(targetPlayerToken: string) {
-    if (!lobbyCode) return;
-    const hostAccountID =
-      sessionStorage.getItem('lobby_host_account_id') ?? account?.accountID ?? '';
+  async function handleKickPlayer(targetSlotIndex: number) {
+    if (!lobbyCode || !playerToken) return;
     try {
-      await lobbyApi.kickPlayer(lobbyCode, hostAccountID, targetPlayerToken);
+      await lobbyApi.kickPlayer(lobbyCode, playerToken, targetSlotIndex);
       showToast('Player removed from lobby');
     } catch (err) {
       showToast(getErrorMessage(err));
@@ -311,7 +334,7 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
       // rejecting — undo it and surface the conflict.
       if (hasDuplicateAccount(result.lobby, accountID)) {
         try {
-          await lobbyApi.leaveLobby(namePrompt, accountID, result.playerToken);
+          await lobbyApi.leaveLobby(namePrompt, result.playerToken);
         } catch {
           // best-effort cleanup
         }
@@ -526,6 +549,7 @@ function NamePromptModal({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          maxLength={50}
           autoFocus
         />
         {error && <p className="mb-md text-sm text-error">{error}</p>}

@@ -8,6 +8,7 @@ import type {
 } from '../model/classicGameTypes';
 import { env } from '../../../config/env';
 import { requestJson } from '../../../shared/api/httpClient';
+import { getLobbyPlayerToken } from '../../../shared/api/sessionToken';
 import { mockClassicGameApi } from './mockClassicGameApi';
 
 // Classic Draft endpoints live under /classic-game and are completely
@@ -16,6 +17,11 @@ import { mockClassicGameApi } from './mockClassicGameApi';
 const USE_MOCK = env.useMockGameApi;
 
 const segment = encodeURIComponent;
+
+function playerTokenHeader(): Record<string, string> {
+  const token = getLobbyPlayerToken();
+  return token ? { 'X-Player-Token': token } : {};
+}
 
 const realClassicGameApi = {
   /** POST /classic-game */
@@ -26,25 +32,27 @@ const realClassicGameApi = {
     });
   },
 
-  /** POST /classic-game/{gameID}/player/{playerName}/draftCard/{cardID} */
-  draftCard(gameID: string, playerName: string, cardID: string): Promise<Card> {
+  /** POST /classic-game/{gameID}/draftCard/{cardID} — player identity via X-Player-Token */
+  draftCard(gameID: string, cardID: string): Promise<Card> {
     return requestJson<Card>(
-      `/classic-game/${segment(gameID)}/player/${segment(playerName)}/draftCard/${segment(cardID)}`,
-      { method: 'POST' }
+      `/classic-game/${segment(gameID)}/draftCard/${segment(cardID)}`,
+      { method: 'POST', headers: playerTokenHeader() }
     );
   },
 
-  /** GET /classic-game/{gameID}/player/{playerName}/draftCheck */
-  draftCheck(gameID: string, playerName: string): Promise<ClassicDraftCheckResponse> {
+  /** GET /classic-game/{gameID}/draftCheck — player identity via X-Player-Token */
+  draftCheck(gameID: string): Promise<ClassicDraftCheckResponse> {
     return requestJson<ClassicDraftCheckResponse>(
-      `/classic-game/${segment(gameID)}/player/${segment(playerName)}/draftCheck`
+      `/classic-game/${segment(gameID)}/draftCheck`,
+      { headers: playerTokenHeader() }
     );
   },
 
-  /** GET /classic-game/{gameID}/player/{playerName}/draftData */
-  draftData(gameID: string, playerName: string): Promise<ClassicDraftDataResponse> {
+  /** GET /classic-game/{gameID}/draftData — player identity via X-Player-Token */
+  draftData(gameID: string): Promise<ClassicDraftDataResponse> {
     return requestJson<ClassicDraftDataResponse>(
-      `/classic-game/${segment(gameID)}/player/${segment(playerName)}/draftData`
+      `/classic-game/${segment(gameID)}/draftData`,
+      { headers: playerTokenHeader() }
     );
   },
 

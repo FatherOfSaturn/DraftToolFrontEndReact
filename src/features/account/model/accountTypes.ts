@@ -1,11 +1,19 @@
 // These mirror org.magic.accountService.api. Keep backend field names unchanged.
 export interface Account {
   accountID: string;
-  email: string;
+  /** Never serialized by the backend (@JsonIgnore) — always undefined in responses. */
+  email?: string;
   displayName: string;
-  googleSub: string;
+  /** Never serialized by the backend (@JsonIgnore) — always undefined in responses. */
+  googleSub?: string;
   deckIDs: string[];
   createdAt: string;
+}
+
+export interface LoginResponse {
+  account: Account;
+  jwt: string;
+  expiresIn: number;
 }
 
 export interface Deck {

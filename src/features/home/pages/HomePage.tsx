@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Header } from '../../../shared/components/layout/Header';
 import { Footer } from '../../../shared/components/layout/Footer';
 import { FAVORITE_CUBES } from '../../../shared/lib/favoriteCubes';
+import creatorPortrait from '../../../shared/assets/CreatorPortrait.png';
 
 /**
  * Marketing/landing page. Sign In, Donate, newsletter signup, and the
@@ -262,7 +263,7 @@ function ArchitectSection() {
               <img
                 className="w-full h-full object-cover"
                 alt="Portrait of the creator"
-                src="https://media.licdn.com/dms/image/v2/D4E03AQHzuayqUSirVg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1712250858703?e=1787184000&v=beta&t=CvOM8rbzTGfYAyWOkj6v4Kk6i3chWSZf23xbCKzkcqc"
+                src={creatorPortrait}
               />
             </div>
           </div>

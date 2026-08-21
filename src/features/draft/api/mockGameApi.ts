@@ -1,5 +1,6 @@
 import type { Card, CardDetail } from '../../../shared/model/cardTypes';
 import type { CardPack, GameCreationInfo, GameInfo, GameStatusMessage, Player } from '../model/gameTypes';
+import { getLobbyPlayerToken } from '../../../shared/api/sessionToken';
 import { placeholderArt, type ArtFrameKey } from '../../../shared/lib/placeholderArt';
 
 /**
@@ -114,6 +115,18 @@ function buildPlayer(name: string, accountID: string, packCount: number, packSiz
 // In-memory "database" of mock games, keyed by gameID.
 const mockGames = new Map<string, GameInfo>();
 
+// Mirrors the real backend: player identity on draft calls comes from the
+// caller's X-Player-Token, not the URL. Maps gameID -> playerToken -> accountID.
+const mockGamePlayerTokens = new Map<string, Map<string, string>>();
+
+function registerPlayerTokens(gameID: string, entries: GameCreationInfo['players']): void {
+  const map = new Map<string, string>();
+  for (const entry of entries) {
+    if (entry.playerToken) map.set(entry.playerToken, entry.accountID);
+  }
+  mockGamePlayerTokens.set(gameID, map);
+}
+
 function delay<T>(value: T): Promise<T> {
   return new Promise((resolve) => setTimeout(() => resolve(value), MOCK_DELAY_MS));
 }
@@ -139,6 +152,7 @@ export const mockGameApi = {
     };
 
     mockGames.set(gameID, gameInfo);
+    registerPlayerTokens(gameID, creationInfo.players);
     return delay(structuredClone(gameInfo));
   },
 
@@ -157,6 +171,10 @@ export const mockGameApi = {
         ],
       };
       mockGames.set(gameID, game);
+      const token = getLobbyPlayerToken();
+      if (token) {
+        registerPlayerTokens(gameID, [{ accountID: 'mock-player-you', name: 'You', playerToken: token }]);
+      }
     }
     // Return a deep copy, never the live object stored in mockGames.
     // draftCard() below mutates that live object directly — if callers
@@ -169,13 +187,16 @@ export const mockGameApi = {
 
   async draftCard(
     gameID: string,
-    accountID: string,
     packNumber: number,
     cardID: string,
     doublePick: boolean
   ): Promise<Card> {
     const game = mockGames.get(gameID);
     if (!game) throw new Error(`Mock game ${gameID} not found`);
+
+    const token = getLobbyPlayerToken();
+    const accountID = token ? mockGamePlayerTokens.get(gameID)?.get(token) : undefined;
+    if (!accountID) throw new Error('Mock player token not recognized');
 
     const player = game.players.find((p) => p.accountID === accountID);
     if (!player) throw new Error(`Mock player ${accountID} not found`);
@@ -214,10 +235,6 @@ export const mockGameApi = {
 
   async deleteGame(gameID: string): Promise<void> {
     mockGames.delete(gameID);
-    return delay(undefined);
-  },
-
-  async deleteGamesWithStatus(_gameState: string): Promise<void> {
     return delay(undefined);
   },
 };

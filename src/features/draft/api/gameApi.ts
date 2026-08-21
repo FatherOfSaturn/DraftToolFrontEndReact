@@ -2,6 +2,7 @@ import type { Card } from '../../../shared/model/cardTypes';
 import type { GameCreationInfo, GameInfo, GameStatusMessage } from '../model/gameTypes';
 import { env } from '../../../config/env';
 import { requestJson, requestVoid } from '../../../shared/api/httpClient';
+import { getLobbyPlayerToken } from '../../../shared/api/sessionToken';
 import { mockGameApi } from './mockGameApi';
 
 // Set VITE_USE_MOCK_API=true in your .env to run the whole frontend
@@ -20,6 +21,11 @@ if (USE_MOCK && import.meta.env?.DEV) {
 
 const segment = encodeURIComponent;
 
+function playerTokenHeader(): Record<string, string> {
+  const token = getLobbyPlayerToken();
+  return token ? { 'X-Player-Token': token } : {};
+}
+
 const realGameApi = {
   /** POST /game */
   createAndStartGame(gameInfo: GameCreationInfo): Promise<GameInfo> {
@@ -31,20 +37,21 @@ const realGameApi = {
 
   /** GET /game/fetchGameData/{gameID} */
   fetchGameData(gameID: string): Promise<GameInfo> {
-    return requestJson<GameInfo>(`/game/fetchGameData/${segment(gameID)}`);
+    return requestJson<GameInfo>(`/game/fetchGameData/${segment(gameID)}`, {
+      headers: playerTokenHeader(),
+    });
   },
 
-  /** POST /game/{gameID}/{accountID}/draftCard/{packNumber}/{cardID}?doublePick= */
+  /** POST /game/{gameID}/draftCard/{packNumber}/{cardID}?doublePick= — player identity via X-Player-Token */
   draftCard(
     gameID: string,
-    accountID: string,
     packNumber: number,
     cardID: string,
     doublePick: boolean
   ): Promise<Card> {
     return requestJson<Card>(
-      `/game/${segment(gameID)}/${segment(accountID)}/draftCard/${packNumber}/${segment(cardID)}?doublePick=${doublePick}`,
-      { method: 'POST' }
+      `/game/${segment(gameID)}/draftCard/${packNumber}/${segment(cardID)}?doublePick=${doublePick}`,
+      { method: 'POST', headers: playerTokenHeader() }
     );
   },
 
@@ -61,13 +68,6 @@ const realGameApi = {
   /** DELETE /game/end/admin/delete/{gameID} */
   deleteGame(gameID: string): Promise<void> {
     return requestVoid(`/game/end/admin/delete/${segment(gameID)}`, {
-      method: 'DELETE',
-    });
-  },
-
-  /** DELETE /game/end/admin/delete/random/{gameState} */
-  deleteGamesWithStatus(gameState: string): Promise<void> {
-    return requestVoid(`/game/end/admin/delete/random/${segment(gameState)}`, {
       method: 'DELETE',
     });
   },
