@@ -15,6 +15,7 @@ interface LobbyViewProps {
 const DRAFT_TYPE_LABELS: Record<string, string> = {
   pyramid: 'Pyramid Draft',
   classic: 'Classic Draft',
+  burn: 'Burn Draft',
 };
 
 export function LobbyView({

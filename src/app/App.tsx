@@ -8,9 +8,11 @@ import { LoginPage } from '../features/auth/pages/LoginPage';
 import { DeckBuilderPage } from '../features/deck-builder/pages/DeckBuilderPage';
 import { DraftRouteWrapper } from '../features/draft/pages/DraftRouteWrapper';
 import { ClassicDraftRouteWrapper } from '../features/draft/pages/ClassicDraftRouteWrapper';
+import { BurnDraftRouteWrapper } from '../features/draft/pages/BurnDraftRouteWrapper';
 import { DraftSelectionPage } from '../features/draft/pages/DraftSelectionPage';
 import { DraftSetupPage } from '../features/draft/pages/DraftSetupPage';
 import { ClassicDraftSetupPage } from '../features/draft/pages/ClassicDraftSetupPage';
+import { BurnDraftSetupPage } from '../features/draft/pages/BurnDraftSetupPage';
 import type { RitualDefinition } from '../features/draft/pages/DraftSelectionPage';
 import { FeatureRequestPage } from '../features/feature-requests/pages/FeatureRequestPage';
 import { AdminPage } from '../features/admin/pages/AdminPage';
@@ -26,8 +28,10 @@ import { ThemeProvider } from '../shared/theme/ThemeContext';
  *   /draft-selection               DraftSelectionPage (choose a draft mode)
  *   /draft-setup                   DraftSetupPage (create or join pyramid draft)
  *   /draft-setup/classic           ClassicDraftSetupPage (create or join classic draft)
+ *   /draft-setup/burn              BurnDraftSetupPage (create or join burn draft)
  *   /draft/:gameID/:playerName     DraftPage (the live draft board), via DraftRouteWrapper
  *   /classic-draft/:gameID/:playerName   ClassicDraftPage (the classic draft board), via ClassicDraftRouteWrapper
+ *   /burn-draft/:gameID/:playerName      BurnDraftPage (the burn draft board), via BurnDraftRouteWrapper
  *   /deckbuilder/:gameID?/:playerName?   DeckBuilderPage (params optional — see its own docs)
  *   /account                       AccountPage
  *   /mulligan-simulator            MulliganSimulatorPage
@@ -52,8 +56,10 @@ export function App() {
               <Route path="/draft-selection" element={<DraftSelectionRoute />} />
               <Route path="/draft-setup" element={<DraftSetupRoute />} />
               <Route path="/draft-setup/classic" element={<ClassicDraftSetupRoute />} />
+              <Route path="/draft-setup/burn" element={<BurnDraftSetupRoute />} />
               <Route path="/draft/:gameID/:playerName" element={<DraftRouteWrapper />} />
               <Route path="/classic-draft/:gameID/:playerName" element={<ClassicDraftRouteWrapper />} />
+              <Route path="/burn-draft/:gameID/:playerName" element={<BurnDraftRouteWrapper />} />
               <Route path="/deckbuilder/:gameID?/:playerName?" element={<DeckBuilderPage />} />
               <Route
                 path="/account"
@@ -100,6 +106,8 @@ function DraftSelectionRoute() {
       onSelectRitual={(ritual: RitualDefinition) => {
         if (ritual.id === 'planeswalkers-trial') {
           navigate('/draft-setup/classic');
+        } else if (ritual.id === 'burn-draft') {
+          navigate('/draft-setup/burn');
         } else {
           navigate('/draft-setup');
         }
@@ -128,6 +136,17 @@ function ClassicDraftSetupRoute() {
     <ClassicDraftSetupPage
       onEnterDraft={(gameID, playerName) =>
         navigate(`/classic-draft/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`)
+      }
+    />
+  );
+}
+
+function BurnDraftSetupRoute() {
+  const navigate = useNavigate();
+  return (
+    <BurnDraftSetupPage
+      onEnterDraft={(gameID, playerName) =>
+        navigate(`/burn-draft/${encodeURIComponent(gameID)}/${encodeURIComponent(playerName)}`)
       }
     />
   );

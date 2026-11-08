@@ -1,6 +1,8 @@
 import type { LobbyInfo, LobbyPlayer, JoinLobbyResponse } from '../model/lobbyTypes';
 import type { GameCreationInfo } from '../../draft/model/gameTypes';
+import type { BurnCreateGameRequest } from '../../draft/model/burnGameTypes';
 import { mockGameApi } from '../../draft/api/mockGameApi';
+import { mockBurnGameApi } from '../../draft/api/mockBurnGameApi';
 
 const MOCK_DELAY_MS = 300;
 
@@ -57,8 +59,11 @@ export const mockLobbyApi = {
       lastPollAt: now,
     };
 
-    const minPlayers = req.minPlayers ?? (req.draftType === 'pyramid' ? 2 : 4);
-    const maxPlayers = req.maxPlayers ?? (req.draftType === 'pyramid' ? 2 : 12);
+    const minPlayers =
+      req.minPlayers ??
+      (req.draftType === 'pyramid' ? 2 : req.draftType === 'classic' ? 4 : 2);
+    const maxPlayers =
+      req.maxPlayers ?? (req.draftType === 'pyramid' ? 2 : 12);
 
     const info: LobbyInfo = {
       lobbyCode,
@@ -220,31 +225,52 @@ export const mockLobbyApi = {
 
     const config = stored.info.config as Record<string, unknown>;
 
-    const gamePayload: GameCreationInfo = {
-      gameID: crypto.randomUUID(),
-      cubeID: (config.cubeID as string) ?? 'mock-cube',
-      numberOfDoubleDraftPicksPerPlayer:
-        stored.info.draftType === 'pyramid'
-          ? ((config.numberOfDoubleDraftPicksPerPlayer as number) ?? 3)
-          : 0,
-      packsPerPlayer:
-        stored.info.draftType === 'classic'
-          ? ((config.packsPerPlayer as number) ?? 3)
-          : undefined,
-      cardsPerPack:
-        stored.info.draftType === 'classic'
-          ? ((config.cardsPerPack as number) ?? 15)
-          : undefined,
-      players: stored.info.players.map((p) => ({
-        accountID: p.accountID ?? crypto.randomUUID(),
-        name: p.displayName,
-        playerToken: p.playerToken,
-      })),
-    };
-
     try {
-      const created = await mockGameApi.createAndStartGame(gamePayload);
-      stored.info.gameID = created.gameID;
+      if (stored.info.draftType === 'burn') {
+        const packsPerPlayer = (config.packsPerPlayer as number) ?? 3;
+        const cardsPerPack = (config.cardsPerPack as number) ?? 15;
+        const burnPayload: BurnCreateGameRequest = {
+          cubeID: (config.cubeID as string) ?? 'mock-cube',
+          players: stored.info.players.map((p) => ({
+            name: p.displayName,
+            accountID: p.accountID ?? crypto.randomUUID(),
+            playerToken: p.playerToken,
+          })),
+          numberOfPacks: stored.info.players.length * packsPerPlayer,
+          packsPerPlayer,
+          cardsPerPack,
+          cardsDraftedPerPack: (config.cardsDraftedPerPack as number) ?? 1,
+          cardsBurnedPerPack: (config.cardsBurnedPerPack as number) ?? 1,
+          remainderPolicy: config.remainderPolicy as BurnCreateGameRequest['remainderPolicy'],
+        };
+        const created = await mockBurnGameApi.createBurnGame(burnPayload);
+        stored.info.gameID = created.gameID;
+      } else {
+        const gamePayload: GameCreationInfo = {
+          gameID: crypto.randomUUID(),
+          cubeID: (config.cubeID as string) ?? 'mock-cube',
+          numberOfDoubleDraftPicksPerPlayer:
+            stored.info.draftType === 'pyramid'
+              ? ((config.numberOfDoubleDraftPicksPerPlayer as number) ?? 3)
+              : 0,
+          packsPerPlayer:
+            stored.info.draftType === 'classic'
+              ? ((config.packsPerPlayer as number) ?? 3)
+              : undefined,
+          cardsPerPack:
+            stored.info.draftType === 'classic'
+              ? ((config.cardsPerPack as number) ?? 15)
+              : undefined,
+          players: stored.info.players.map((p) => ({
+            accountID: p.accountID ?? crypto.randomUUID(),
+            name: p.displayName,
+            playerToken: p.playerToken,
+          })),
+        };
+
+        const created = await mockGameApi.createAndStartGame(gamePayload);
+        stored.info.gameID = created.gameID;
+      }
       stored.info.status = 'started';
     } catch {
       stored.info.status = 'waiting';

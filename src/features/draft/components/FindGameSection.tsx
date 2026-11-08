@@ -1,13 +1,14 @@
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { gameApi } from '../api/gameApi';
 import { classicGameApi } from '../api/classicGameApi';
+import { burnGameApi } from '../api/burnGameApi';
 import { ApiError } from '../../../shared/api/httpClient';
 import { useState } from 'react';
 
 interface FindGameSectionProps {
   onEnterDraft: (gameID: string, playerName: string) => void;
-  /** Which backend to validate against first. Classic tries draftData first. */
-  mode?: 'pyramid' | 'classic';
+  /** Which backend to validate against first. */
+  mode?: 'pyramid' | 'classic' | 'burn';
 }
 
 export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSectionProps) {
@@ -38,6 +39,18 @@ export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSect
     onEnterDraft(info.gameID, name);
   }
 
+  async function joinBurnGame(gameID: string, name: string) {
+    // Same as classic: burn draft data needs the player token, so use the
+    // public fetchGameData endpoint (available once complete) to confirm the
+    // player existed.
+    const info = await burnGameApi.fetchGameData(gameID);
+    const matchesPlayer = info.players.some((p) => p.playerName === name);
+    if (!matchesPlayer) {
+      throw new Error(`No player named "${name}" found in game ${gameID}.`);
+    }
+    onEnterDraft(info.gameID, name);
+  }
+
   async function handleEnterGrimoire() {
     if (!joinGameID.trim() || !joinName.trim()) {
       setJoinError('Game ID and your name are required.');
@@ -48,7 +61,19 @@ export function FindGameSection({ onEnterDraft, mode = 'pyramid' }: FindGameSect
     setJoining(true);
     setJoinError(null);
     try {
-      if (mode === 'classic') {
+      if (mode === 'burn') {
+        try {
+          await joinBurnGame(gameID, name);
+        } catch (err) {
+          // Not a burn game — fall back to the pyramid lookup so a pyramid
+          // game entered here still works.
+          if (err instanceof ApiError && err.status === 404) {
+            await joinPyramidGame(gameID, name);
+          } else {
+            throw err;
+          }
+        }
+      } else if (mode === 'classic') {
         try {
           await joinClassicGame(gameID, name);
         } catch (err) {

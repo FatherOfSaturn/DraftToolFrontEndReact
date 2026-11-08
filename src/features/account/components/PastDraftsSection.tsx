@@ -9,6 +9,7 @@ import { buildDraftCardItem, type DraftPlayerRow } from './pastDraftsModel';
 const GAME_TYPE_LABELS: Record<GameHistoryEntry['gameType'], string> = {
   pyramid: 'Pyramid',
   classic: 'Classic',
+  burn: 'Burn',
 };
 
 interface PastDraftsSectionProps {
@@ -50,6 +51,7 @@ function PlayerRow({ row, gameID }: { row: DraftPlayerRow; gameID: string }) {
           onClick={() =>
             navigate(
               `/${row.action!.target}/${encodeURIComponent(gameID)}/${encodeURIComponent(row.routeName)}`,
+              row.action!.target === 'deckbuilder' ? { state: { gameType: row.gameType } } : undefined,
             )
           }
         >
