@@ -116,7 +116,7 @@ function DraftCard({
                 href={`https://cubecobra.com/cube/list/${card.cubeID}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline break-all"
                 title="Click to visit cube on CubeCobra"
                 onClick={(event) => event.stopPropagation()}
               >
@@ -160,8 +160,8 @@ export function PastDraftsSection({
   currentAccountID,
 }: PastDraftsSectionProps) {
   return (
-    <section className="xl:col-span-7 space-y-6">
-      <div className="flex items-center justify-between">
+    <section className="xl:col-span-7 space-y-6 min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-headline-lg text-headline-lg flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-[32px]">history_edu</span>
           Past Drafts

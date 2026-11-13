@@ -10,11 +10,11 @@ export function Pagination({ currentPage, totalPages, totalItems, onPrev, onNext
   if (totalPages <= 1) return null;
 
   return (
-    <div className="p-4 bg-surface-container-high/30 border-t border-outline-variant/20 flex items-center justify-between">
+    <div className="p-4 bg-surface-container-high/30 border-t border-outline-variant/20 flex flex-wrap items-center justify-between gap-2">
       <span className="font-label-sm text-on-surface-variant">
         {totalItems} total · Page {currentPage} of {totalPages}
       </span>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <button
           className="font-label-sm text-label-sm px-3 py-1.5 rounded-lg border border-outline-variant/30 hover:bg-surface-container-high/50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           onClick={onPrev}
