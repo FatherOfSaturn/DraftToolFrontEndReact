@@ -54,6 +54,26 @@ export function BurnDraftBoardView({
   const [burnIDs, setBurnIDs] = useState<string[]>([]);
   const [poolTab, setPoolTab] = useState<PoolSidebarTab>('list');
   const committingRef = useRef(false);
+  const commitBarRef = useRef<HTMLDivElement>(null);
+  const [commitBarHeight, setCommitBarHeight] = useState(0);
+
+  // Measure the fixed commit bar so the pool sidebar can end just above it on
+  // mobile (the drawer otherwise sits behind the bar and hides the last rows).
+  useEffect(() => {
+    const el = commitBarRef.current;
+    if (!el) return;
+    const update = () => setCommitBarHeight(Math.ceil(el.getBoundingClientRect().height));
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    window.addEventListener('resize', update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', update);
+    };
+  }, [isWaiting, currentPack]);
+
+  const showCommitBar = !isWaiting && Boolean(currentPack);
 
   const { filteredCards: visibleCards, filterPanelProps } = useCardFilters(
     currentPack?.cardsInPack ?? []
@@ -163,7 +183,7 @@ export function BurnDraftBoardView({
         tab={poolTab === 'import' ? 'list' : poolTab}
         onTabChange={setPoolTab}
         showImportTab={false}
-        contentBottomPaddingClassName="pb-36 xl:pb-md"
+        mobileBottomOffsetPx={showCommitBar ? commitBarHeight + 2 : 0}
       />
 
       <main className="mt-28 mb-32 xl:mb-24 xl:mr-80 px-margin-mobile md:px-margin-desktop py-lg">
@@ -194,8 +214,11 @@ export function BurnDraftBoardView({
         )}
       </main>
 
-      {!isWaiting && currentPack && (
-        <div className="fixed bottom-0 left-0 right-0 xl:right-80 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-2 md:py-sm pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] md:pb-sm">
+      {showCommitBar && (
+        <div
+          ref={commitBarRef}
+          className="fixed bottom-0 left-0 right-0 xl:right-80 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-2 md:py-sm pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] md:pb-sm"
+        >
           <div className="max-w-[1400px] mx-auto flex flex-wrap items-center gap-sm md:gap-md">
             <ModeButton
               active={mode === 'draft'}

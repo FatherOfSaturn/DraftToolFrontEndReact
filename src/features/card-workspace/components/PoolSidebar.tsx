@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
 import type { Card } from '../../../shared/model/cardTypes';
 import { ImportDecklistTab } from './ImportDecklistTab';
 import { PoolAnalytics } from './PoolAnalytics';
@@ -22,12 +23,11 @@ export interface PoolSidebarProps {
   confirmAction?: ConfirmPickAction;
   topOffsetPx?: number;
   /**
-   * Extra bottom padding for the scroll area. Used by pages with a fixed
-   * bottom bar (e.g. Burn Draft's commit bar) so the last rows can scroll clear
-   * of it. Should include responsive classes if the bar only overlaps on some
-   * viewports (e.g. "pb-36 xl:pb-md").
+   * Height (px) reserved at the bottom of the sidebar on viewports below xl,
+   * for a fixed bottom bar that would otherwise cover the last rows. Ignored at
+   * xl and up, where the sidebar sits beside such bars.
    */
-  contentBottomPaddingClassName?: string;
+  mobileBottomOffsetPx?: number;
   sideboardCards?: Card[];
   onMoveToSideboard?: (card: Card) => void;
   onMoveToList?: (card: Card) => void;
@@ -45,7 +45,7 @@ export function PoolSidebar({
   showImportTab = true,
   confirmAction,
   topOffsetPx = 112,
-  contentBottomPaddingClassName = '',
+  mobileBottomOffsetPx = 0,
   sideboardCards,
   onMoveToSideboard,
   onMoveToList,
@@ -55,6 +55,10 @@ export function PoolSidebar({
 }: PoolSidebarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const showSideboardTab = sideboardCards !== undefined;
+  // The bottom bar that overlaps the drawer only exists below xl; at xl the
+  // sidebar sits beside it, so we don't reserve any height there.
+  const isXl = useMediaQuery('(min-width: 1280px)');
+  const bottomOffset = isXl ? 0 : mobileBottomOffsetPx;
 
   useEffect(() => {
     function onResize() {
@@ -101,7 +105,7 @@ export function PoolSidebar({
             ? 'translate-x-0'
             : 'translate-x-full xl:translate-x-0'
         }`}
-        style={{ top: topOffsetPx, height: `calc(100dvh - ${topOffsetPx}px)` }}
+        style={{ top: topOffsetPx, height: `calc(100dvh - ${topOffsetPx}px - ${bottomOffset}px)` }}
       >
         <div className="p-md border-b border-outline-variant/20">
           <div className="flex items-center justify-between mb-2">
@@ -126,7 +130,7 @@ export function PoolSidebar({
           </div>
         </div>
 
-        <div className={`flex-1 overflow-y-auto custom-scrollbar p-md ${contentBottomPaddingClassName}`}>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-md">
           {tab === 'list' && (
             <PoolList cards={cards} onRowClick={onMoveToSideboard} onAddLand={onAddLand} onExport={onExport} onSaveDeck={onSaveDeck} />
           )}
