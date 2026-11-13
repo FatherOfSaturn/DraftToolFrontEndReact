@@ -64,7 +64,7 @@ export function PoolList({
   }, [previewedCard]);
 
   return (
-    <div className="flex flex-col h-full" data-pool-list>
+    <div className="flex flex-col min-h-full" data-pool-list>
       {onAddLand && (
         <div className="flex justify-between items-center mb-1.5 bg-surface-container-high/40 rounded-lg px-2 py-1 border border-outline-variant/10">
           <span className="text-[10px] font-label-sm text-on-surface-variant uppercase">Quick Add Land</span>
@@ -111,7 +111,7 @@ export function PoolList({
             <button
               type="button"
               onClick={onExport}
-              className="w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-full bg-primary py-2 px-md rounded-xl text-on-primary font-bold font-label-md text-label-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Export to Clipboard
             </button>
@@ -121,7 +121,7 @@ export function PoolList({
               type="button"
               onClick={onSaveDeck}
               disabled={!onSaveDeck}
-              className="w-full bg-primary py-sm rounded-lg text-on-primary font-bold font-headline-md text-headline-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+              className="w-full bg-primary py-2 px-md rounded-xl text-on-primary font-bold font-label-md text-label-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
             >
               Save Deck
             </button>
