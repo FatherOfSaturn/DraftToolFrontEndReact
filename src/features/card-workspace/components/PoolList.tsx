@@ -10,8 +10,6 @@ interface PoolListProps {
   onRowClick?: (card: Card) => void;
   emptyMessage?: string;
   onAddLand?: (name: string) => void;
-  onExport?: () => void;
-  onSaveDeck?: () => void;
 }
 
 interface GroupedCard {
@@ -34,8 +32,6 @@ export function PoolList({
   onRowClick,
   emptyMessage = 'No cards drafted yet',
   onAddLand,
-  onExport,
-  onSaveDeck,
 }: PoolListProps) {
   const grouped = useMemo(() => groupCardsByName(cards.slice().reverse()), [cards]);
   const [previewedCard, setPreviewedCard] = useState<string | null>(null);
@@ -104,35 +100,6 @@ export function PoolList({
           </div>
         )}
       </div>
-
-      {(onExport || onSaveDeck !== undefined) && (
-        <div className="sticky bottom-0 -mx-md px-md pb-[calc(var(--spacing-sm,8px)+env(safe-area-inset-bottom,0px))] pt-sm bg-surface-container-high/95 backdrop-blur-sm border-t border-outline-variant/10 flex flex-col gap-1.5">
-          {onExport && (
-            <button
-              type="button"
-              onClick={onExport}
-              className="w-full bg-primary py-2 px-md rounded-xl text-on-primary font-bold font-label-md text-label-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              Export to Clipboard
-            </button>
-          )}
-          <div className="relative group/tooltip">
-            <button
-              type="button"
-              onClick={onSaveDeck}
-              disabled={!onSaveDeck}
-              className="w-full bg-primary py-2 px-md rounded-xl text-on-primary font-bold font-label-md text-label-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
-            >
-              Save Deck
-            </button>
-            {!onSaveDeck && (
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-surface-container-high text-on-surface text-label-sm rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-outline-variant/30 shadow-lg z-50">
-                To save decks, log in
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -132,7 +132,7 @@ export function PoolSidebar({
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-md">
           {tab === 'list' && (
-            <PoolList cards={cards} onRowClick={onMoveToSideboard} onAddLand={onAddLand} onExport={onExport} onSaveDeck={onSaveDeck} />
+            <PoolList cards={cards} onRowClick={onMoveToSideboard} onAddLand={onAddLand} />
           )}
           {tab === 'sideboard' && sideboardCards !== undefined && (
             <PoolList cards={sideboardCards} onRowClick={onMoveToList} emptyMessage="No cards in sideboard" />
@@ -142,6 +142,37 @@ export function PoolSidebar({
             <ImportDecklistTab onImportCards={(imported) => onImportCards?.(imported)} />
           )}
         </div>
+
+        {/* Deck-builder actions live outside the scroll area so they sit flush
+            against the bottom of the sidebar instead of floating over the list. */}
+        {tab === 'list' && (onExport || onSaveDeck !== undefined) && (
+          <div className="p-md pb-[calc(var(--spacing-md,16px)+env(safe-area-inset-bottom,0px))] bg-surface-container-high border-t border-outline-variant/20 flex flex-col gap-1.5">
+            {onExport && (
+              <button
+                type="button"
+                onClick={onExport}
+                className="w-full bg-primary py-2 px-md rounded-xl text-on-primary font-bold font-label-md text-label-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Export to Clipboard
+              </button>
+            )}
+            <div className="relative group/tooltip">
+              <button
+                type="button"
+                onClick={onSaveDeck}
+                disabled={!onSaveDeck}
+                className="w-full bg-primary py-2 px-md rounded-xl text-on-primary font-bold font-label-md text-label-md active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+              >
+                Save Deck
+              </button>
+              {!onSaveDeck && (
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-surface-container-high text-on-surface text-label-sm rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-outline-variant/30 shadow-lg z-50">
+                  To save decks, log in
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {confirmAction && (
           <div className="p-md pb-[calc(var(--spacing-md,16px)+env(safe-area-inset-bottom,0px))] bg-surface-container-high border-t border-outline-variant/20 flex flex-col gap-sm">
