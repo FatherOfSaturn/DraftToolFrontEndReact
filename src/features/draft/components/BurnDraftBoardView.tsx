@@ -151,8 +151,6 @@ export function BurnDraftBoardView({
   }
 
   const quota = turnPlan;
-  const draftRemaining = Math.max(0, quota.draft - draftCards.length);
-  const burnRemaining = Math.max(0, quota.burn - burnCards.length);
 
   return (
     <div className="font-body-md text-on-surface bg-surface-dim min-h-screen selection:bg-primary-container selection:text-on-primary-container">
@@ -165,9 +163,10 @@ export function BurnDraftBoardView({
         tab={poolTab === 'import' ? 'list' : poolTab}
         onTabChange={setPoolTab}
         showImportTab={false}
+        contentBottomPaddingClassName="pb-36 xl:pb-md"
       />
 
-      <main className="mt-28 mb-48 xl:mr-80 px-margin-mobile md:px-margin-desktop py-lg">
+      <main className="mt-28 mb-32 xl:mb-24 xl:mr-80 px-margin-mobile md:px-margin-desktop py-lg">
         {isWaiting ? (
           waitingNode
         ) : !currentPack ? (
@@ -196,75 +195,39 @@ export function BurnDraftBoardView({
       </main>
 
       {!isWaiting && currentPack && (
-        <div className="fixed bottom-0 left-0 right-0 xl:right-80 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-sm">
-          <div className="max-w-[1400px] mx-auto flex flex-col gap-sm">
-            <div className="flex flex-wrap items-center gap-sm md:gap-md">
-              <ModeButton
-                active={mode === 'draft'}
-                tone="draft"
-                icon="content_copy"
-                label={`Draft ${draftCards.length}/${quota.draft}`}
-                onClick={() => setMode('draft')}
-              />
-              <ModeButton
-                active={mode === 'burn'}
-                tone="burn"
-                icon="local_fire_department"
-                label={`Burn ${burnCards.length}/${quota.burn}`}
-                onClick={() => setMode('burn')}
-                disabled={quota.burn === 0}
-              />
+        <div className="fixed bottom-0 left-0 right-0 xl:right-80 z-40 bg-surface-container-lowest/95 backdrop-blur-md border-t border-outline-variant/20 px-margin-mobile md:px-margin-desktop py-2 md:py-sm pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] md:pb-sm">
+          <div className="max-w-[1400px] mx-auto flex flex-wrap items-center gap-sm md:gap-md">
+            <ModeButton
+              active={mode === 'draft'}
+              tone="draft"
+              icon="content_copy"
+              label={`Draft ${draftCards.length}/${quota.draft}`}
+              onClick={() => setMode('draft')}
+            />
+            <ModeButton
+              active={mode === 'burn'}
+              tone="burn"
+              icon="local_fire_department"
+              label={`Burn ${burnCards.length}/${quota.burn}`}
+              onClick={() => setMode('burn')}
+              disabled={quota.burn === 0}
+            />
 
-              <div className="ml-auto flex items-center gap-md">
-                <div className="hidden sm:flex flex-col items-end leading-tight">
-                  <span className="font-label-sm text-label-sm text-on-surface-variant">
-                    {quota.burn === 0
-                      ? 'No burns this turn — extras are drafted.'
-                      : mode === 'burn'
-                        ? burnRemaining > 0
-                          ? `Select ${burnRemaining} more to burn`
-                          : 'Burn selection complete'
-                        : draftRemaining > 0
-                          ? `Select ${draftRemaining} more to draft`
-                          : 'Draft selection complete'}
-                  </span>
-                  <span className="font-label-sm text-label-sm text-outline">
-                    Burned so far: {cardsBurnedCount}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleCommit}
-                  disabled={!canCommit}
-                  className="bg-primary text-on-primary font-display text-headline-md py-sm px-lg rounded-xl shadow-[0_0_20px_var(--glow-primary-light-soft)] hover:shadow-[0_0_30px_var(--glow-primary-light)] transition-all active:scale-[0.98] flex items-center justify-center gap-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-                >
-                  <span className="material-symbols-outlined">
-                    {committing ? 'hourglass_top' : 'gavel'}
-                  </span>
-                  {committing ? 'Committing…' : 'Commit Turn'}
-                </button>
-              </div>
-            </div>
-
-            {/* Validation summary: green when valid, red/amber while incomplete. */}
-            <div className="flex items-center gap-sm font-label-sm text-label-sm">
-              <ValidationPill
-                ok={draftComplete}
-                text={`Drafted ${draftCards.length}/${quota.draft}`}
-                tone="draft"
-              />
-              {quota.burn > 0 && (
-                <ValidationPill
-                  ok={burnComplete}
-                  text={`Burned ${burnCards.length}/${quota.burn}`}
-                  tone="burn"
-                />
-              )}
-              {!canCommit && (
-                <span className="text-on-surface-variant/80">
-                  Select the exact number of cards for each action, then commit.
+            <div className="ml-auto flex items-center gap-md">
+              <span className="hidden md:inline font-label-sm text-label-sm text-outline">
+                Burned so far: {cardsBurnedCount}
+              </span>
+              <button
+                type="button"
+                onClick={handleCommit}
+                disabled={!canCommit}
+                className="bg-primary text-on-primary font-label-md md:font-display text-label-md md:text-headline-md py-2 md:py-sm px-md md:px-lg rounded-xl shadow-[0_0_20px_var(--glow-primary-light-soft)] hover:shadow-[0_0_30px_var(--glow-primary-light)] transition-all active:scale-[0.98] flex items-center justify-center gap-1.5 md:gap-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+              >
+                <span className="material-symbols-outlined text-[18px] md:text-[24px]">
+                  {committing ? 'hourglass_top' : 'gavel'}
                 </span>
-              )}
+                {committing ? 'Committing…' : 'Commit Turn'}
+              </button>
             </div>
           </div>
         </div>
@@ -289,7 +252,7 @@ function ModeButton({
   disabled?: boolean;
 }) {
   const base =
-    'flex items-center gap-2 px-md py-2 rounded-xl border-2 font-label-md text-label-md transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed';
+    'flex items-center gap-1.5 md:gap-2 px-sm md:px-md py-1.5 md:py-2 rounded-lg md:rounded-xl border-2 font-label-sm md:font-label-md text-label-sm md:text-label-md transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed';
   const activeClass =
     tone === 'burn'
       ? 'bg-error/15 border-error text-error'
@@ -301,25 +264,8 @@ function ModeButton({
 
   return (
     <button type="button" onClick={onClick} disabled={disabled} className={`${base} ${active ? activeClass : idleClass}`}>
-      <span className="material-symbols-outlined text-[18px]">{icon}</span>
+      <span className="material-symbols-outlined text-[16px] md:text-[18px]">{icon}</span>
       {label}
     </button>
-  );
-}
-
-function ValidationPill({ ok, text, tone }: { ok: boolean; text: string; tone: BurnSelectionMode }) {
-  const activeClass =
-    tone === 'burn'
-      ? 'bg-error/15 border-error/50 text-error'
-      : 'bg-primary/15 border-primary/50 text-primary';
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 ${
-        ok ? activeClass : 'border-outline-variant/30 text-on-surface-variant'
-      }`}
-    >
-      <span className="material-symbols-outlined text-[14px]">{ok ? 'check_circle' : 'radio_button_unchecked'}</span>
-      {text}
-    </span>
   );
 }

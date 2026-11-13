@@ -21,6 +21,13 @@ export interface PoolSidebarProps {
   showImportTab?: boolean;
   confirmAction?: ConfirmPickAction;
   topOffsetPx?: number;
+  /**
+   * Extra bottom padding for the scroll area. Used by pages with a fixed
+   * bottom bar (e.g. Burn Draft's commit bar) so the last rows can scroll clear
+   * of it. Should include responsive classes if the bar only overlaps on some
+   * viewports (e.g. "pb-36 xl:pb-md").
+   */
+  contentBottomPaddingClassName?: string;
   sideboardCards?: Card[];
   onMoveToSideboard?: (card: Card) => void;
   onMoveToList?: (card: Card) => void;
@@ -38,6 +45,7 @@ export function PoolSidebar({
   showImportTab = true,
   confirmAction,
   topOffsetPx = 112,
+  contentBottomPaddingClassName = '',
   sideboardCards,
   onMoveToSideboard,
   onMoveToList,
@@ -118,7 +126,7 @@ export function PoolSidebar({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-md">
+        <div className={`flex-1 overflow-y-auto custom-scrollbar p-md ${contentBottomPaddingClassName}`}>
           {tab === 'list' && (
             <PoolList cards={cards} onRowClick={onMoveToSideboard} onAddLand={onAddLand} onExport={onExport} onSaveDeck={onSaveDeck} />
           )}
