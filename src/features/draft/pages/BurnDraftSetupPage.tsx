@@ -448,13 +448,10 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
               />
             </div>
           ) : (
-            <div className="space-y-lg">
-              <BurnCalculatorPanel calc={calc} validTone={validTone} errors={errorList} />
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
-                {/* Left Column: Create Lobby */}
-                <div className="lg:col-span-7 flex flex-col gap-lg">
-                  <div className="glass-panel p-lg rounded-xl flex flex-col">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
+              {/* Left Column: Create Lobby */}
+              <div className="lg:col-span-7 flex flex-col gap-lg">
+                <div className="glass-panel p-lg rounded-xl flex flex-col">
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="material-symbols-outlined text-primary text-3xl">local_fire_department</span>
@@ -582,10 +579,10 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                 </div>
               </div>
 
-                {/* Right Column: Find Game */}
-                <div className="lg:col-span-5">
-                  <FindGameSection onEnterDraft={onEnterDraft} mode="burn" />
-                </div>
+              {/* Right Column: Live Results + Find Game */}
+              <div className="lg:col-span-5 flex flex-col gap-lg">
+                <BurnCalculatorPanel calc={calc} validTone={validTone} errors={errorList} />
+                <FindGameSection onEnterDraft={onEnterDraft} mode="burn" />
               </div>
             </div>
           )}
@@ -641,9 +638,8 @@ function BurnCalculatorPanel({
         <h2 className="font-headline-md text-headline-md text-on-surface">Live Results</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-lg items-start">
-        <div>
-          <div className="flex items-center justify-between mb-1">
+      <div>
+        <div className="flex items-center justify-between mb-1">
           <span className="font-label-sm text-on-surface-variant">CUBE COVERAGE</span>
           <span className={`font-display text-[22px] ${validTone ? 'text-primary' : 'text-error'}`}>
             {calc.coverage.toFixed(1)}%
@@ -683,7 +679,6 @@ function BurnCalculatorPanel({
             <SummaryRow label="Cards in final partial turn" value={calc.remainder} />
           </tbody>
         </table>
-      </div>
       </div>
 
       {errors.length > 0 ? (
