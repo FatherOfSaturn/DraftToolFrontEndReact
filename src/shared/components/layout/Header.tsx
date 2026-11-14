@@ -70,12 +70,6 @@ export function Header({ search }: HeaderProps) {
     <>
       <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 bg-surface-dim/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[var(--nav-shadow)]">
         <div className="flex items-center gap-base">
-          <span
-            className="material-symbols-outlined text-primary text-3xl"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            auto_stories
-          </span>
           <h1 className="font-display text-headline-md font-extrabold text-primary tracking-tight">
             <Link to="/" className="text-primary hover:text-primary/80 transition-colors duration-300">
               Pyramid Draft
