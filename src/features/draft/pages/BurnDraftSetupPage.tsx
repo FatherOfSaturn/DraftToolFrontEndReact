@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '../../../shared/components/layout/Header';
 import { Footer } from '../../../shared/components/layout/Footer';
@@ -275,12 +276,6 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
   const errorList = Object.values(errors);
   const isValid = errorList.length === 0;
 
-  function applyPreset(draft: number, burn: number, pack: number) {
-    setCardsDraftedPerPack(draft);
-    setCardsBurnedPerPack(burn);
-    setCardsPerPack(pack);
-  }
-
   async function handleCreateLobby() {
     if (!isValid) {
       setCreateError('Fix the highlighted fields before creating the lobby.');
@@ -453,10 +448,13 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-stretch">
-              {/* Left Column: Create Lobby + live calculator */}
-              <div className="lg:col-span-7 flex flex-col gap-lg">
-                <div className="glass-panel p-lg rounded-xl flex flex-col">
+            <div className="space-y-lg">
+              <BurnCalculatorPanel calc={calc} validTone={validTone} errors={errorList} />
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
+                {/* Left Column: Create Lobby */}
+                <div className="lg:col-span-7 flex flex-col gap-lg">
+                  <div className="glass-panel p-lg rounded-xl flex flex-col">
                   <div className="mb-6">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="material-symbols-outlined text-primary text-3xl">local_fire_department</span>
@@ -492,6 +490,7 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                         max={100000}
                         onChange={setCubeSize}
                         error={errors.cubeSize}
+                        tooltip="The total number of cards in the cube. Used for the coverage bar and to check the draft fits within the cube."
                       />
                       <StepperInput
                         label="PLAYERS"
@@ -500,6 +499,7 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                         max={12}
                         onChange={setNumberOfPlayers}
                         error={errors.players}
+                        tooltip="Number of players in the draft (2–12). Each player is dealt one pack per generation."
                       />
                       <StepperInput
                         label="PACKS / PLAYER"
@@ -508,6 +508,7 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                         max={30}
                         onChange={setPacksPerPlayer}
                         error={errors.packsPerPlayer}
+                        tooltip="How many packs each player is dealt. Total packs = players × packs per player."
                       />
                       <StepperInput
                         label="CARDS / PACK"
@@ -516,6 +517,7 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                         max={25}
                         onChange={setCardsPerPack}
                         error={errors.cardsPerPack}
+                        tooltip="How many cards are in each pack (1–25)."
                       />
                       <StepperInput
                         label="DRAFT / TURN"
@@ -524,6 +526,7 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                         max={Math.max(1, cardsPerPack)}
                         onChange={setCardsDraftedPerPack}
                         error={errors.cardsDraftedPerPack}
+                        tooltip="How many cards each player drafts from the pack they hold on a turn."
                       />
                       <StepperInput
                         label="BURN / TURN"
@@ -532,11 +535,18 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                         max={Math.max(0, cardsPerPack)}
                         onChange={setCardsBurnedPerPack}
                         error={errors.cardsBurnedPerPack}
+                        tooltip="How many cards each player burns from the held pack on a turn. Burned cards leave the draft."
                       />
                     </div>
 
                     <div>
-                      <span className="block font-label-sm text-outline mb-2">REMAINDER POLICY</span>
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="font-label-sm text-outline">REMAINDER POLICY</span>
+                        <HelpTooltip
+                          text="What happens on the final partial turn, when fewer than the draft + burn quotas remain: burn the leftovers or draft them."
+                          label="Remainder policy"
+                        />
+                      </div>
                       <div className="grid grid-cols-2 gap-3">
                         <PolicyButton
                           active={remainderPolicy === 'burn_extras'}
@@ -557,16 +567,6 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                       </div>
                       {errors.quota && <p className="mt-2 text-sm text-error">{errors.quota}</p>}
                     </div>
-
-                    <div>
-                      <span className="block font-label-sm text-outline mb-2">QUICK PRESETS</span>
-                      <div className="flex flex-wrap gap-2">
-                        <PresetButton onClick={() => applyPreset(1, 1, 6)}>1 draft / 1 burn</PresetButton>
-                        <PresetButton onClick={() => applyPreset(2, 2, 6)}>2 draft / 2 burn</PresetButton>
-                        <PresetButton onClick={() => applyPreset(2, 1, 6)}>2 draft / 1 burn</PresetButton>
-                        <PresetButton onClick={() => applyPreset(1, 1, 9)}>More exposure</PresetButton>
-                      </div>
-                    </div>
                   </div>
 
                   {createError && <p className="mt-4 text-sm text-error">{createError}</p>}
@@ -580,13 +580,12 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                     {creating ? 'Creating…' : 'Create Lobby'}
                   </button>
                 </div>
-
-                <BurnCalculatorPanel calc={calc} validTone={validTone} errors={errorList} />
               </div>
 
-              {/* Right Column: Find Game */}
-              <div className="lg:col-span-5">
-                <FindGameSection onEnterDraft={onEnterDraft} mode="burn" />
+                {/* Right Column: Find Game */}
+                <div className="lg:col-span-5">
+                  <FindGameSection onEnterDraft={onEnterDraft} mode="burn" />
+                </div>
               </div>
             </div>
           )}
@@ -642,8 +641,9 @@ function BurnCalculatorPanel({
         <h2 className="font-headline-md text-headline-md text-on-surface">Live Results</h2>
       </div>
 
-      <div>
-        <div className="flex items-center justify-between mb-1">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-lg items-start">
+        <div>
+          <div className="flex items-center justify-between mb-1">
           <span className="font-label-sm text-on-surface-variant">CUBE COVERAGE</span>
           <span className={`font-display text-[22px] ${validTone ? 'text-primary' : 'text-error'}`}>
             {calc.coverage.toFixed(1)}%
@@ -683,6 +683,7 @@ function BurnCalculatorPanel({
             <SummaryRow label="Cards in final partial turn" value={calc.remainder} />
           </tbody>
         </table>
+      </div>
       </div>
 
       {errors.length > 0 ? (
@@ -726,15 +727,56 @@ function StatTile({ label, value, tone }: { label: string; value: number; tone: 
   );
 }
 
-function PresetButton({ onClick, children }: { onClick: () => void; children: string }) {
+function HelpTooltip({ text, label }: { text: string; label?: string }) {
+  const buttonRef = useRef<HTMLSpanElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
+
+  function show() {
+    const rect = buttonRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const width = Math.min(280, window.innerWidth - 16);
+    const centered = rect.left + rect.width / 2 - width / 2;
+    const left = Math.max(8, Math.min(centered, window.innerWidth - width - 8));
+    setPos({ left, top: rect.bottom + 8, width });
+  }
+
+  function hide() {
+    setPos(null);
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="px-3 py-1.5 rounded-lg border border-outline-variant/40 text-on-surface-variant font-label-sm hover:border-primary/50 hover:text-primary transition-colors"
-    >
-      {children}
-    </button>
+    <>
+      <span
+        ref={buttonRef}
+        role="button"
+        tabIndex={0}
+        aria-label={label ? `About ${label}` : 'More information'}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            if (pos) hide();
+            else show();
+          }
+        }}
+        className="inline-flex items-center text-on-surface-variant hover:text-primary cursor-help"
+      >
+        <span className="material-symbols-outlined text-[16px]">help</span>
+      </span>
+      {pos &&
+        createPortal(
+          <div
+            className="fixed z-[100] px-3 py-2 bg-surface-container-high text-on-surface text-label-sm rounded-lg border border-outline-variant/30 shadow-lg pointer-events-none"
+            style={{ left: pos.left, top: pos.top, width: pos.width }}
+          >
+            {text}
+          </div>,
+          document.body
+        )}
+    </>
   );
 }
 
@@ -782,13 +824,17 @@ interface StepperInputProps {
   max: number;
   onChange: (value: number) => void;
   error?: string;
+  tooltip?: string;
 }
 
-function StepperInput({ label, value, min, max, onChange, error }: StepperInputProps) {
+function StepperInput({ label, value, min, max, onChange, error, tooltip }: StepperInputProps) {
   const invalid = Boolean(error);
   return (
     <div className="flex flex-col gap-xs">
-      <span className="font-label-sm text-outline">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <span className="font-label-sm text-outline">{label}</span>
+        {tooltip && <HelpTooltip text={tooltip} label={label} />}
+      </div>
       <div
         className={`flex items-center bg-surface-container-lowest rounded-lg overflow-hidden border ${
           invalid ? 'border-error' : 'border-outline/20'
@@ -829,13 +875,17 @@ interface NumberInputProps {
   max: number;
   onChange: (value: number) => void;
   error?: string;
+  tooltip?: string;
 }
 
-function NumberInput({ label, value, min, max, onChange, error }: NumberInputProps) {
+function NumberInput({ label, value, min, max, onChange, error, tooltip }: NumberInputProps) {
   const invalid = Boolean(error);
   return (
     <div className="flex flex-col gap-xs">
-      <span className="font-label-sm text-outline">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <span className="font-label-sm text-outline">{label}</span>
+        {tooltip && <HelpTooltip text={tooltip} label={label} />}
+      </div>
       <input
         className={`w-full bg-surface-container-lowest rounded-lg px-3 py-2 font-display text-[18px] text-on-surface focus:outline-none input-glow transition-all border ${
           invalid ? 'border-error' : 'border-outline/20'
