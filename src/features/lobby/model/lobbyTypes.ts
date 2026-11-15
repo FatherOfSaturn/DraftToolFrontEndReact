@@ -1,4 +1,4 @@
-export type DraftType = 'pyramid' | 'classic';
+export type DraftType = 'pyramid' | 'classic' | 'burn';
 export type LobbyStatus = 'waiting' | 'starting' | 'started';
 
 export interface LobbyPlayer {

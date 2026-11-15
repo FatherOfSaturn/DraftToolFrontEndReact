@@ -9,6 +9,7 @@ import { StatusScreen } from '../../../shared/components/StatusScreen';
 import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
 import { gameApi } from '../../draft/api/gameApi';
 import { classicGameApi } from '../../draft/api/classicGameApi';
+import { burnGameApi } from '../../draft/api/burnGameApi';
 import { buildCard } from '../../card-workspace/utils/importDecklist';
 import { BASIC_LANDS } from '../../../shared/lib/basicLands';
 import { getErrorMessage } from '../../../shared/lib/errors';
@@ -56,6 +57,7 @@ export function DeckBuilderPage() {
   // Classic drafts flag themselves via navigation state because the classic
   // backend only serves full game data once the draft is complete.
   const isClassic = locState?.gameType === 'classic';
+  const isBurn = locState?.gameType === 'burn';
 
   const [decklist, setDecklist] = useState<Card[]>([]);
   const [sideboard, setSideboard] = useState<Card[]>([]);
@@ -107,9 +109,11 @@ export function DeckBuilderPage() {
     }
 
     setLoading(true);
-    const playerPromise = isClassic
-      ? classicGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
-      : gameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName));
+    const playerPromise = isBurn
+      ? burnGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
+      : isClassic
+        ? classicGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
+        : gameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName));
 
     playerPromise
       .then((player) => {

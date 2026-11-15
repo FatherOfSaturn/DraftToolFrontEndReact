@@ -41,6 +41,18 @@ const RITUALS: RitualDefinition[] = [
     artGradientClass: 'bg-gradient-to-br from-primary-container/30 via-surface-container to-secondary-container/20',
   },
   {
+    id: 'burn-draft',
+    name: 'Burn Draft',
+    tag: 'ROTISSERIE',
+    tagTextClass: 'text-error',
+    tagBorderClass: 'border-error/30',
+    description:
+      'Draft a few, burn a few. Pass the rest. A rotisserie with a twist — tune your quotas and watch the cube burn.',
+    icon: 'local_fire_department',
+    cardBorderClass: '',
+    artGradientClass: 'bg-gradient-to-br from-error-container/40 via-surface-container to-tertiary-container/30',
+  },
+  {
     id: 'chaos-manifest',
     name: 'Chaos Draft',
     tag: 'UNDER_CONSTRUCTION',

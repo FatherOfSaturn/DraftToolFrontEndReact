@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { SupportRequest, SupportStatus, SupportType } from '../../feature-requests/api/supportApi';
+import { TicketDetailModal } from './TicketDetailModal';
 
 interface SupportTicketsTableProps {
   requests: SupportRequest[];
@@ -49,6 +50,7 @@ export function SupportTicketsTable({ requests, onDelete, onStatusChange }: Supp
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState('');
   const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+  const [viewingTicket, setViewingTicket] = useState<SupportRequest | null>(null);
 
   const filtered = useMemo(() => {
     return requests.filter((r) => {
@@ -192,7 +194,7 @@ export function SupportTicketsTable({ requests, onDelete, onStatusChange }: Supp
                   <button
                     className="p-1 hover:bg-surface-container rounded-md mr-xs"
                     title="View details"
-                    onClick={() => alert(`Ticket: ${req.title}\n\n${req.description}`)}
+                    onClick={() => setViewingTicket(req)}
                   >
                     <span className="material-symbols-outlined text-outline text-sm">visibility</span>
                   </button>
@@ -218,6 +220,8 @@ export function SupportTicketsTable({ requests, onDelete, onStatusChange }: Supp
           </tbody>
         </table>
       </div>
+
+      {viewingTicket && <TicketDetailModal ticket={viewingTicket} onClose={() => setViewingTicket(null)} />}
     </section>
   );
 }
