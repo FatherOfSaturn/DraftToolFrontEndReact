@@ -67,10 +67,8 @@ export function LobbyView({
           <div className="font-body-sm text-on-surface-variant">
             <p className="text-on-surface font-label-md mb-0.5">How the lobby works</p>
             <p>
-              Share the link or code below with your partner. Players appear here as they join, and
-              each browser checks in every few seconds so the roster stays current. When everyone is
-              seated, the host starts the draft and all players are moved to the draft board. The host
-              can remove other players before starting.
+              Share the link below to invite friends. After some time of not creating the game, the
+              lobby will be removed.
             </p>
           </div>
         </div>

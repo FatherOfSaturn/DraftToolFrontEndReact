@@ -63,7 +63,7 @@ export function FilterPanel({
         <div className="flex flex-col gap-sm">
           {/* Row 1: search, colors, mana value */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[180px]">
+            <div className="relative flex-none w-[240px] max-w-full">
               <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
                 search
               </span>
@@ -92,8 +92,8 @@ export function FilterPanel({
             </div>
 
             <div className="flex items-center gap-1">
-              <span className="text-label-sm text-on-surface-variant mr-0.5 uppercase tracking-widest text-[10px] hidden sm:inline">
-                MV
+              <span className="text-label-sm text-on-surface-variant mr-0.5 uppercase tracking-widest text-[10px] whitespace-nowrap">
+                Mana Value
               </span>
               {(['0', '1', '2', '3', '4', '5+'] as CmcBucket[]).map((bucket) => (
                 <button

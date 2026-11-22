@@ -41,7 +41,7 @@ export function CollapsibleSection({
             {icon && (
               <span className="material-symbols-outlined text-primary text-[20px] flex-shrink-0">{icon}</span>
             )}
-            <span className="font-headline-md text-headline-md text-on-surface truncate">{title}</span>
+            <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">{title}</span>
             {badge && <span className="flex-shrink-0">{badge}</span>}
           </div>
           <span

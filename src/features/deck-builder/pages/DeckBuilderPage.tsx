@@ -241,14 +241,14 @@ export function DeckBuilderPage() {
                   type="button"
                   onClick={() => setGridView(view)}
                   aria-pressed={gridView === view}
-                  className={`px-2.5 py-1.5 rounded-md text-label-sm font-label-sm transition-colors ${
+                  className={`px-2 py-1 rounded-md text-[11px] font-label-sm whitespace-nowrap transition-colors ${
                     gridView === view
                       ? 'bg-primary text-on-primary shadow-sm'
                       : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/60'
                   }`}
                 >
                   {label}
-                  <span className={`ml-1 ${gridView === view ? 'text-on-primary/70' : 'text-on-surface-variant/70'}`}>
+                  <span className={`ml-1 hidden sm:inline ${gridView === view ? 'text-on-primary/70' : 'text-on-surface-variant/70'}`}>
                     {count}
                   </span>
                 </button>
