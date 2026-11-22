@@ -112,7 +112,7 @@ function DraftSelectionRoute() {
           navigate('/draft-setup');
         }
       }}
-      onCreateNewRitual={() => navigate('/draft-setup')}
+      onCreateNewRitual={() => navigate('/feature-requests')}
     />
   );
 }

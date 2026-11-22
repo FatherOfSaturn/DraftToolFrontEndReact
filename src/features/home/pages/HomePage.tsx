@@ -51,7 +51,15 @@ function HeroSection() {
           Welcome to  <span className="text-primary italic">Pyramid Draft</span>
         </h2>
         <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl max-w-2xl mx-auto">
-          A side project by a Magic player who wanted a faster way to draft cubes, and also take on a new side project.
+          A side Project by a Magic player who wanted a faster way to draft cubes, and also take on a
+          new side project. If you are visiting to see how the site functions, I recommend clicking{' '}
+          <Link
+            className="text-primary underline underline-offset-2 hover:text-primary/80 transition-colors"
+            to={`/draft-setup?cubeID=${encodeURIComponent(FAVORITE_CUBES[0].cubeID)}`}
+          >
+            here
+          </Link>{' '}
+          and just create a lobby. You can open two tabs and play for both.
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-md">
           <Link

@@ -415,7 +415,7 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
                 <div className="space-y-6 flex-grow">
                   <LabeledTextField
                     label="CUBE ID"
-                    placeholder="e.g. arcane-vintage-303"
+                    placeholder="visitor"
                     value={cubeID}
                     onChange={setCubeID}
                     tooltip={CUBE_ID_TOOLTIP}

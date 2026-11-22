@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
+import { Spinner } from '../../../shared/components/Spinner';
 import type { DeckPagination } from '../hooks/useAccountDecks';
 import type { Deck } from '../model/accountTypes';
 
@@ -110,9 +111,7 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
         {error && <div className="px-4 py-3 bg-error/10 text-error font-label-sm border-b border-error/20">{error}</div>}
 
         <div className="p-4">
-          {loading && (
-            <div className="py-10 text-center text-on-surface-variant font-body-md">Loading decks…</div>
-          )}
+          {loading && <Spinner className="py-10" label="Loading saved decks" />}
           {!loading && decks.length === 0 && (
             <div className="py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</div>
           )}

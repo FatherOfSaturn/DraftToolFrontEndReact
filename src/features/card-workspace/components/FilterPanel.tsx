@@ -9,7 +9,11 @@ import {
 import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
 import { CollapsibleSection } from '../../../shared/components/CollapsibleSection';
 
-export type FilterPanelProps = CardFilterControls;
+export type FilterPanelProps = CardFilterControls & {
+  /** Optional control rendered in the "Filters" header row (right side),
+   * visible whether the panel is expanded or collapsed. */
+  headerAccessory?: React.ReactNode;
+};
 
 function activeFilterCount(search: string, activeColors: ManaColor[], activeCmc: CmcBucket[], activeType: string[]): number {
   let n = 0;
@@ -34,6 +38,7 @@ export function FilterPanel({
   onToggleCmc,
   activeType,
   onToggleType,
+  headerAccessory,
 }: FilterPanelProps) {
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const count = activeFilterCount(search, activeColors, activeCmc, activeType);
@@ -47,6 +52,7 @@ export function FilterPanel({
         className="glass-panel rounded-2xl shadow-lg overflow-hidden"
         headerClassName="rounded-t-2xl"
         contentClassName="px-md pb-md"
+        headerAccessory={headerAccessory}
         badge={
           count > 0 ? (
             <span className="bg-primary text-on-primary text-[11px] font-bold rounded-full min-w-[20px] h-[20px] flex items-center justify-center px-1.5">

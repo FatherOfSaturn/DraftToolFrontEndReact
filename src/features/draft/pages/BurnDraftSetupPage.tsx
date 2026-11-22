@@ -465,7 +465,7 @@ export function BurnDraftSetupPage({ onEnterDraft }: BurnDraftSetupPageProps) {
                   <div className="space-y-6">
                     <LabeledTextField
                       label="CUBE ID"
-                      placeholder="e.g. arcane-legacy-77"
+                      placeholder="visitor"
                       value={cubeID}
                       onChange={setCubeID}
                       tooltip={CUBE_ID_TOOLTIP}

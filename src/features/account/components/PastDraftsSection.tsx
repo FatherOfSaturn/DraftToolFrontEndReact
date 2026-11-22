@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
+import { Spinner } from '../../../shared/components/Spinner';
 import { useToast } from '../../../shared/components/Toast';
 import type { Pagination as PaginationState } from '../hooks/useGameHistory';
 import type { GameHistoryEntry } from '../model/accountTypes';
@@ -14,6 +15,7 @@ const GAME_TYPE_LABELS: Record<GameHistoryEntry['gameType'], string> = {
 
 interface PastDraftsSectionProps {
   games: GameHistoryEntry[];
+  loading: boolean;
   pagination: PaginationState;
   currentPlayerNames?: string[];
   currentAccountID?: string;
@@ -155,6 +157,7 @@ function DraftCard({
 
 export function PastDraftsSection({
   games,
+  loading,
   pagination,
   currentPlayerNames,
   currentAccountID,
@@ -173,12 +176,13 @@ export function PastDraftsSection({
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
-        {games.length === 0 && (
+        {loading && <Spinner className="py-10" label="Loading past drafts" />}
+        {!loading && games.length === 0 && (
           <div className="p-10 text-center text-on-surface-variant font-body-md">
             No drafts match these filters.
           </div>
         )}
-        {games.length > 0 && (
+        {!loading && games.length > 0 && (
           <div className="p-4 grid grid-cols-1 gap-4">
             {games.map((game) => (
               <DraftCard

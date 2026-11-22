@@ -39,11 +39,12 @@ export function ImportDecklistTab({ onImportCards }: ImportDecklistTabProps) {
           Paste your Decklist here (EX: 2 Lightning Bolt)
         </p>
         <textarea
-          className="w-full max-h-[40dvh] bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg p-sm font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all resize-none"
+          className="w-full min-h-[240px] max-h-[40dvh] bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg p-sm font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all resize-y"
           placeholder={'4 Counterspell\n4 Brainstorm\n20 Island...'}
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={100000}
+          rows={12}
         />
         {unknownNames.length > 0 && (
           <p className="text-[11px] text-on-surface-variant/80 leading-snug">

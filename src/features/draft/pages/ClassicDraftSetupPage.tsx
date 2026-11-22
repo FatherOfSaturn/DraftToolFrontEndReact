@@ -420,7 +420,7 @@ export function ClassicDraftSetupPage({ onEnterDraft }: ClassicDraftSetupPagePro
                   <div className="space-y-6 flex-grow">
                     <LabeledTextField
                       label="CUBE ID"
-                      placeholder="e.g. arcane-legacy-77"
+                      placeholder="visitor"
                       value={cubeID}
                       onChange={setCubeID}
                       tooltip={CUBE_ID_TOOLTIP}
