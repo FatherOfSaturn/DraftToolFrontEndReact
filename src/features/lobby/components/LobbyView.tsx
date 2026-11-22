@@ -61,6 +61,20 @@ export function LobbyView({
           Lobby
         </h2>
 
+        {/* What's happening */}
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-sm mb-lg flex items-start gap-sm">
+          <span className="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">info</span>
+          <div className="font-body-sm text-on-surface-variant">
+            <p className="text-on-surface font-label-md mb-0.5">How the lobby works</p>
+            <p>
+              Share the link or code below with your partner. Players appear here as they join, and
+              each browser checks in every few seconds so the roster stays current. When everyone is
+              seated, the host starts the draft and all players are moved to the draft board. The host
+              can remove other players before starting.
+            </p>
+          </div>
+        </div>
+
         {/* Lobby Info */}
         <div className="flex flex-wrap items-center gap-sm mb-lg">
           <span className="bg-primary/10 text-primary font-label-sm px-3 py-1 rounded-full">
@@ -103,6 +117,12 @@ export function LobbyView({
               {emptySlots > 0 && (
                 <span className="text-outline"> ({emptySlots} open)</span>
               )}
+              <span
+                className="material-symbols-outlined text-[14px] ml-1 align-middle text-outline cursor-help"
+                title="The lobby updates automatically every few seconds. If a player closes the tab, they drop out of the roster after a short timeout."
+              >
+                help
+              </span>
             </span>
           </div>
 

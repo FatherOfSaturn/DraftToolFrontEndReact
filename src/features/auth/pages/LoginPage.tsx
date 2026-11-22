@@ -7,10 +7,9 @@ export type { SupportAvatar };
 
 export interface LoginPageProps {
   supportAvatars?: SupportAvatar[];
-  oracleCardImageSrc?: string;
 }
 
-export function LoginPage({ supportAvatars, oracleCardImageSrc }: LoginPageProps) {
+export function LoginPage({ supportAvatars }: LoginPageProps) {
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -32,7 +31,6 @@ export function LoginPage({ supportAvatars, oracleCardImageSrc }: LoginPageProps
       mainTopPaddingClassName="pt-32"
       onLoginSuccess={handleLoginSuccess}
       supportAvatars={supportAvatars}
-      oracleCardImageSrc={oracleCardImageSrc}
     />
   );
 }

@@ -6,7 +6,6 @@ import {
   type CmcBucket,
   type ManaColor,
 } from '../model/cardFilters';
-import { useMediaQuery } from '../../../shared/hooks/useMediaQuery';
 import { CollapsibleSection } from '../../../shared/components/CollapsibleSection';
 
 export type FilterPanelProps = CardFilterControls & {
@@ -27,7 +26,8 @@ function activeFilterCount(search: string, activeColors: ManaColor[], activeCmc:
 /**
  * The search/color/CMC/type filter bar used above the draft board's card
  * grid. Reusable wherever a filterable card list is needed.
- * Collapsible on mobile to save space; expanded on desktop.
+ * Collapsed by default everywhere; compact when expanded so it takes up
+ * as little vertical space as possible.
  */
 export function FilterPanel({
   search,
@@ -40,18 +40,17 @@ export function FilterPanel({
   onToggleType,
   headerAccessory,
 }: FilterPanelProps) {
-  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const count = activeFilterCount(search, activeColors, activeCmc, activeType);
 
   return (
-    <div className="mb-lg">
+    <div className="mb-md">
       <CollapsibleSection
         title="Filters"
         icon="filter_list"
-        defaultOpen={isDesktop}
+        defaultOpen={false}
         className="glass-panel rounded-2xl shadow-lg overflow-hidden"
         headerClassName="rounded-t-2xl"
-        contentClassName="px-md pb-md"
+        contentClassName="px-md pt-[5px] pb-[5px]"
         headerAccessory={headerAccessory}
         badge={
           count > 0 ? (
@@ -61,28 +60,27 @@ export function FilterPanel({
           ) : undefined
         }
       >
-        <div className="flex flex-col gap-md">
-          {/* Row 1: search */}
-          <div className="relative w-full">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
-              search
-            </span>
-            <input
-              className="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl pl-10 pr-4 py-2.5 text-body-md focus:ring-1 focus:ring-primary focus:border-primary outline-none placeholder:text-on-surface-variant/50 transition-all"
-              placeholder="Filter Cards by name..."
-              type="text"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
-          </div>
+        <div className="flex flex-col gap-sm">
+          {/* Row 1: search, colors, mana value */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[180px]">
+              <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px]">
+                search
+              </span>
+              <input
+                className="w-full bg-surface-container-low border border-outline-variant/30 rounded-lg pl-8 pr-3 py-1.5 text-body-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none placeholder:text-on-surface-variant/50 transition-all"
+                placeholder="Filter cards by name..."
+                type="text"
+                value={search}
+                onChange={(e) => onSearchChange(e.target.value)}
+              />
+            </div>
 
-          {/* Row 2: color pips + CMC */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-1.5 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20">
+            <div className="flex items-center gap-1 bg-surface-container-low p-1 rounded-lg border border-outline-variant/20">
               {(['W', 'U', 'B', 'R', 'G', 'C'] as ManaColor[]).map((color) => (
                 <button
                   key={color}
-                  className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-[14px] border transition-all ${
+                  className={`w-8 h-8 rounded-md flex items-center justify-center font-bold text-[12px] border transition-all ${
                     activeColors.includes(color) ? COLOR_PIP_ACTIVE[color] : COLOR_PIP_STYLES[color]
                   }`}
                   onClick={() => onToggleColor(color)}
@@ -93,35 +91,33 @@ export function FilterPanel({
               ))}
             </div>
 
-            <div className="flex items-center gap-xs">
-              <span className="text-label-sm text-on-surface-variant mr-1 uppercase tracking-widest text-[10px] hidden sm:inline">
-                Mana Value
+            <div className="flex items-center gap-1">
+              <span className="text-label-sm text-on-surface-variant mr-0.5 uppercase tracking-widest text-[10px] hidden sm:inline">
+                MV
               </span>
-              <div className="flex gap-1.5">
-                {(['0', '1', '2', '3', '4', '5+'] as CmcBucket[]).map((bucket) => (
-                  <button
-                    key={bucket}
-                    className={`w-9 h-9 rounded-lg text-label-sm border transition-all ${
-                      activeCmc.includes(bucket)
-                        ? 'bg-primary/20 text-primary border-primary/40 font-bold'
-                        : 'bg-surface-container-high hover:bg-primary/20 border-outline-variant/20'
-                    }`}
-                    onClick={() => onToggleCmc(bucket)}
-                    aria-pressed={activeCmc.includes(bucket)}
-                  >
-                    {bucket}
-                  </button>
-                ))}
-              </div>
+              {(['0', '1', '2', '3', '4', '5+'] as CmcBucket[]).map((bucket) => (
+                <button
+                  key={bucket}
+                  className={`w-7 h-7 rounded-md text-[11px] border transition-all ${
+                    activeCmc.includes(bucket)
+                      ? 'bg-primary/20 text-primary border-primary/40 font-bold'
+                      : 'bg-surface-container-high hover:bg-primary/20 border-outline-variant/20'
+                  }`}
+                  onClick={() => onToggleCmc(bucket)}
+                  aria-pressed={activeCmc.includes(bucket)}
+                >
+                  {bucket}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Row 3: type filters */}
-          <div className="flex flex-wrap gap-sm border-t border-outline-variant/10 pt-md">
+          {/* Row 2: type filters */}
+          <div className="flex flex-wrap gap-1.5 border-t border-outline-variant/10 pt-sm">
             {TYPE_FILTERS.map((type) => (
               <button
                 key={type}
-                className={`px-4 py-2 rounded-full text-label-sm transition-colors font-medium border min-h-[40px] ${
+                className={`px-3 py-1 rounded-full text-[11px] transition-colors font-medium border ${
                   activeType.includes(type)
                     ? 'bg-primary/10 border-primary/30 text-primary'
                     : 'bg-surface-container-low border-outline-variant/20 text-on-surface-variant hover:border-primary/50'

@@ -6,6 +6,11 @@ import { Header } from '../../../shared/components/layout/Header';
 import { getErrorMessage } from '../../../shared/lib/errors';
 import { SupportPane, type SupportAvatar } from './SupportPane';
 
+/** Shown on hover over the disabled username/password fields and Login
+ * button, explaining why only Google sign-in is offered. */
+const LOGIN_HINT =
+  'Currently I only allow logins through Google, as I do not want to be responsible for your Data.';
+
 export interface AuthPageProps {
   heading: string;
   subheading: string;
@@ -18,7 +23,6 @@ export interface AuthPageProps {
   mainTopPaddingClassName?: string;
   onLoginSuccess?: (idToken: string) => Promise<void> | void;
   supportAvatars?: SupportAvatar[];
-  oracleCardImageSrc?: string;
 }
 
 export function AuthPage({
@@ -33,7 +37,6 @@ export function AuthPage({
   mainTopPaddingClassName = 'pt-24',
   onLoginSuccess,
   supportAvatars,
-  oracleCardImageSrc,
 }: AuthPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -68,8 +71,13 @@ export function AuthPage({
               </div>
 
               <form className="space-y-md" onSubmit={(event) => event.preventDefault()}>
-                <FormField label={identityLabel} placeholder={identityPlaceholder} type="text" />
-                <FormField label={secretLabel} placeholder="••••••••" type="password" />
+                <FormField
+                  label={identityLabel}
+                  placeholder={identityPlaceholder}
+                  type="text"
+                  hint={LOGIN_HINT}
+                />
+                <FormField label={secretLabel} placeholder="••••••••" type="password" hint={LOGIN_HINT} />
 
                 <div className="flex items-center justify-between py-xs">
                   <label className="flex items-center gap-sm cursor-pointer group">
@@ -82,10 +90,12 @@ export function AuthPage({
                 {error && <p className="font-label-sm text-error" role="alert">{error}</p>}
 
                 <div className="pt-sm space-y-md">
-                  <button className="primary-btn-gloss w-full py-md rounded-full text-on-primary font-headline-md flex items-center justify-center gap-sm transition-transform active:scale-95 shadow-xl disabled:opacity-60 disabled:cursor-not-allowed" type="submit" disabled>
-                    <span className="material-symbols-outlined">bolt</span>
-                    {submitLabel}
-                  </button>
+                  <div title={LOGIN_HINT} className="cursor-help">
+                    <button className="primary-btn-gloss w-full py-md rounded-full text-on-primary font-headline-md flex items-center justify-center gap-sm transition-transform active:scale-95 shadow-xl disabled:opacity-60 disabled:cursor-not-allowed" type="submit" disabled>
+                      <span className="material-symbols-outlined">bolt</span>
+                      {submitLabel}
+                    </button>
+                  </div>
                   <div className="flex items-center gap-md text-outline-variant py-sm">
                     <div className="h-px flex-grow bg-outline-variant/30" />
                     <span className="font-label-sm uppercase tracking-widest">or</span>
@@ -105,7 +115,7 @@ export function AuthPage({
               </form>
             </div>
           </section>
-          <SupportPane supportAvatars={supportAvatars} oracleCardImageSrc={oracleCardImageSrc} />
+          <SupportPane supportAvatars={supportAvatars} />
         </div>
       </main>
       <Footer />
@@ -113,11 +123,26 @@ export function AuthPage({
   );
 }
 
-function FormField({ label, placeholder, type }: { label: string; placeholder: string; type: 'text' | 'password' }) {
+function FormField({
+  label,
+  placeholder,
+  type,
+  hint,
+}: {
+  label: string;
+  placeholder: string;
+  type: 'text' | 'password';
+  hint?: string;
+}) {
   return (
-    <div className="flex flex-col gap-xs">
+    <div className="flex flex-col gap-xs" title={hint}>
       <label className="font-label-md text-on-surface-variant px-xs">{label}</label>
-      <input className="mana-input bg-surface-container-low border-none rounded-lg p-md text-on-surface w-full transition-all disabled:opacity-60" placeholder={placeholder} type={type} disabled />
+      <input
+        className={`mana-input bg-surface-container-low border-none rounded-lg p-md text-on-surface w-full transition-all disabled:opacity-60 disabled:cursor-not-allowed ${hint ? 'cursor-help' : ''}`}
+        placeholder={placeholder}
+        type={type}
+        disabled
+      />
     </div>
   );
 }
