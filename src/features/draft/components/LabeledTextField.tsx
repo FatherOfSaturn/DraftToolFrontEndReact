@@ -21,13 +21,15 @@ export function LabeledTextField({
   error,
 }: LabeledTextFieldProps) {
   return (
-    <div>
+    <div className="relative">
       <div className="flex items-center gap-1.5 mb-2">
         <label className={`font-label-md text-label-md ${accentClassName}`}>{label}</label>
         {tooltip && (
-          <span className="relative inline-flex group/tooltip">
+          <span className="inline-flex group/tooltip">
             <span className="material-symbols-outlined text-base text-on-surface-variant cursor-help" aria-hidden="true">help</span>
-            <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-surface-container-high text-on-surface text-label-sm rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none min-w-[500px] max-w-[500px] border border-outline-variant/30 shadow-lg z-50">
+            {/* Containing block is the field wrapper, so the tooltip is clamped
+                to the field width and cannot spill off-screen on mobile. */}
+            <span className="absolute bottom-full left-0 mb-2 w-full max-w-[500px] px-3 py-1.5 bg-surface-container-high text-on-surface text-label-sm rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none border border-outline-variant/30 shadow-lg z-50">
               {tooltip}
             </span>
           </span>

@@ -1,11 +1,13 @@
 import type { GameHistoryEntry, GameHistoryPlayer, GameState } from '../model/accountTypes';
 
-export type DraftActionTarget = 'draft' | 'deckbuilder' | 'classic-draft';
+export type DraftActionTarget = 'draft' | 'deckbuilder' | 'classic-draft' | 'burn-draft';
 
 export interface DraftPlayerRow {
   name: string;
   /** Raw in-game player name used in route URLs (/draft, /deckbuilder, /classic-draft). */
   routeName: string;
+  /** The entry's draft type, forwarded to the deck builder so it picks the right API. */
+  gameType: GameHistoryEntry['gameType'];
   isCurrentPlayer: boolean;
   progressLabel: string;
   progressColor: string;
@@ -107,6 +109,16 @@ function playerActionFor(
       }
       return null;
     }
+    case 'burn': {
+      const complete = entry.gameState === 'game_complete';
+      if (!player.doneDrafting && !complete) {
+        return { label: 'Continue Drafting', target: 'burn-draft' };
+      }
+      if (player.doneDrafting && complete) {
+        return { label: 'Draftboard', target: 'deckbuilder' };
+      }
+      return null;
+    }
     default:
       return null;
   }
@@ -147,6 +159,7 @@ export function buildDraftCardItem(
     players.push({
       name: display,
       routeName: player.name ?? display,
+      gameType: entry.gameType,
       isCurrentPlayer: isCurrentPlayer(player, aliases, options.accountID),
       progressLabel: playerProgressLabel(pack, player.totalPacks, player.doneDrafting),
       progressColor: playerProgressColor(player.doneDrafting, opponentDone),

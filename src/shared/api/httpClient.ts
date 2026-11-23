@@ -6,7 +6,9 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly method: string,
     public readonly path: string,
-    details: string
+    details: string,
+    /** Value of the `Retry-After` response header in seconds, when present. */
+    public readonly retryAfterSeconds?: number
   ) {
     super(`${method} ${path} failed: ${status}${details ? ` ${details}` : ''}`);
     this.name = 'ApiError';
@@ -31,7 +33,15 @@ export async function request(path: string, init: RequestInit = {}): Promise<Res
   const response = await fetch(apiUrl(path), { ...init, headers });
   if (!response.ok) {
     const details = await response.text().catch(() => '');
-    throw new ApiError(response.status, init.method ?? 'GET', path, details);
+    const retryAfterHeader = response.headers.get('Retry-After');
+    const retryAfterSeconds = retryAfterHeader !== null ? Number(retryAfterHeader) : undefined;
+    throw new ApiError(
+      response.status,
+      init.method ?? 'GET',
+      path,
+      details,
+      retryAfterSeconds !== undefined && !Number.isNaN(retryAfterSeconds) ? retryAfterSeconds : undefined
+    );
   }
   return response;
 }

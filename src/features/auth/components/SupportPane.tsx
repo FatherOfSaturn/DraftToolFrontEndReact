@@ -5,7 +5,6 @@ export interface SupportAvatar {
 
 interface SupportPaneProps {
   supportAvatars?: SupportAvatar[];
-  oracleCardImageSrc?: string;
 }
 
 const DEFAULT_AVATAR_SEEDS = ['A', 'B', 'C'];
@@ -14,7 +13,7 @@ const SUPPORT_TIERS = [
   { amount: '10 Crystals', label: 'Adept Tier', icon: 'compost', bg: 'bg-primary-container/20' },
 ];
 
-export function SupportPane({ supportAvatars, oracleCardImageSrc }: SupportPaneProps) {
+export function SupportPane({ supportAvatars }: SupportPaneProps) {
   return (
     <section className="lg:col-span-5 flex flex-col gap-md">
       <div className="glass-panel p-lg rounded-xl flex flex-col h-full">
@@ -70,8 +69,6 @@ export function SupportPane({ supportAvatars, oracleCardImageSrc }: SupportPaneP
           </div>
         </div>
       </div>
-
-      <DecorativeOracleCard imageSrc={oracleCardImageSrc} />
     </section>
   );
 }
@@ -88,19 +85,6 @@ function AvatarStub({ seed }: { seed: string }) {
   return (
     <div className="w-8 h-8 rounded-full border-2 border-surface bg-surface-variant overflow-hidden flex items-center justify-center text-[10px] font-bold text-on-surface-variant">
       {seed}
-    </div>
-  );
-}
-
-function DecorativeOracleCard({ imageSrc }: { imageSrc?: string }) {
-  return (
-    <div className="relative h-40 rounded-xl overflow-hidden shadow-2xl bg-gradient-to-br from-primary-container/30 via-surface-container to-secondary-container/20">
-      {imageSrc && <img className="absolute inset-0 w-full h-full object-cover" src={imageSrc} alt="" />}
-      <div className="absolute inset-0 bg-gradient-to-t from-surface to-transparent opacity-80" />
-      <div className="absolute bottom-md left-md">
-        <p className="font-label-sm text-primary uppercase tracking-tighter">Current Oracle</p>
-        <h4 className="font-headline-md text-on-surface">The Weaver of Fates</h4>
-      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
+import { Spinner } from '../../../shared/components/Spinner';
 import type { DeckPagination } from '../hooks/useAccountDecks';
 import type { Deck } from '../model/accountTypes';
 
@@ -94,8 +95,8 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
   const navigate = useNavigate();
 
   return (
-    <section className="xl:col-span-5 space-y-6">
-      <div className="flex items-center justify-between">
+    <section className="xl:col-span-5 space-y-6 min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-headline-lg text-headline-lg flex items-center gap-3">
           <span className="material-symbols-outlined text-secondary text-[32px]">auto_fix_high</span>
           Saved Decks
@@ -110,9 +111,7 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
         {error && <div className="px-4 py-3 bg-error/10 text-error font-label-sm border-b border-error/20">{error}</div>}
 
         <div className="p-4">
-          {loading && (
-            <div className="py-10 text-center text-on-surface-variant font-body-md">Loading decks…</div>
-          )}
+          {loading && <Spinner className="py-10" label="Loading saved decks" />}
           {!loading && decks.length === 0 && (
             <div className="py-10 text-center text-on-surface-variant font-body-md">No saved decks yet. Create one to get started.</div>
           )}
@@ -140,10 +139,10 @@ export function SavedDecksSection({ decks, loading, error, onDelete, onUpdate, o
                     truncate
                   />
 
-                  <div className="flex items-center gap-3 text-sm">
+                  <div className="flex flex-wrap items-center gap-3 text-sm">
                     <span className="material-symbols-outlined text-secondary text-[16px]">style</span>
                     <span className="text-secondary font-medium">{deck.cardIds.length} Cards</span>
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
                       <button
                         className="px-3 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 text-xs font-label-sm transition-all"
                         onClick={() => navigate('/deckbuilder', { state: { deckCardIds: deck.cardIds, deckID: deck.deckID, deckName: deck.name, deckDescription: deck.description } })}

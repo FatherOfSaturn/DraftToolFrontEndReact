@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pagination } from '../../../shared/components/Pagination';
+import { Spinner } from '../../../shared/components/Spinner';
 import { useToast } from '../../../shared/components/Toast';
 import type { Pagination as PaginationState } from '../hooks/useGameHistory';
 import type { GameHistoryEntry } from '../model/accountTypes';
@@ -9,10 +10,12 @@ import { buildDraftCardItem, type DraftPlayerRow } from './pastDraftsModel';
 const GAME_TYPE_LABELS: Record<GameHistoryEntry['gameType'], string> = {
   pyramid: 'Pyramid',
   classic: 'Classic',
+  burn: 'Burn',
 };
 
 interface PastDraftsSectionProps {
   games: GameHistoryEntry[];
+  loading: boolean;
   pagination: PaginationState;
   currentPlayerNames?: string[];
   currentAccountID?: string;
@@ -50,6 +53,7 @@ function PlayerRow({ row, gameID }: { row: DraftPlayerRow; gameID: string }) {
           onClick={() =>
             navigate(
               `/${row.action!.target}/${encodeURIComponent(gameID)}/${encodeURIComponent(row.routeName)}`,
+              row.action!.target === 'deckbuilder' ? { state: { gameType: row.gameType } } : undefined,
             )
           }
         >
@@ -114,7 +118,7 @@ function DraftCard({
                 href={`https://cubecobra.com/cube/list/${card.cubeID}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline break-all"
                 title="Click to visit cube on CubeCobra"
                 onClick={(event) => event.stopPropagation()}
               >
@@ -153,13 +157,14 @@ function DraftCard({
 
 export function PastDraftsSection({
   games,
+  loading,
   pagination,
   currentPlayerNames,
   currentAccountID,
 }: PastDraftsSectionProps) {
   return (
-    <section className="xl:col-span-7 space-y-6">
-      <div className="flex items-center justify-between">
+    <section className="xl:col-span-7 space-y-6 min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="font-headline-lg text-headline-lg flex items-center gap-3">
           <span className="material-symbols-outlined text-primary text-[32px]">history_edu</span>
           Past Drafts
@@ -171,12 +176,13 @@ export function PastDraftsSection({
       </div>
 
       <div className="glass-panel rounded-xl overflow-hidden arcane-glow">
-        {games.length === 0 && (
+        {loading && <Spinner className="py-10" label="Loading past drafts" />}
+        {!loading && games.length === 0 && (
           <div className="p-10 text-center text-on-surface-variant font-body-md">
             No drafts match these filters.
           </div>
         )}
-        {games.length > 0 && (
+        {!loading && games.length > 0 && (
           <div className="p-4 grid grid-cols-1 gap-4">
             {games.map((game) => (
               <DraftCard

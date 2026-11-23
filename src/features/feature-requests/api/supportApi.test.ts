@@ -94,4 +94,33 @@ describe('supportApi', () => {
     await supportApi.delete('42');
     expect(requestVoidMock).toHaveBeenCalledWith('/support/42', { method: 'DELETE' });
   });
+
+  it('POSTs only the anti-spam-safe payload to /support/ and returns just the id', async () => {
+    requestJsonMock.mockResolvedValue({ id: 'abc' });
+    const result = await supportApi.create({
+      title: 'Test ticket',
+      description: 'Details',
+      contactEmail: 'a@b.com',
+      priority: 'medium',
+      type: 'bug_fix',
+      website: '',
+      formToken: 'tok',
+      'cf-turnstile-response': 'cf-tok',
+    });
+    const call = requestJsonMock.mock.calls[0];
+    expect(call[0]).toBe('/support/');
+    const body = JSON.parse(call[1].body);
+    expect(body.website).toBe('');
+    expect(body.formToken).toBe('tok');
+    expect(body['cf-turnstile-response']).toBe('cf-tok');
+    expect(body).not.toHaveProperty('accountID');
+    expect(result).toEqual({ id: 'abc' });
+  });
+
+  it('fetches the form token from /support/form-token', async () => {
+    requestJsonMock.mockResolvedValue({ token: 'ey.abc' });
+    const result = await supportApi.getFormToken();
+    expect(requestJsonMock).toHaveBeenCalledWith('/support/form-token');
+    expect(result.token).toBe('ey.abc');
+  });
 });

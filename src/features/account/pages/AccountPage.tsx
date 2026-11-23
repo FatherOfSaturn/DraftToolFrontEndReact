@@ -13,7 +13,7 @@ export function AccountPage() {
   const { account } = useAuth();
   const navigate = useNavigate();
   const { decks, isLoading, error, deleteDeck, updateDeck, pagination: deckPagination } = useAccountDecks(account?.accountID);
-  const { games, pagination, filters } = useGameHistory(account?.accountID);
+  const { games, pagination, filters, isLoading: draftsLoading } = useGameHistory(account?.accountID);
 
   return (
     <div className="font-body-md text-on-surface bg-surface-dim min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container">
@@ -46,6 +46,7 @@ export function AccountPage() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-gutter items-start">
           <PastDraftsSection
             games={games}
+            loading={draftsLoading}
             pagination={pagination}
             currentPlayerNames={[account?.displayName, account?.email].filter(
               (name): name is string => typeof name === 'string' && name.length > 0

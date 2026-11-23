@@ -9,6 +9,7 @@ import { StatusScreen } from '../../../shared/components/StatusScreen';
 import { useCardFilters } from '../../card-workspace/hooks/useCardFilters';
 import { gameApi } from '../../draft/api/gameApi';
 import { classicGameApi } from '../../draft/api/classicGameApi';
+import { burnGameApi } from '../../draft/api/burnGameApi';
 import { buildCard } from '../../card-workspace/utils/importDecklist';
 import { BASIC_LANDS } from '../../../shared/lib/basicLands';
 import { getErrorMessage } from '../../../shared/lib/errors';
@@ -23,8 +24,9 @@ import type { Card } from '../../../shared/model/cardTypes';
  * pieces (FilterPanel, CardGrid, PoolSidebar) but with a different
  * interaction model and no live draft session at all:
  *
- *  - The main grid IS the decklist (not a pack to pick from) — clicking
- *    a card in the grid moves it to the sideboard, no staging/confirm step.
+ *  - The main grid shows either the decklist or the sideboard, chosen with
+ *    the Decklist/Sideboard toggle in the filter header. Clicking a card in
+ *    the grid moves it to the other collection, no staging/confirm step.
  *  - PoolSidebar's List/Sideboard/Analytics tabs are different views —
  *    List shows the decklist, Sideboard shows cards moved out of it;
  *    clicking a Sideboard row moves the card back to the decklist.
@@ -56,12 +58,15 @@ export function DeckBuilderPage() {
   // Classic drafts flag themselves via navigation state because the classic
   // backend only serves full game data once the draft is complete.
   const isClassic = locState?.gameType === 'classic';
+  const isBurn = locState?.gameType === 'burn';
 
   const [decklist, setDecklist] = useState<Card[]>([]);
   const [sideboard, setSideboard] = useState<Card[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
+  /** Which collection the main grid shows. Both views share the filter bar. */
+  const [gridView, setGridView] = useState<'decklist' | 'sideboard'>('decklist');
 
   // Default to 'import' for the blank mode, 'list' when arriving from a draft
   const [poolTab, setPoolTab] = useState<PoolSidebarTab>(gameID ? 'list' : 'import');
@@ -71,6 +76,7 @@ export function DeckBuilderPage() {
     setError(null);
     setDecklist([]);
     setSideboard([]);
+    setGridView('decklist');
     setPoolTab(gameID && playerName ? 'list' : deckCardIds ? 'list' : 'import');
 
     // If we received card IDs from navigation state (e.g. "View in Deckbuilder"),
@@ -107,9 +113,11 @@ export function DeckBuilderPage() {
     }
 
     setLoading(true);
-    const playerPromise = isClassic
-      ? classicGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
-      : gameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName));
+    const playerPromise = isBurn
+      ? burnGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
+      : isClassic
+        ? classicGameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName))
+        : gameApi.fetchGameData(gameID).then((info) => info.players.find((p) => p.playerName === playerName));
 
     playerPromise
       .then((player) => {
@@ -132,7 +140,8 @@ export function DeckBuilderPage() {
     };
   }, [gameID, playerName, deckCardIds, isClassic]);
 
-  const { filteredCards: visibleCards, filterPanelProps } = useCardFilters(decklist);
+  const gridCards = gridView === 'sideboard' ? sideboard : decklist;
+  const { filteredCards: visibleCards, filterPanelProps } = useCardFilters(gridCards);
 
   function moveToSideboard(card: Card) {
     setDecklist((prev) => prev.filter((c) => c.cardID !== card.cardID));
@@ -215,17 +224,56 @@ export function DeckBuilderPage() {
       />
 
       <main className="mt-20 mb-16 xl:mr-80 px-margin-mobile md:px-margin-desktop py-lg">
-        <FilterPanel {...filterPanelProps} />
+        <FilterPanel
+          {...filterPanelProps}
+          headerAccessory={
+            <div
+              className="flex items-center gap-0.5 bg-surface-container-low border border-outline-variant/30 rounded-lg p-0.5"
+              role="group"
+              aria-label="Choose which collection the card grid shows"
+            >
+              {([
+                { view: 'decklist', label: 'Decklist', count: decklist.length },
+                { view: 'sideboard', label: 'Sideboard', count: sideboard.length },
+              ] as const).map(({ view, label, count }) => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => setGridView(view)}
+                  aria-pressed={gridView === view}
+                  className={`px-2 py-1 rounded-md text-[11px] font-label-sm whitespace-nowrap transition-colors ${
+                    gridView === view
+                      ? 'bg-primary text-on-primary shadow-sm'
+                      : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/60'
+                  }`}
+                >
+                  {label}
+                  <span className={`ml-1 hidden sm:inline ${gridView === view ? 'text-on-primary/70' : 'text-on-surface-variant/70'}`}>
+                    {count}
+                  </span>
+                </button>
+              ))}
+            </div>
+          }
+        />
 
-        <CardGrid cards={visibleCards} stagedCardID={null} onStage={moveToSideboard} disabled={false} minSlots={0} />
+        <CardGrid
+          cards={visibleCards}
+          stagedCardID={null}
+          onStage={gridView === 'sideboard' ? moveToList : moveToSideboard}
+          disabled={false}
+          minSlots={0}
+        />
 
-        {decklist.length === 0 && (
+        {gridCards.length === 0 && (
           <p className="text-center text-on-surface-variant text-body-md py-xl">
-            Your decklist is empty. Use the Import tab in "My Pool" to add cards, or check your Sideboard.
+            {gridView === 'sideboard'
+              ? 'Your sideboard is empty. Click a card in the decklist to move it here.'
+              : 'Your decklist is empty. Use the Import tab in "My Pool" to add cards, or check your Sideboard.'}
           </p>
         )}
 
-        {decklist.length > 0 && visibleCards.length === 0 && (
+        {gridCards.length > 0 && visibleCards.length === 0 && (
           <p className="text-center text-on-surface-variant text-body-md py-xl">
             No cards match these filters.
           </p>

@@ -12,6 +12,8 @@ export interface RitualDefinition {
   cardBorderClass: string;
   artGradientClass: string;
   glowClass?: string;
+  /** Unimplemented formats keep their card visible but cannot be started. */
+  unavailable?: boolean;
 }
 
 const RITUALS: RitualDefinition[] = [
@@ -41,6 +43,18 @@ const RITUALS: RitualDefinition[] = [
     artGradientClass: 'bg-gradient-to-br from-primary-container/30 via-surface-container to-secondary-container/20',
   },
   {
+    id: 'burn-draft',
+    name: 'Burn Draft',
+    tag: 'ROTISSERIE',
+    tagTextClass: 'text-error',
+    tagBorderClass: 'border-error/30',
+    description:
+      'Draft a few, burn a few. Pass the rest. A rotisserie with a twist — tune your quotas and watch the cube burn.',
+    icon: 'local_fire_department',
+    cardBorderClass: '',
+    artGradientClass: 'bg-gradient-to-br from-error-container/40 via-surface-container to-tertiary-container/30',
+  },
+  {
     id: 'chaos-manifest',
     name: 'Chaos Draft',
     tag: 'UNDER_CONSTRUCTION',
@@ -51,6 +65,7 @@ const RITUALS: RitualDefinition[] = [
     icon: 'cyclone',
     cardBorderClass: 'border-secondary/20',
     artGradientClass: 'bg-gradient-to-br from-secondary-container/40 via-surface-container to-primary-container/40',
+    unavailable: true,
   },
   {
     id: 'alchemists-lab',
@@ -63,27 +78,23 @@ const RITUALS: RitualDefinition[] = [
     icon: 'science',
     cardBorderClass: 'border-tertiary/20',
     artGradientClass: 'bg-gradient-to-br from-tertiary-container/50 via-surface-container to-surface-container-high',
+    unavailable: true,
   },
 ];
 
 export interface DraftSelectionPageProps {
-  /** Called when a ritual card's "Start Draft" is clicked. Currently
-   * inert by design — there's no real cube-selection wiring into Draft
-   * Setup yet, so this just lets a consumer log/observe the choice
-   * without the component itself navigating anywhere. */
+  /** Called when a ritual card's "Start Draft" is clicked. */
   onSelectRitual?: (ritual: RitualDefinition) => void;
-  /** Called when the dashed "Manifest New Ritual" card is clicked. Also
-   * inert by design for the same reason. */
+  /** Called when the dashed "Request new draft type" card is clicked. Routes
+   * to the support page so users can file a ticket. */
   onCreateNewRitual?: () => void;
 }
 
 /**
  * Draft-mode picker ("choose your ritual") shown before Draft Setup.
- * There's no real cube-selection wiring yet — per App.tsx's
- * DraftSelectionRoute, clicking any ritual card (or "Manifest New
- * Ritual") just navigates on to /draft-setup; the chosen ritual isn't
- * currently carried forward into that form. All four ritual cards are
- * visually complete and equally clickable in the meantime.
+ * Selecting an available ritual navigates on to the matching setup form;
+ * unimplemented formats have their start button disabled. The dashed
+ * "Request new draft type" card routes to the support page.
  */
 export function DraftSelectionPage({ onSelectRitual, onCreateNewRitual }: DraftSelectionPageProps) {
   return (
@@ -98,7 +109,7 @@ export function DraftSelectionPage({ onSelectRitual, onCreateNewRitual }: DraftS
           </span>
           <h2 className="font-display text-display text-on-surface mb-sm">Choose Your Draft</h2>
           <p className="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto">
-            Choose from a variety of draft formats. Each has its own quirks, and has their own fun. Some cubes do better with different draft styles.
+            Choose from a variety of draft formats. Each has its own quirks, and has their own fun. Some cubes do better with different draft styles. Not sure where to start? Select the pyramid draft and fill out the form
           </p>
         </section>
 
@@ -106,7 +117,7 @@ export function DraftSelectionPage({ onSelectRitual, onCreateNewRitual }: DraftS
           {RITUALS.map((ritual) => (
             <RitualCard key={ritual.id} ritual={ritual} onSelect={() => onSelectRitual?.(ritual)} />
           ))}
-          <ManifestNewRitualCard onClick={() => onCreateNewRitual?.()} />
+          <RequestNewDraftTypeCard onClick={() => onCreateNewRitual?.()} />
         </div>
       </main>
 
@@ -146,8 +157,10 @@ function RitualCard({ ritual, onSelect }: RitualCardProps) {
       <p className="font-body-md text-body-md text-on-surface-variant mb-xl flex-grow">{ritual.description}</p>
       <button
         type="button"
-        className="w-full py-md bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_4px_12px_var(--glow-primary)]"
+        className="w-full py-md bg-primary text-on-primary font-label-md text-label-md rounded-lg flex items-center justify-center gap-sm hover:brightness-110 active:scale-[0.98] transition-all shadow-[0_4px_12px_var(--glow-primary)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
         onClick={onSelect}
+        disabled={ritual.unavailable}
+        title={ritual.unavailable ? 'This draft format is not implemented yet' : undefined}
       >
         START DRAFT
         <span className="material-symbols-outlined text-sm mana-glow">{ritual.icon}</span>
@@ -156,7 +169,7 @@ function RitualCard({ ritual, onSelect }: RitualCardProps) {
   );
 }
 
-function ManifestNewRitualCard({ onClick }: { onClick: () => void }) {
+function RequestNewDraftTypeCard({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
@@ -168,10 +181,9 @@ function ManifestNewRitualCard({ onClick }: { onClick: () => void }) {
           add
         </span>
       </div>
-      <h3 className="font-headline-md text-headline-md text-on-surface mb-xs">Manifest New Ritual</h3>
+      <h3 className="font-headline-md text-headline-md text-on-surface mb-xs px-md text-center">Request new draft type</h3>
       <p className="font-body-md text-body-md text-on-surface-variant text-center px-lg">
-        Compose a new drafting format from the aether. Custom rules, restrictions, and card pools
-        await.
+        Not happy with the drafts on offer? Fill out a support ticket and describe the draft style and provide examples.
       </p>
     </button>
   );

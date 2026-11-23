@@ -53,7 +53,7 @@ export interface GameHistoryPlayer {
 export interface GameHistoryEntry {
   gameID: string;
   cubeID: string;
-  gameType: 'pyramid' | 'classic';
+  gameType: 'pyramid' | 'classic' | 'burn';
   gameState: GameState;
   players: GameHistoryPlayer[];
   createdAt: string;

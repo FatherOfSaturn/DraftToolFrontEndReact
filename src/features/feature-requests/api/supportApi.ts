@@ -9,8 +9,31 @@ export interface CreateSupportRequest {
   description: string;
   contactEmail: string;
   priority: string;
-  accountID: string | null;
   type: SupportType;
+  /**
+   * Honeypot field. Real users never fill it in; always send it (empty
+   * string). A non-empty value makes the backend silently drop the ticket
+   * while returning a normal-looking success.
+   */
+  website: string;
+  /**
+   * Anti-spam token from GET /support/form-token. Fetched on form mount;
+   * the backend ignores it while anti-spam mode is `off`/`report-only`.
+   */
+  formToken?: string;
+  /**
+   * Cloudflare Turnstile token. Present only when the Turnstile widget is
+   * enabled (VITE_TURNSTILE_SITE_KEY set) and the user has completed it.
+   */
+  'cf-turnstile-response'?: string;
+}
+
+/**
+ * The backend deliberately returns only the ticket ID from create: the old
+ * response echoed PII and ticket metadata back to an anonymous caller.
+ */
+export interface CreateSupportResponse {
+  id: string;
 }
 
 export interface SupportRequest {
@@ -24,6 +47,10 @@ export interface SupportRequest {
   type: SupportType;
   createdOnDate: string;
   lastStatusChangeDate: string;
+}
+
+export interface FormTokenResponse {
+  token: string;
 }
 
 /**
@@ -48,11 +75,20 @@ export function normalizeSupportRequest(req: SupportRequest): SupportRequest {
 }
 
 export const supportApi = {
-  create(req: CreateSupportRequest): Promise<SupportRequest> {
-    return requestJson<SupportRequest>('/support/', {
+  create(req: CreateSupportRequest): Promise<CreateSupportResponse> {
+    return requestJson<CreateSupportResponse>('/support/', {
       method: 'POST',
       body: JSON.stringify(req),
-    }).then(normalizeSupportRequest);
+    });
+  },
+
+  /**
+   * Short-lived HMAC-signed form token (valid 3 s – 2 h after issuance).
+   * Fetch on form mount; refetch and retry once if the submit fails with a
+   * token-related 400.
+   */
+  getFormToken(): Promise<FormTokenResponse> {
+    return requestJson<FormTokenResponse>('/support/form-token');
   },
 
   getAll(): Promise<SupportRequest[]> {
