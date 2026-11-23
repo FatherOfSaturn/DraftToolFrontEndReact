@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTheme, type ThemeDefinition } from './ThemeContext';
 
-export function ThemeSwitcher() {
+interface ThemeSwitcherProps {
+  /**
+   * `icon` renders the compact palette button + dropdown used in the top
+   * navigation. `inline` renders the theme choices directly as list rows,
+   * used in the mobile slide-out menu.
+   */
+  variant?: 'icon' | 'inline';
+}
+
+export function ThemeSwitcher({ variant = 'icon' }: ThemeSwitcherProps) {
   const { theme, setTheme, themes } = useTheme();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -26,6 +35,43 @@ export function ThemeSwitcher() {
     { label: 'Dark', items: themes.filter((t) => t.group === 'dark') },
     { label: 'Light', items: themes.filter((t) => t.group === 'light') },
   ];
+
+  if (variant === 'inline') {
+    return (
+      <div ref={rootRef} className="flex flex-col gap-1">
+        <div className="flex items-center gap-3 px-4 py-2 font-label-sm text-label-sm uppercase tracking-widest text-on-surface-variant">
+          <span className="material-symbols-outlined text-[20px]">palette</span>
+          Theme
+        </div>
+        {themes.map((t) => {
+          const active = t.id === theme;
+          return (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTheme(t.id)}
+              aria-pressed={active}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-left font-label-md text-label-md transition-colors ${
+                active
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-on-surface hover:bg-surface-container-highest/50'
+              }`}
+            >
+              <span
+                className="w-4 h-4 rounded-full border shrink-0"
+                style={{
+                  background: 'var(--color-background)',
+                  borderColor: active ? 'var(--color-primary)' : 'var(--color-outline-variant)',
+                }}
+              />
+              <span className="flex-grow">{t.name}</span>
+              {active && <span className="material-symbols-outlined text-[18px]">check</span>}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <div className="relative" ref={rootRef}>

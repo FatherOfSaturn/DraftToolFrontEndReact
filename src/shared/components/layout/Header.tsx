@@ -70,11 +70,13 @@ export function Header({ search }: HeaderProps) {
     <>
       <nav className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 bg-surface-dim/80 backdrop-blur-xl border-b border-outline-variant/30 shadow-[var(--nav-shadow)]">
         <div className="flex items-center gap-base">
-          <h1 className="font-display text-headline-md font-extrabold text-primary tracking-tight">
-            <Link to="/" className="text-primary hover:text-primary/80 transition-colors duration-300">
-              Pyramid Draft
-            </Link>
-          </h1>
+          <Link to="/" aria-label="Pyramid Draft home" className="flex items-center">
+            <img
+              src="/pyramid-draft-logo.png"
+              alt="Pyramid Draft"
+              className="h-12 w-12 rounded-full object-cover"
+            />
+          </Link>
         </div>
 
         {/* Desktop nav */}
@@ -116,7 +118,9 @@ export function Header({ search }: HeaderProps) {
               />
             </div>
           )}
-          <ThemeSwitcher />
+          <div className="hidden md:block">
+            <ThemeSwitcher />
+          </div>
           <button
             className="px-md py-xs bg-primary text-on-primary font-label-md text-label-md rounded-lg active:scale-95 duration-200 hover:brightness-110 transition-all"
             onClick={() => navigate(account ? '/account' : '/login')}
@@ -150,7 +154,7 @@ export function Header({ search }: HeaderProps) {
           menuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col p-lg gap-1">
+        <div className="flex flex-col flex-1 min-h-0 overflow-y-auto p-lg gap-1">
           {NAV_LINKS.filter((link) => isAdmin || link.to !== '/admin').map((link) => (
             <Link
               key={link.to}
@@ -178,6 +182,10 @@ export function Header({ search }: HeaderProps) {
               {link.label}
             </Link>
           ))}
+
+          <div className="my-3 h-px bg-outline-variant/20" />
+
+          <ThemeSwitcher variant="inline" />
         </div>
 
         {/* Mobile search */}
