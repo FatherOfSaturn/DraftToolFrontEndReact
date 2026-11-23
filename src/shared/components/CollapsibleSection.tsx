@@ -42,15 +42,17 @@ export function CollapsibleSection({
               <span className="material-symbols-outlined text-primary text-[20px] flex-shrink-0">{icon}</span>
             )}
             <span className="font-headline-md text-headline-md text-on-surface whitespace-nowrap">{title}</span>
-            {badge && <span className="flex-shrink-0">{badge}</span>}
           </div>
-          <span
-            className={`material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200 flex-shrink-0 ${
-              open ? 'rotate-180' : ''
-            }`}
-          >
-            expand_more
-          </span>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {badge && <span className="flex-shrink-0">{badge}</span>}
+            <span
+              className={`material-symbols-outlined text-on-surface-variant text-[20px] transition-transform duration-200 flex-shrink-0 ${
+                open ? 'rotate-180' : ''
+              }`}
+            >
+              expand_more
+            </span>
+          </div>
         </button>
         {headerAccessory && <div className="flex-shrink-0 pr-md">{headerAccessory}</div>}
       </div>

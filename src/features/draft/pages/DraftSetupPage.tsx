@@ -427,8 +427,16 @@ export function DraftSetupPage({ onEnterDraft }: DraftSetupPageProps) {
                     onChange={setYourName}
                     error={joinError}
                   />
-                  <div>
-                    <label className="block font-label-md text-label-md text-primary mb-2">EXTRA PICKS</label>
+                  <div className="relative">
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <label className="block font-label-md text-label-md text-primary">EXTRA PICKS</label>
+                      <span className="inline-flex group/extra-tooltip">
+                        <span className="material-symbols-outlined text-base text-on-surface-variant cursor-help" aria-hidden="true">help</span>
+                        <span className="absolute bottom-full left-0 mb-2 w-full max-w-[500px] px-3 py-1.5 bg-surface-container-high text-on-surface text-label-sm rounded-lg opacity-0 group-hover/extra-tooltip:opacity-100 transition-opacity pointer-events-none border border-outline-variant/30 shadow-lg z-50">
+                          How many packs would you want to be able to select 2 cards from, rather than the standard 1?
+                        </span>
+                      </span>
+                    </div>
                     <div className="flex items-center gap-4">
                       <input
                         className="flex-grow accent-primary"
